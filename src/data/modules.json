@@ -7,5 +7,6 @@
   {"type": "shelter", "cost": {"energy": 20, "materials": 25}, "perDay": {"energy": -1}, "builder": "doctor"},
   {"type": "iceMine", "cost": {"energy": 15}, "perDay": {"water": 6, "energy": -4}, "builder": "scientist"},
   {"type": "rockMine", "cost": {"energy": 10}, "perDay": {"materials": 5, "energy": -3}, "builder": "scientist"},
-  {"type": "storage", "cost": {"energy": 10, "materials": 15}, "perDay": {"energy": -1}, "capacity": {"water": 100, "food": 100, "materials": 100}, "builder": "engineer"}
+  {"type": "storage", "cost": {"energy": 10, "materials": 15}, "perDay": {"energy": -1}, "capacity": {"water": 100, "food": 100, "materials": 100}, "builder": "engineer"},
+  {"type": "medbay", "cost": {"energy": 15, "materials": 10}, "perDay": {"energy": -2}, "builder": "doctor"}
 ]

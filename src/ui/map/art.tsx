@@ -13,6 +13,7 @@ export const ART_HEIGHT: Record<ModuleType, number> = {
   greenhouse: 44,
   shelter: 40,
   storage: 34,
+  medbay: 34,
   iceMine: 30,
   rockMine: 30,
 };
@@ -188,6 +189,19 @@ function Storage() {
   );
 }
 
+// Медпункт: белый домик с красным крестом на стене
+function Medbay() {
+  return (
+    <g>
+      <Shadow rx={40} ry={17} />
+      <Box w={24} d={12} h={26} dx={0} dy={0} />
+      <path d="M -17 -22 L -17 -4 L -7 1 L -7 -17 Z" fill="#9fd0ff" opacity="0.9" />
+      <path d="M 6 -12 L 6 -5 M 2.5 -8.5 L 9.5 -8.5" stroke="#ff4d5e" strokeWidth="3" strokeLinecap="round" transform="translate(6 -4) scale(1.2)" />
+      <Light x={-2} y={-34} />
+    </g>
+  );
+}
+
 // Добыча стоит прямо на месторождении: под машиной видно лёд или камни
 function IceMine() {
   return (
@@ -216,6 +230,7 @@ const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
   greenhouse: Greenhouse,
   shelter: Shelter,
   storage: Storage,
+  medbay: Medbay,
   iceMine: IceMine,
   rockMine: RockMine,
 };

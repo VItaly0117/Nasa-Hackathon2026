@@ -1,6 +1,8 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
+import { t } from "../i18n";
 import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
+import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
 import { ru } from "../i18n/ru";
 import { dayOfEvent } from "./events";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
@@ -30,8 +32,8 @@ function tryBuild(state: GameState, type: ModuleType): GameState {
 }
 
 // Робот строит в порядке очереди. Если не хватает ресурсов или все заняты, модуль ждёт и строится, как только можно
-export function playMission(strategy: Strategy): GameState {
-  let s = initialState();
+export function playMission(strategy: Strategy, seed = 1): GameState {
+  let s = initialState(seed); // фиксированный seed: болезни случаются одинаково, проверки не прыгают
   const queue: ModuleType[] = [];
   let queuedDay = 0;
   // запас по числу шагов, чтобы ошибка в движке не подвесила проверку
@@ -57,8 +59,8 @@ export function playMission(strategy: Strategy): GameState {
   return s;
 }
 
-const CAREFUL = { breakdown: "repair", flare: "hide" };
-const RECKLESS = { breakdown: "ignore", flare: "work" };
+const CAREFUL = { breakdown: "repair", flare: "hide", illness: "treat" };
+const RECKLESS = { breakdown: "ignore", flare: "work", illness: "ignore" };
 
 // Ничего не строим, но на события отвечаем правильно
 const IDLE: Strategy = { builds: {}, choices: CAREFUL };
@@ -193,6 +195,105 @@ export function runChecks(): CheckResult[] {
   check("Модуль в стройке задание ещё не закрывает", unfinished.tasks.find((x) => x.id === "greenhouse")?.status === "open", "статус open");
   const noText = TASK_DEFS.flatMap((d) => [`task.${d.id}`, `task.${d.id}.why`]).filter((k) => !(k in ru));
   check("У каждого задания есть текст и объяснение", noText.length === 0, noText.join(", ") || `${TASK_DEFS.length} заданий`);
+
+  // Болезнь во время стройки
+  // seed, при котором строитель панелей на 2-й день заболевает посреди стройки
+  const illnessAt = (seed: number): GameState => {
+    let s = reduce(initialState(seed), { type: "tick", ms: DAY_MS }); // день 2
+    s = tryBuild(s, "solar");
+    return reduce(s, { type: "tick", ms: BUILD_MS });
+  };
+  let sickSeed = 0;
+  for (let seed = 1; seed < 500 && !sickSeed; seed++) if (illnessAt(seed).activeEvent === "illness") sickSeed = seed;
+  check("Во время стройки можно заболеть (нашёлся seed)", sickSeed > 0, `seed ${sickSeed}`);
+
+  const sick = illnessAt(sickSeed);
+  const patient = sick.illness!.crewId;
+  const building = (s: GameState) => s.modules.find((m) => m.build);
+  check(
+    "Событие болезни: строитель отмечен, стройка и часы стоят",
+    sick.activeEvent === "illness" && building(sick)?.build?.crewId === patient && sick.status === "playing",
+    `заболел ${patient}, осталось ${building(sick)?.build?.leftMs} мс`,
+  );
+  const medbay = { slot: slotOf(1, 0), type: "medbay" as const, broken: false };
+  const withMedbay = (s: GameState): GameState => ({ ...s, modules: [...s.modules, medbay] });
+
+  const treated = reduce(sick, { type: "resolveEvent", choice: "treat" });
+  check(
+    "Вылечить: −10 воды и −8 еды, стройка продолжается тем же человеком",
+    sick.resources.water - treated.resources.water === 10 && sick.resources.food - treated.resources.food === 8 && building(treated)?.build?.crewId === patient && treated.activeEvent === null && treated.illness === null,
+    `вода −${sick.resources.water - treated.resources.water}, еда −${sick.resources.food - treated.resources.food}`,
+  );
+  const treatedMed = reduce(withMedbay(sick), { type: "resolveEvent", choice: "treat" });
+  check(
+    "С медпунктом лечение вдвое дешевле",
+    sick.resources.water - treatedMed.resources.water === 5 && sick.resources.food - treatedMed.resources.food === 4,
+    `вода −${sick.resources.water - treatedMed.resources.water}, еда −${sick.resources.food - treatedMed.resources.food}`,
+  );
+
+  const ignored = reduce(sick, { type: "resolveEvent", choice: "ignore" });
+  const patientAfter = ignored.crew.find((c) => c.id === patient)!.status;
+  check(
+    "Не лечить: больной выбывает на 2 дня, здоровье −5, стройку подхватывает другой",
+    patientAfter.kind === "sick" && patientAfter.leftMs === 2 * DAY_MS && sick.resources.health - ignored.resources.health === 5 && building(ignored)?.build?.crewId !== null && building(ignored)?.build?.crewId !== patient,
+    `статус ${patientAfter.kind}, строитель ${building(ignored)?.build?.crewId}`,
+  );
+  const ignoredMed = reduce(withMedbay(sick), { type: "resolveEvent", choice: "ignore" });
+  const medStatus = ignoredMed.crew.find((c) => c.id === patient)!.status;
+  check("С медпунктом больной выбывает на 1 день", medStatus.kind === "sick" && medStatus.leftMs === DAY_MS, `статус ${medStatus.kind}`);
+
+  const recovered = reduce(ignored, { type: "tick", ms: 2 * DAY_MS });
+  check(
+    "Через 2 дня больной выздоравливает и снова свободен",
+    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.text.includes(t("crew.n" + patient))),
+    `статус ${recovered.crew.find((c) => c.id === patient)!.status.kind}`,
+  );
+
+  // Все остальные заняты: стройка стоит и ждёт, потом её подхватывает освободившийся
+  const everyoneElseBusy: GameState = { ...sick, crew: sick.crew.map((c) => (c.id === patient ? c : { ...c, status: { kind: "building", slot: 999, module: "solar" } })) };
+  const waiting = reduce(everyoneElseBusy, { type: "resolveEvent", choice: "ignore" });
+  const stalled = reduce(waiting, { type: "tick", ms: 5000 });
+  check(
+    "Если некому подхватить, стройка стоит и время её не идёт",
+    building(waiting)?.build?.crewId === null && building(stalled)?.build?.leftMs === building(waiting)?.build?.leftMs,
+    `осталось ${building(stalled)?.build?.leftMs} мс`,
+  );
+  const helperId = stalled.crew.find((c) => c.id !== patient)!.id; // любой, кроме больного
+  const freed = reduce({ ...stalled, crew: stalled.crew.map((c) => (c.id === helperId ? { ...c, status: { kind: "free" } } : c)) }, { type: "tick", ms: 100 });
+  check(
+    "Освободился человек: он подхватывает стройку, и она снова идёт",
+    building(freed)?.build?.crewId !== null && (building(freed)?.build?.leftMs ?? 0) < (building(stalled)?.build?.leftMs ?? 0),
+    `строитель ${building(freed)?.build?.crewId}`,
+  );
+
+  // Ограничения и повторяемость
+  let tooEarly = 0;
+  for (let seed = 1; seed <= 80; seed++) {
+    const day1 = reduce(tryBuild(initialState(seed), "solar"), { type: "tick", ms: DAY_MS - 1 });
+    if (day1.activeEvent === "illness") tooEarly++;
+  }
+  check("В первый день никто не заболевает", tooEarly === 0, `случаев ${tooEarly}`);
+  let worst = { count: 0, minGap: Infinity };
+  for (let seed = 1; seed <= 40; seed++) {
+    const run = playMission(PREPARED, seed);
+    const days = run.history.filter((h) => h.kind === "choice" && h.event === "illness").map((h) => h.day);
+    worst = { count: Math.max(worst.count, days.length), minGap: Math.min(worst.minGap, ...days.slice(1).map((d, i) => d - days[i])) };
+  }
+  check(
+    `За миссию не больше ${MAX_ILLNESS} болезней и не чаще, чем раз в ${ILLNESS_GAP} дней (40 разных seed)`,
+    worst.count <= MAX_ILLNESS && worst.minGap >= ILLNESS_GAP,
+    `максимум ${worst.count}, минимальный промежуток ${worst.minGap === Infinity ? "—" : worst.minGap}`,
+  );
+  check("Один seed даёт одну и ту же игру", JSON.stringify(playMission(PREPARED, 7)) === JSON.stringify(playMission(PREPARED, 7)), "две партии совпали");
+  const withMedbayBuilt: GameState = { ...treated, history: [...treated.history, { day: 2, kind: "built", module: "medbay" }] };
+  check(
+    "Разбор болезни: вылечил, не лечил, медпункт",
+    buildReport(treated).helped.some((l) => l.id === "illness-treated") &&
+      buildReport(ignored).hurt.some((l) => l.id === "illness-ignored") &&
+      buildReport(withMedbayBuilt).helped.some((l) => l.id === "medbay-helped") &&
+      !buildReport(treated).helped.some((l) => l.id === "medbay-helped"),
+    "правила сработали",
+  );
 
   // Лимит хранения: без склада лишнее пропадает, со складом копится
   const fullWater = (extra: PlacedModule[]): GameState => {

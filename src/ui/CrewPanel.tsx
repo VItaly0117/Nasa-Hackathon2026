@@ -53,7 +53,8 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
       {!collapsed && (
       <ul className="crew__list">
         {CREW.map((p) => {
-          const mood = moodOf(crew.find((c) => c.id === p.id)?.morale ?? 70, health);
+          const member = crew.find((c) => c.id === p.id);
+          const mood = member?.status.kind === "sick" ? -1 : moodOf(member?.morale ?? 70, health);
           return (
           <li key={p.id} className="crew__item">
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
@@ -63,7 +64,11 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
                 {t(`crew.r${p.id}`)} ·{" "}
                 {(() => {
                   const status = crew.find((c) => c.id === p.id)?.status;
-                  return status?.kind === "building" ? t("crew.building", { name: moduleName(status.module) }) : t("crew.free");
+                  return status?.kind === "building"
+                    ? t("crew.building", { name: moduleName(status.module) })
+                    : status?.kind === "sick"
+                      ? t("crew.sick")
+                      : t("crew.free");
                 })()}
               </span>
               <div className="crew__bar">

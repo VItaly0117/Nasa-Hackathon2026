@@ -321,7 +321,9 @@ export default function LunarMap({
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
         title: moduleName(def.type),
         text: module.build
-          ? t("map.building", { n: Math.round((1 - module.build.leftMs / module.build.totalMs) * 100) })
+          ? module.build.crewId === null
+            ? t("map.waiting")
+            : t("map.building", { n: Math.round((1 - module.build.leftMs / module.build.totalMs) * 100) })
           : module.broken
             ? t("map.broken")
             : perDayText(def, isNight),
