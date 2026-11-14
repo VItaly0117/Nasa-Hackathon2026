@@ -20,7 +20,7 @@ export const MAP_LAYOUT: string[] = [
   "GGGGGGGGGGGGGGGGGGCGGGGGGGGGCG",
   "GGGGGGGGGGGGGGGGGGGGGGRGGGGGGG",
   "GGGGGGGGGGRGPGGGGGGGGGGGGIGGGG",
-  "GGGGGGGGGGGGGGGGCGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGIGCGGGGGGGGGGGGG",
   "GGRGGGGGGGGGGGGGGGGGGGGGGGGRGG",
   "GGGGGGGGGGGGGGGGGGGGIGGGGGGGGG",
   "GGGGGGGGCGGGGGGRGGGGGGGGGCGGGG",
@@ -49,7 +49,7 @@ export function getTileInfo(row: number, col: number): TileInfo {
     col,
     terrain,
     canBuild: terrain === "ground",
-    canMine: terrain === "ice",
+    canMine: terrain === "ice" || terrain === "rock",
   };
 }
 
@@ -75,8 +75,14 @@ export function isNearBase(modules: PlacedModule[], row: number, col: number): b
 }
 
 // TODO @Regie: размер модуля, лёд только для добычи
-export function canPlace(state: GameState, _type: ModuleType, row: number, col: number): boolean {
-  if (!getTileInfo(row, col).canBuild) return false;
+export function canPlace(state: GameState, type: ModuleType, row: number, col: number): boolean {
+  const tile = getTileInfo(row, col);
+  // Добыча ставится прямо на месторождение, остальное — на ровный грунт
+  const fits =
+    type === "iceMine" ? tile.terrain === "ice"
+    : type === "rockMine" ? tile.terrain === "rock"
+    : tile.canBuild;
+  if (!fits) return false;
   if (state.modules.some((m) => m.slot === slotOf(row, col))) return false;
   return isNearBase(state.modules, row, col);
 }
