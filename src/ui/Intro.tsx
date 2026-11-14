@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { sound } from "../audio/audio";
 import "./Intro.css";
 
 const RULES = [1, 2, 3, 4, 5, 6];
@@ -27,7 +28,13 @@ export function Intro({ onStart, rulesOnly = false }: Props) {
           ))}
         </ol>
         <div className="intro__actions">
-          <button className="btn btn--primary" onClick={onStart}>
+          <button
+            className="btn btn--primary"
+            onClick={() => {
+              sound.playClick();
+              onStart();
+            }}
+          >
             {rulesOnly ? t("intro.close") : t("intro.start")}
           </button>
         </div>

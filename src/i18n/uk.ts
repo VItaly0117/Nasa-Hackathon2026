@@ -41,6 +41,8 @@ export const uk: Record<keyof typeof ru, string> = {
   "app.lunarDay": "місячний день",
   "app.nextDay": "Наступний день",
   "app.rules": "Правила",
+  "app.soundOn": "Вимкнути звук",
+  "app.soundOff": "Увімкнути звук",
   "app.win": "Місію виконано!",
   "app.lose": "Місію провалено",
   "app.daysOnMoon": "Днів на Місяці: {n}",

@@ -1,7 +1,7 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
 import { t } from "../i18n";
-import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
+import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce } from "./engine";
 import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
 import eventsData from "../data/events.json";
 import { en } from "../i18n/en";
@@ -140,10 +140,20 @@ export function runChecks(): CheckResult[] {
 
   // Стройка руками экипажа
   const fresh = initialState();
+  check(
+    "В экипаже ровно инженер, учёный и техник",
+    new Set(fresh.crew.map((c) => c.role)).size === 3 && fresh.crew.every((c) => ["engineer", "scientist", "technician"].includes(c.role)),
+    fresh.crew.map((c) => c.role).join(", "),
+  );
+  check(
+    "Убежище и медпункт строит техник",
+    getDef("shelter").builder === "technician" && getDef("medbay").builder === "technician",
+    `убежище: ${getDef("shelter").builder}, медпункт: ${getDef("medbay").builder}`,
+  );
   let busy = fresh;
   for (let i = 0; i < fresh.crew.length; i++) busy = tryBuild(busy, "solar");
   const allBusy = busy.crew.every((c) => c.status.kind === "building");
-  check("Каждую стройку ведёт отдельный член экипажа, и все четверо заняты", allBusy, busy.crew.map((c) => c.status.kind).join(", "));
+  check("Каждую стройку ведёт отдельный член экипажа, и все члены заняты", allBusy, busy.crew.map((c) => c.status.kind).join(", "));
   check("Когда все заняты, пятый модуль не ставится", tryBuild(busy, "solar") === busy, `модулей ${busy.modules.length}`);
   check(
     "Стройка не списывает ресурсы повторно и модуль в стройке ничего не даёт",
