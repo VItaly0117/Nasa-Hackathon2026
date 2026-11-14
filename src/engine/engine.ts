@@ -37,10 +37,9 @@ export function initialState(): GameState {
   return {
     day: 1,
     isNight: false,
-    resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100, materials: 20 },
-    resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100, materials: 10 },
     // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
-    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100 },
+    // материалов хватает на первые модули, а убежище (25) требует карьера
+    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 20 },
     modules: [
       // стартовая база вокруг посадочной площадки (ряд 5, колонка 12): каждый модуль в двух клетках
       // от неё в своей стороне, чтобы между зданиями оставалось место

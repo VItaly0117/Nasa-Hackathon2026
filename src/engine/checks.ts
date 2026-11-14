@@ -52,7 +52,8 @@ const CARELESS: Strategy = { builds: {}, choices: RECKLESS };
 // Готовимся ко всему: еда, энергия, убежище до вспышки, батареи до ночи
 const PREPARED: Strategy = {
   builds: {
-    1: ["greenhouse", "lifeSupport", "solar"],
+    // карьер первым: убежище стоит 25 материалов, а с ракеты их только 20
+    1: ["rockMine", "greenhouse", "lifeSupport", "solar"],
     2: ["solar"],
     3: ["solar"],
     4: ["lifeSupport"],

@@ -74,7 +74,6 @@ export function isNearBase(modules: PlacedModule[], row: number, col: number): b
   return modules.some((m) => cellDistance(cellOf(m.slot), { row, col }) <= BUILD_RADIUS);
 }
 
-// TODO @Regie: размер модуля, лёд только для добычи
 // TODO @Regie: размер модуля
 export function canPlace(state: GameState, type: ModuleType, row: number, col: number): boolean {
   const tile = getTileInfo(row, col);
