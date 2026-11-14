@@ -1,0 +1,114 @@
+import { useState } from "react";
+import { getLang, langName, t } from "../i18n";
+import type { Lang } from "../i18n";
+import { joinRoom, ROOM_NAME } from "../net/online";
+import type { Session } from "../net/online";
+import { LangSelect } from "./LangSelect";
+import { MoonLogo } from "./icons";
+import "./Intro.css";
+import "./MainMenu.css";
+
+type Props = {
+  savedDay: number | null; // день сохранённой миссии или null, если продолжать нечего
+  onLang: (lang: Lang) => void;
+  onNewGame: () => void;
+  onContinue: () => void;
+  onJoined: (session: Session) => void;
+};
+
+// Начальный экран: название игры и кнопки. Выбор языка и вход на сервер открываются здесь же
+export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: Props) {
+  const [view, setView] = useState<"main" | "lang" | "server">("main");
+  const [room, setRoom] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
+
+  if (view === "lang") {
+    return (
+      <LangSelect
+        onPick={(lang) => {
+          onLang(lang);
+          setView("main");
+        }}
+      />
+    );
+  }
+
+  async function join(e: React.FormEvent) {
+    e.preventDefault();
+    if (!ROOM_NAME.test(room)) {
+      setError(t("server.badName"));
+      return;
+    }
+    setJoining(true);
+    setError(null);
+    try {
+      onJoined(await joinRoom(room));
+    } catch {
+      setError(t("server.unavailable"));
+      setJoining(false);
+    }
+  }
+
+  if (view === "server") {
+    return (
+      <div className="overlay">
+        <form className="modal intro menu" aria-labelledby="server-title" onSubmit={join}>
+          <h2 id="server-title">{t("server.title")}</h2>
+          <p className="menu__hint">{t("server.hint")}</p>
+          <label className="menu__label" htmlFor="server-name">{t("server.label")}</label>
+          <input
+            id="server-name"
+            className="menu__input"
+            value={room}
+            onChange={(e) => {
+              setRoom(e.target.value.trim());
+              setError(null);
+            }}
+            placeholder={t("server.placeholder")}
+            maxLength={20}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            autoFocus
+            aria-invalid={error !== null}
+            aria-describedby={error ? "server-error" : undefined}
+          />
+          {error && <p id="server-error" className="menu__error" role="alert">{error}</p>}
+          <div className="intro__actions">
+            <button type="button" className="btn btn--ghost" onClick={() => setView("main")}>
+              {t("server.back")}
+            </button>
+            <button type="submit" className="btn btn--primary" disabled={joining || room === ""}>
+              {joining ? t("server.joining") : t("server.join")}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overlay">
+      <div className="modal intro menu" role="dialog" aria-labelledby="menu-title">
+        <MoonLogo size={88} />
+        <h1 id="menu-title" className="menu__title">{t("app.title")}</h1>
+        <p className="menu__tagline">{t("menu.tagline")}</p>
+        <div className="menu__buttons">
+          <button className="btn btn--ghost menu__btn" onClick={() => setView("lang")}>
+            {t("menu.language", { lang: langName(getLang()) })}
+          </button>
+          <button className="btn btn--primary menu__btn" onClick={onNewGame}>
+            {t("menu.newGame")}
+          </button>
+          <button className="btn btn--primary menu__btn" onClick={onContinue} disabled={savedDay === null}>
+            {savedDay === null ? t("menu.continue") : t("menu.continueDay", { day: savedDay })}
+          </button>
+          <button className="btn btn--primary menu__btn" onClick={() => setView("server")}>
+            {t("menu.server")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
