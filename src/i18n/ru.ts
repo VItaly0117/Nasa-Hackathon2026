@@ -41,6 +41,8 @@ export const ru = {
   "app.lunarDay": "лунный день",
   "app.nextDay": "Следующий день",
   "app.rules": "Правила",
+  "app.soundOn": "Выключить звук",
+  "app.soundOff": "Включить звук",
   "app.win": "Миссия выполнена!",
   "app.lose": "Миссия провалена",
   "app.daysOnMoon": "Дней на Луне: {n}",

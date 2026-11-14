@@ -41,6 +41,8 @@ export const en: Record<keyof typeof ru, string> = {
   "app.lunarDay": "lunar day",
   "app.nextDay": "Next day",
   "app.rules": "Rules",
+  "app.soundOn": "Mute sound",
+  "app.soundOff": "Unmute sound",
   "app.win": "Mission complete!",
   "app.lose": "Mission failed",
   "app.daysOnMoon": "Days on the Moon: {n}",

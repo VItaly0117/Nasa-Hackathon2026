@@ -18,7 +18,7 @@ export function nextRandom(seed: number): [number, number] {
   return [((x ^ (x >>> 14)) >>> 0) / 4294967296, s];
 }
 // id совпадают с crew.n<id> в словарях и с crewData.ts. Номера 3 больше нет: Софию убрали из экипажа,
-// врача на базе нет, убежище и медпункт строит любой свободный
+// врача на базе нет, поэтому убежище и медпункт закреплены за техником.
 const CREW_ROLES: { id: number; role: Role }[] = [
   { id: 1, role: "engineer" },
   { id: 2, role: "scientist" },
