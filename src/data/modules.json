@@ -42,5 +42,19 @@
     "description": "Защищает экипаж во время солнечных вспышек.",
     "cost": { "energy": 20 },
     "perDay": { "energy": -1 }
-  }
+  },
+  {
+  "type": "iceMine",
+  "name": "Ледодобытчик",
+  "description": "Растапливает лёд и даёт воду. Ставится только на лёд.",
+  "cost": { "energy": 15 },
+  "perDay": { "water": 6, "energy": -4 }
+},
+{
+  "type": "rockMine",
+  "name": "Карьер",
+  "description": "Роботы дробят камни на стройматериалы. Ставится только на камни.",
+  "cost": { "energy": 10 },
+  "perDay": { "materials": 5, "energy": -3 }
+}
 ]
