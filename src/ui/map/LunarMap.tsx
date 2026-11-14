@@ -77,6 +77,7 @@ const NEAR_HILLS = hillsPath(TOP + 6, 48, 2.1);
 
 const getTerrainName = (terrain: Terrain) => t(`terrain.${terrain}`);
 
+// «+6 еды · −3 воды · −5 кВт в день»
 // «+6 еды · −3 воды · −5 энергии в день»
 function perDayText(def: ModuleDef, isNight: boolean) {
   const source = isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
@@ -323,9 +324,11 @@ export default function LunarMap({
     }
 
     const near = isNearBase(modules, selected.row, selected.col);
-    const text = selected.canMine
-      ? t("map.mine")
-      : !selected.canBuild
+    const text = selected.terrain === "ice"
+      ? t("map.ice")
+      : selected.terrain === "rock"
+        ? t("map.rock")
+        : !selected.canBuild
         ? t("map.noBuild")
         : near
           ? t("map.canBuild")

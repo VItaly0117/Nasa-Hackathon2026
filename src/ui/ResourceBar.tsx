@@ -8,7 +8,7 @@ type Props = {
   delta: Partial<Resources>;
 };
 
-const ORDER: ResourceKey[] = ["oxygen", "water", "food", "energy", "health"];
+const ORDER: ResourceKey[] = ["oxygen", "water", "food", "energy", "materials", "health"];
 
 const WARN_DAYS = 5;    // жёлтый, если ресурса хватит меньше чем на столько дней
 const DANGER_DAYS = 2;  // красный

@@ -28,7 +28,17 @@
   },
   {
     "type": "shelter",
-    "cost": { "energy": 20 },
+    "cost": { "energy": 20, "materials": 25 },
     "perDay": { "energy": -1 }
+  },
+  {
+    "type": "iceMine",
+    "cost": { "energy": 15 },
+    "perDay": { "water": 6, "energy": -4 }
+  },
+  {
+    "type": "rockMine",
+    "cost": { "energy": 10 },
+    "perDay": { "materials": 5, "energy": -3 }
   }
 ]
