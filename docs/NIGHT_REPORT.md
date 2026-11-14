@@ -28,7 +28,7 @@
 
 ## Долг по документам (закроется на шаге A9)
 
-- `PROJECT_DOCUMENTATION.md`: тип журнала (`LogEntry`, `Msg`), `SAVE_VERSION = 7`, где живёт разбор миссии (`engine/debrief.ts` + `ui/report.ts`), новые скрипты `check-architecture` и `golden-replay`, число проверок.
+Закрыт на шаге A9.
 
 ## A2. Разбор ядра
 
