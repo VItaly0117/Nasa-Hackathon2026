@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { CREW } from "../crewData";
+import { t } from "../../i18n";
 
 // Место у модуля, куда астронавт идёт работать (координаты карты)
 export type WalkTarget = { type: string; x: number; y: number };
@@ -8,23 +9,39 @@ const SPEED = 70;      // единиц карты в секунду
 const SCALE = 1.6;     // размер астронавта относительно рисунка
 const SPREAD = 26;     // чтобы астронавты у одного модуля не стояли друг на друге
 
-function Astronaut({ suit }: { suit: string }) {
+function Astronaut({ suit, name }: { suit: string; name: string }) {
   return (
-    <g className="astro">
-      <ellipse cx="0" cy="0" rx="13" ry="4.5" fill="#000" opacity="0.28" />
-      <g className="astro__legL"><rect x="-6.5" y="-15" width="6" height="15" rx="3" fill="#e4e9f5" /></g>
-      <g className="astro__legR"><rect x="0.5" y="-15" width="6" height="15" rx="3" fill="#cfd6e8" /></g>
-      <rect x="-16" y="-36" width="8" height="18" rx="3" fill="#aab4cf" />
-      <rect x="-10" y="-36" width="20" height="24" rx="8" fill="#f4f7ff" />
-      <rect x="-10" y="-25" width="20" height="5" fill={suit} />
-      <circle cx="3" cy="-29" r="2" fill="#4a6fd0" />
-      <g className="astro__arm">
-        <rect x="-3" y="-3" width="6" height="15" rx="3" fill="#e4e9f5" transform="translate(0 -34)" />
+    <g>
+      {/* Бейдж з іменем над головою */}
+      <g transform="translate(0, -96)">
+        <rect
+          className="astro__name-bg"
+          x="-34"
+          y="-13"
+          width="68"
+          height="22"
+          rx="11"
+        />
+        <text className="astro__name-tag" y="0">
+          {name}
+        </text>
       </g>
-      <circle cx="0" cy="-43" r="11" fill="#f4f7ff" />
-      <ellipse cx="3.5" cy="-43" rx="7" ry="5.5" fill="#2a4fa8" />
-      <ellipse cx="5.5" cy="-45" rx="2.4" ry="1.6" fill="#ffffff" opacity="0.7" />
-      <circle className="astro__spark" cx="17" cy="-22" r="3.2" fill={suit} />
+      <ellipse cx="0" cy="0" rx="13" ry="4.5" fill="#000" opacity="0.28" />
+      <g className="astro">
+        <g className="astro__legL"><rect x="-6.5" y="-15" width="6" height="15" rx="3" fill="#e4e9f5" /></g>
+        <g className="astro__legR"><rect x="0.5" y="-15" width="6" height="15" rx="3" fill="#cfd6e8" /></g>
+        <rect x="-16" y="-36" width="8" height="18" rx="3" fill="#aab4cf" />
+        <rect x="-10" y="-36" width="20" height="24" rx="8" fill="#f4f7ff" />
+        <rect x="-10" y="-25" width="20" height="5" fill={suit} />
+        <circle cx="3" cy="-29" r="2" fill="#4a6fd0" />
+        <g className="astro__arm">
+          <rect x="-3" y="-3" width="6" height="15" rx="3" fill="#e4e9f5" transform="translate(0 -34)" />
+        </g>
+        <circle cx="0" cy="-43" r="11" fill="#f4f7ff" />
+        <ellipse cx="3.5" cy="-43" rx="7" ry="5.5" fill="#2a4fa8" />
+        <ellipse cx="5.5" cy="-45" rx="2.4" ry="1.6" fill="#ffffff" opacity="0.7" />
+        <circle className="astro__spark" cx="17" cy="-22" r="3.2" fill={suit} />
+      </g>
     </g>
   );
 }
@@ -113,10 +130,10 @@ export function Walkers({ targets, active }: Props) {
         const bob = walking ? -Math.abs(swing) * 2.2 : 0;
         p.root.setAttribute("transform", `translate(${s.x.toFixed(1)} ${s.y.toFixed(1)})`);
         p.flip?.setAttribute("transform", `translate(0 ${bob.toFixed(1)}) scale(${s.dir * SCALE} ${SCALE})`);
-        p.legL?.setAttribute("transform", `rotate(${walking ? swing * 28 : 0} -3.5 -15)`);
-        p.legR?.setAttribute("transform", `rotate(${walking ? -swing * 28 : 0} 3.5 -15)`);
-        // при ходьбе рука машет, на работе поднята и «стучит»
-        p.arm?.setAttribute("transform", walking ? `rotate(${-swing * 30} 0 -31)` : `rotate(${-115 + swing * 18} 0 -31)`);
+        p.legL?.setAttribute("transform", `rotate(${walking ? swing * 34 : 0} -3.5 -15)`);
+        p.legR?.setAttribute("transform", `rotate(${walking ? -swing * 34 : 0} 3.5 -15)`);
+        // при ходьбе рука машет в такт ногам, на работе поднята и «стучит»
+        p.arm?.setAttribute("transform", walking ? `rotate(${-swing * 38} 0 -31)` : `rotate(${-115 + swing * 18} 0 -31)`);
         p.spark?.setAttribute("opacity", walking ? "0" : (0.35 + 0.65 * Math.abs(Math.sin(s.phase * 1.5))).toFixed(2));
       });
 
@@ -136,7 +153,7 @@ export function Walkers({ targets, active }: Props) {
           }}
           transform="translate(-9999 -9999)"
         >
-          <Astronaut suit={c.suit} />
+          <Astronaut suit={c.suit} name={t(`crew.n${c.id}`)} />
         </g>
       ))}
     </g>

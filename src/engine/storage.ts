@@ -1,12 +1,14 @@
 import type { GameState } from "../types";
 
-// Сохранения и рекорды в localStorage. Сервера нет: это и есть «база данных» демо.
+// Сохранения, рекорды и выбранный язык в localStorage. Одиночная игра хранится только здесь, в браузере.
 // Все функции молча переживают приватный режим и заблокированное хранилище: игра работает, просто без сохранений.
 
 const RECORDS_KEY = "moonbase:records";
 const SAVE_KEY = "moonbase:save";
-// Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру
-const SAVE_VERSION = 4;
+const LANG_KEY = "moonbase:lang";
+// Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру.
+// 5: из экипажа убрали Софию, в старых сохранениях она ещё есть
+const SAVE_VERSION = 5;
 const MAX_RECORDS = 10;
 
 export type GameRecord = { days: number; health: number; won: boolean; at: string };
@@ -26,6 +28,16 @@ function write(key: string, value: unknown) {
   } catch {
     // хранилище недоступно или переполнено
   }
+}
+
+// --- Язык ----------------------------------------------------------------------------
+
+export function saveLang(lang: string) {
+  write(LANG_KEY, lang);
+}
+
+export function loadLang(): string | null {
+  return read<string | null>(LANG_KEY, null);
 }
 
 // --- Сохранение текущей миссии ---------------------------------------------------

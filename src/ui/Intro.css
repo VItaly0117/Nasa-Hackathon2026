@@ -1,42 +1,54 @@
 /* Экраны выбора языка и вступления используют общие .overlay и .modal из App.css */
-.intro { width: min(720px, 94vw); max-height: 94vh; overflow-y: auto; }
-.intro h2 { margin: 0 0 20px; font-size: 32px; }
+.intro {
+  width: min(720px, 94vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 34px 36px;
+}
+.intro::-webkit-scrollbar {
+  display: none;
+}
+.intro h2 { margin: 0 0 24px; font-size: 32px; }
 .intro__head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
 .intro__kicker { font-size: 16px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
-.intro__text { margin: 0 0 20px; font-size: 21px; line-height: 1.55; }
-.intro__actions { display: flex; justify-content: flex-end; gap: 14px; margin-top: 28px; }
+.intro__text { margin: 0 0 24px; font-size: 21px; line-height: 1.55; }
+.intro__actions { display: flex; justify-content: flex-end; gap: 14px; margin-top: 32px; }
 
 .intro--lang { text-align: center; width: min(560px, 94vw); }
 .intro--lang h2 { font-size: 22px; margin-top: 16px; }
 .lang-select { display: flex; flex-direction: column; gap: 16px; margin-top: 22px; }
 .lang-select__btn { min-height: 64px; font-size: 22px; }
 
-.rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
-.rules__item { display: flex; gap: 16px; align-items: flex-start; }
-.rules__item strong { font-size: 20px; }
-.rules__item p { margin: 2px 0 0; font-size: 17px; line-height: 1.4; opacity: 0.92; }
+.rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 24px; }
+.rules__item { display: flex; gap: 20px; align-items: flex-start; }
+.rules__item strong { font-size: 21px; display: block; margin-bottom: 4px; }
+.rules__item p { margin: 0; font-size: 17px; line-height: 1.5; opacity: 0.92; }
 .rules__num {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: var(--accent);
   color: #3b2a00;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 800;
+  box-shadow: 0 2px 8px rgba(245, 184, 61, 0.3);
 }
 
 @media (max-height: 620px), (max-width: 900px) {
-  .intro h2 { font-size: 22px; margin-bottom: 10px; }
-  .intro__text { font-size: 16px; margin-bottom: 10px; }
-  .intro__actions { margin-top: 14px; }
-  .rules { gap: 10px; }
-  .rules__item { gap: 12px; }
+  .intro { padding: 20px 22px; }
+  .intro h2 { font-size: 22px; margin-bottom: 12px; }
+  .intro__text { font-size: 16px; margin-bottom: 12px; }
+  .intro__actions { margin-top: 18px; }
+  .rules { gap: 14px; }
+  .rules__item { gap: 14px; }
   .rules__item strong { font-size: 16px; }
   .rules__item p { font-size: 14px; }
-  .rules__num { width: 30px; height: 30px; font-size: 15px; }
+  .rules__num { width: 32px; height: 32px; font-size: 16px; }
   .lang-select { gap: 10px; margin-top: 12px; }
   .lang-select__btn { min-height: 52px; font-size: 18px; }
 }
