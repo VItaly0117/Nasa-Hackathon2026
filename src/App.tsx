@@ -17,6 +17,7 @@ import { SidePanel } from "./ui/SidePanel";
 import { BuildMenu } from "./ui/BuildMenu";
 import { LangSelect } from "./ui/LangSelect";
 import { Intro } from "./ui/Intro";
+import { Prologue, Rocket } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
 import { TaskToast } from "./ui/TaskToast";
 import { MoonLogo } from "./ui/icons";
@@ -126,16 +127,6 @@ function Game({ onRestart }: { onRestart: () => void }) {
                   : t("app.lunarDay")}
             </span>
           </div>
-          <button
-            className="btn btn--primary btn--next"
-            onClick={() => dispatch({ type: "nextDay" })}
-            disabled={!isPlaying || event !== null}
-          >
-            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-              <path d="M5 3 L16 10 L5 17 Z" fill="currentColor" />
-            </svg>
-            {t("app.nextDay")}
-          </button>
           <DayClock
             running={clockRunning}
             progress={state.clockMs / DAY_MS}
@@ -198,9 +189,11 @@ function Game({ onRestart }: { onRestart: () => void }) {
 
       {!isPlaying && (
         <div className="overlay">
-          <div className="modal">
+          <div className={`modal ending ending--${state.status}`}>
+            {state.status === "won" && <Rocket className="ending__rocket" flame />}
             <h2>{state.status === "won" ? t("app.win") : t("app.lose")}</h2>
-            <p>{t("app.daysOnMoon", { n: state.day })}</p>
+            <p>{state.status === "won" ? t("app.winText") : t("app.loseText")}</p>
+            <p className="muted">{t("app.daysOnMoon", { n: state.day })}</p>
             <ul className="debrief">
               {buildDebrief(state).map((line) => (
                 <li key={line}>{line}</li>
@@ -230,7 +223,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
   );
 }
 
-type Stage = "lang" | "intro" | "game";
+type Stage = "lang" | "prologue" | "intro" | "game";
 
 export default function App() {
   const [stage, setStage] = useState<Stage>("lang");
@@ -242,14 +235,24 @@ export default function App() {
   function pickLang(lang: Lang) {
     setLang(lang);
     setLangState(lang);
-    setStage("intro");
+    setStage("prologue");
   }
 
   if (stage === "game") {
     return <Game key={runId} onRestart={() => setRunId((id) => id + 1)} />;
   }
 
-  // До начала игры показываем небо, а поверх него — выбор языка и вступление
+  // Пролог — на весь экран со своим небом, остальное — поверх общего неба
+  if (stage === "prologue") {
+    return (
+      <div className="game">
+        <Prologue onDone={() => setStage("intro")} />
+        <RotateHint />
+      </div>
+    );
+  }
+
+  // До начала игры показываем небо, а поверх него — выбор языка и правила
   return (
     <div className="game">
       <Sky />

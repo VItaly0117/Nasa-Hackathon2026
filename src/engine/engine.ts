@@ -60,15 +60,14 @@ export function initialState(): GameState {
     clockMs: 0,
     day: 1,
     isNight: false,
-    // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
-    // материалов хватает на первые модули, а убежище (25) требует карьера
-    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 20 },
+    // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти.
+    // материалов 10, а убежище стоит 25: сначала нужен карьер
+    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 10 },
     modules: [
-      // стартовая база вокруг посадочной площадки (ряд 5, колонка 12): каждый модуль в двух клетках
-      // от неё в своей стороне, чтобы между зданиями оставалось место
+      // На Луне есть только жилой модуль рядом с посадочной площадкой (ряд 5, колонка 12).
+      // Энергию, воду, еду и укрытие игрок строит сам
       { slot: slotOf(3, 11), type: "habitat", broken: false },
       { slot: slotOf(7, 11), type: "lifeSupport", broken: false },
-      { slot: slotOf(5, 14), type: "solar", broken: false },
     ],
     pending: [],
     activeEvent: null,

@@ -37,6 +37,122 @@ button { font-family: inherit; }
   100% { opacity: 0; transform: translate(-320px, 170px) rotate(28deg); }
 }
 
+/* Туманности медленно дрейфуют и «дышат» */
+.nebula { position: absolute; border-radius: 50%; filter: blur(40px); pointer-events: none; }
+.nebula--1 {
+  width: 46vw; height: 22vh; left: -8vw; top: 6vh;
+  background: radial-gradient(ellipse, rgba(140, 90, 230, 0.35), transparent 70%);
+  animation: nebula 28s ease-in-out infinite alternate;
+}
+.nebula--2 {
+  width: 40vw; height: 20vh; right: -6vw; top: 14vh;
+  background: radial-gradient(ellipse, rgba(60, 160, 230, 0.3), transparent 70%);
+  animation: nebula 34s ease-in-out infinite alternate-reverse;
+}
+@keyframes nebula {
+  from { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  to { transform: translate(5vw, 2vh) scale(1.2); opacity: 1; }
+}
+
+/* Крупные звёзды-искры: крестик, который пульсирует и поворачивается */
+.sparkle {
+  position: absolute;
+  background: currentColor;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  filter: drop-shadow(0 0 4px currentColor);
+  opacity: 0;
+  animation: sparkle 4s ease-in-out infinite;
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+/* Кометы: голова с лучистым свечением и длинный хвост позади */
+.comet {
+  position: absolute;
+  width: calc(190px * var(--s));
+  height: calc(6px * var(--s));
+  opacity: 0;
+  transform: rotate(var(--a));
+  animation: comet 16s linear infinite;
+}
+.comet__head {
+  position: absolute;
+  left: 0; top: 50%;
+  width: calc(9px * var(--s)); height: calc(9px * var(--s));
+  margin-top: calc(-4.5px * var(--s));
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 4px rgba(190, 225, 255, 0.9), 0 0 24px 10px rgba(110, 170, 255, 0.45);
+}
+.comet__tail {
+  position: absolute;
+  left: 4px; top: 0;
+  width: 100%; height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(210, 235, 255, 0.95), rgba(120, 180, 255, 0.35) 45%, transparent);
+  filter: blur(1.5px);
+}
+@keyframes comet {
+  0% { opacity: 0; transform: rotate(var(--a)) translateX(0); }
+  3% { opacity: 1; }
+  30% { opacity: 1; }
+  38%, 100% { opacity: 0; transform: rotate(var(--a)) translateX(-135vw); }
+}
+
+/* Далёкая планета с кольцом покачивается */
+.planet { position: absolute; right: 9vw; top: 9vh; width: 8vh; height: 8vh; animation: bob 9s ease-in-out infinite; }
+.planet__ball {
+  position: absolute; inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffcf8a, #d9763b 60%, #7d3320);
+  box-shadow: 0 0 16px rgba(255, 150, 80, 0.4);
+}
+.planet__ring {
+  position: absolute; left: -12%; right: -12%; top: 38%; height: 24%;
+  border: 3px solid rgba(255, 220, 160, 0.75);
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+@keyframes bob { 50% { transform: translateY(-1.4vh) rotate(4deg); } }
+
+/* Ракета и НЛО пролетают редкими рейсами */
+.rocket { position: absolute; top: 28vh; left: -70px; animation: rocket 38s linear infinite 6s; }
+.rocket__flame { animation: flame 0.18s ease-in-out infinite alternate; transform-origin: 6px 12px; }
+@keyframes flame { to { transform: scaleX(1.5); opacity: 0.7; } }
+@keyframes rocket {
+  0% { transform: translate(0, 0) rotate(8deg); }
+  30%, 100% { transform: translate(calc(100vw + 140px), -8vh) rotate(-6deg); }
+}
+.ufo { position: absolute; top: 12vh; left: 18vw; animation: ufo 26s ease-in-out infinite; }
+.ufo__light { animation: ufoLight 0.9s steps(2, jump-none) infinite; }
+.ufo__light--b { animation-delay: 0.3s; }
+.ufo__light--c { animation-delay: 0.6s; }
+@keyframes ufoLight { 50% { opacity: 0.2; } }
+@keyframes ufo {
+  0%, 100% { transform: translate(0, 0) rotate(-4deg); }
+  25% { transform: translate(22vw, 4vh) rotate(5deg); }
+  50% { transform: translate(40vw, -2vh) rotate(-3deg); }
+  75% { transform: translate(18vw, 5vh) rotate(4deg); }
+}
+
+/* Космическая пыль поднимается вверх и мерцает */
+.dust {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: rgba(220, 235, 255, 0.8);
+  box-shadow: 0 0 6px rgba(190, 220, 255, 0.9);
+  opacity: 0;
+  animation: dust 16s linear infinite;
+}
+@keyframes dust {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15%, 80% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(var(--dx), -90vh); }
+}
+
 .satellite { position: absolute; top: 15vh; left: -80px; opacity: 0.9; animation: orbit 55s linear infinite; }
 .satellite__light { animation: blink 1.4s steps(2, jump-none) infinite; }
 @keyframes orbit {
@@ -129,6 +245,20 @@ button { font-family: inherit; }
 .base-badge__text span { font-size: 15px; opacity: 0.9; }
 
 .dayclock { flex-basis: 100%; display: flex; align-items: center; gap: 10px; }
+.dayclock__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 82px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--panel-border);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dayclock__time--low { color: #ff8a8a; border-color: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
 .dayclock__bar { flex: 1; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.4); overflow: hidden; }
 .dayclock__bar > div { width: 100%; height: 100%; transform-origin: left center; background: linear-gradient(90deg, #7fb0ff, #ffd166); }
 .dayclock__bar--low > div { background: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
@@ -319,5 +449,5 @@ button { font-family: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .meteor, .satellite, .earth, .earth__spin, .earth__cloud, .dayclock__bar--low > div { animation: none; }
+  .star, .meteor, .satellite, .nebula, .sparkle, .comet, .planet, .rocket, .rocket__flame, .ufo, .ufo__light, .dust, .earth, .earth__spin, .earth__cloud, .dayclock__bar--low > div { animation: none; }
 }

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey } from "../types";
 import { moduleDesc, moduleName, t } from "../i18n";
 import { ModulePreview } from "./map/art";
@@ -60,7 +61,15 @@ export function BuildMenu({
   const def = defs.find((d) => d.type === selected) ?? null;
   const lines = def ? perDayLines(def.perDay) : [];
   const affordable = def ? isAffordable(def) : false;
-  const [collapsed, toggle] = useCollapsed(startsCollapsed());
+  const [closed, toggle] = useCollapsed(startsCollapsed());
+  // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
+  const collapsed = closed || placing;
+  const wasPlacing = useRef(false);
+  useEffect(() => {
+    // После постройки или отмены меню остаётся свёрнутым, пока ребёнок сам его не откроет
+    if (wasPlacing.current && !placing && !closed) toggle();
+    wasPlacing.current = placing;
+  }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

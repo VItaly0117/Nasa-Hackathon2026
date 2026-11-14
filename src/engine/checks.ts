@@ -69,15 +69,16 @@ const CARELESS: Strategy = { builds: {}, choices: RECKLESS };
 // Готовимся ко всему: еда, энергия, убежище до вспышки, батареи до ночи
 const PREPARED: Strategy = {
   builds: {
-    // день 1: все четверо заняты почти на 2,4 дня, поэтому берём только самое нужное: две панели
-    // (теплица и карьер много тратят), еду и карьер (убежище стоит 25 материалов, а с ракеты их 20)
-    1: ["solar", "greenhouse", "rockMine", "solar"],
+    // на старте панелей нет, а теплица и шахты много тратят: три панели и теплица в первый день
+    1: ["solar", "solar", "solar", "greenhouse"],
+    // карьер (убежище стоит 25 материалов, а с ракеты их 10) и лёд для воды
+    2: ["rockMine", "iceMine"],
     // убежище должно успеть к вспышке на 9-й день
-    3: ["shelter", "iceMine", "lifeSupport"],
-    // батареи до ночи (14-й день)
-    6: ["battery"],
-    8: ["battery"],
-    10: ["battery"],
+    3: ["shelter"],
+    // батареи до ночи (14-й день), и панели, чтобы батареям было что копить
+    5: ["battery", "solar"],
+    7: ["battery"],
+    9: ["battery"],
     11: ["battery"],
   },
   choices: CAREFUL,
@@ -232,7 +233,7 @@ export function runChecks(): CheckResult[] {
   expectLines("Разбор: подготовленная база", prepared, ["flare-shelter", "breakdown-repaired", "night-survived", "greenhouse-fed", "real-flare"], ["flare-worked", "no-builds", "water-out", "food-no-greenhouse", "oxygen-out", "night-no-battery"]);
   expectLines("Разбор: без убежища", noShelter, ["flare-no-shelter"], ["flare-shelter"]);
   expectLines("Разбор: без батарей", noBattery, ["night-no-battery"], ["night-survived"]);
-  expectLines("Разбор: без построек", idle, ["no-builds"], ["night-survived", "greenhouse-fed", "night-no-battery"]);
+  expectLines("Разбор: без построек", idle, ["no-builds"], ["night-survived", "greenhouse-fed"]);
   expectLines("Разбор: риск", careless, ["breakdown-ignored", "no-builds"], ["breakdown-repaired"]);
 
   for (const [name, s] of [["idle", idle], ["careless", careless], ["prepared", prepared], ["noShelter", noShelter], ["noBattery", noBattery]] as const) {

@@ -1,0 +1,218 @@
+/* Пролог: полёт на Луну. Все размеры в vmin, чтобы сцена выглядела одинаково на любом экране */
+.prologue {
+  --bar-h: clamp(250px, 38vh, 360px);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 10;
+  color: #fff;
+  background: radial-gradient(ellipse at 50% 30%, #101a4a 0%, #070b24 60%, #02030a 100%);
+}
+
+/* ---------- Звёзды ---------- */
+.prologue__stars { position: absolute; inset: 0; }
+.prologue__stars i {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.8;
+  animation: pro-twinkle 3s ease-in-out infinite;
+}
+@keyframes pro-twinkle { 50% { opacity: 0.2; transform: scale(0.6); } }
+
+/* ---------- Сцены ---------- */
+.scene { position: absolute; inset: 0 0 var(--bar-h) 0; overflow: hidden; transition: opacity 1.4s ease; }
+.prologue--space .scene--surface { opacity: 0; }
+.prologue--surface .scene--space { opacity: 0; }
+
+/* Земля */
+.pro-earth {
+  position: absolute;
+  left: -14vmin;
+  bottom: -34vmin;
+  width: 62vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 35% 30%, #5fb4ff, #2a68c8 55%, #123a82 100%);
+  box-shadow: 0 0 6vmin rgba(110, 180, 255, 0.45);
+}
+.pro-earth__land { position: absolute; background: #4cae6a; border-radius: 45% 55% 50% 50%; }
+.pro-earth__land--a { left: 22%; top: 6%; width: 28%; height: 16%; }
+.pro-earth__land--b { left: 58%; top: 12%; width: 22%; height: 12%; }
+.pro-earth__land--c { left: 40%; top: 28%; width: 18%; height: 10%; }
+
+/* Луна в космосе */
+.pro-moon {
+  position: absolute;
+  right: 8%;
+  top: 10vmin;
+  width: 26vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f2f2ee, #b8b8b2 60%, #8a8a86 100%);
+  box-shadow: 0 0 5vmin rgba(255, 255, 255, 0.25);
+}
+.pro-moon__crater { position: absolute; border-radius: 50%; background: rgba(0, 0, 0, 0.16); }
+.pro-moon__crater--a { left: 22%; top: 24%; width: 22%; aspect-ratio: 1; }
+.pro-moon__crater--b { left: 56%; top: 46%; width: 28%; aspect-ratio: 1; }
+.pro-moon__crater--c { left: 30%; top: 62%; width: 14%; aspect-ratio: 1; }
+
+/* Летящая ракета: положение зависит от шага */
+.pro-fly {
+  position: absolute;
+  width: 9vmin;
+  left: 12.5vmin;
+  top: calc(100% - 47vmin);
+  transform: rotate(0deg);
+  transition: left 6s ease-in-out, top 6s ease-in-out, transform 6s ease-in-out;
+}
+.prologue--s1 .pro-fly { left: 30vmin; top: calc(100% - 80vmin); transform: rotate(24deg); }
+.prologue--s2 .pro-fly { left: 50%; top: 34%; transform: rotate(62deg); }
+.prologue--s3 .pro-fly { left: calc(92% - 48vmin); top: 28vmin; transform: rotate(72deg) scale(0.8); }
+.prologue--s4 .pro-fly, .prologue--s5 .pro-fly, .prologue--s6 .pro-fly { left: calc(92% - 48vmin); top: 28vmin; transform: rotate(72deg) scale(0.8); }
+
+.rocket-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rocket-svg__flame { transform-origin: 30px 96px; animation: pro-flame 0.18s ease-in-out infinite alternate; }
+@keyframes pro-flame { from { transform: scaleY(0.8); } to { transform: scaleY(1.15); } }
+
+/* Дым и пыль у старта и посадки */
+.pro-smoke {
+  position: absolute;
+  left: 50%;
+  bottom: -2vmin;
+  width: 14vmin;
+  height: 6vmin;
+  margin-left: -7vmin;
+  border-radius: 50%;
+  background: radial-gradient(rgba(255, 255, 255, 0.7), transparent 70%);
+  animation: pro-puff 1.6s ease-out infinite;
+}
+@keyframes pro-puff { from { transform: scale(0.4); opacity: 0.9; } to { transform: scale(1.8) translateY(2vmin); opacity: 0; } }
+
+/* ---------- Поверхность ---------- */
+.pro-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30vmin;
+  background: linear-gradient(#a7a7a2, #75756f 70%, #5b5b57);
+  border-top: 0.6vmin solid #c9c9c3;
+}
+.pro-ground::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  top: 14vmin;
+  width: 9vmin;
+  height: 3vmin;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 52vmin 4vmin 0 0.5vmin rgba(0, 0, 0, 0.14), 70vmin -2vmin 0 -0.5vmin rgba(0, 0, 0, 0.16);
+}
+.pro-pad {
+  position: absolute;
+  left: 50%;
+  top: 6vmin;
+  width: 26vmin;
+  height: 5vmin;
+  margin-left: -13vmin;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #4a4a52 0%, #34343c 70%);
+  border: 0.5vmin solid #d9c25a;
+}
+.pro-habitat {
+  position: absolute;
+  left: calc(50% + 24vmin);
+  top: -4.4vmin;
+  width: 15vmin;
+  height: 8vmin;
+  border-radius: 15vmin 15vmin 0.6vmin 0.6vmin;
+  background: linear-gradient(#e7ecf8, #aeb9d6);
+  border: 0.4vmin solid #8591b6;
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: bottom center;
+  transition: opacity 1s ease 1.5s, transform 1s ease 1.5s;
+}
+.pro-habitat i { position: absolute; left: 50%; top: 40%; width: 3vmin; height: 3vmin; margin-left: -1.5vmin; border-radius: 50%; background: #6ec5ff; border: 0.3vmin solid #5b6bd6; }
+.prologue--s5 .pro-habitat, .prologue--s6 .pro-habitat { opacity: 1; transform: none; }
+
+/* Садящаяся ракета */
+.pro-land {
+  position: absolute;
+  left: 50%;
+  width: 11vmin;
+  margin-left: -5.5vmin;
+  bottom: 16.4vmin;
+  transform: translateY(-110vh);
+}
+.prologue--s4 .pro-land, .prologue--s5 .pro-land, .prologue--s6 .pro-land {
+  transform: translateY(0);
+  transition: transform 5.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+.pro-dust {
+  position: absolute;
+  left: 50%;
+  bottom: 3vmin;
+  width: 30vmin;
+  height: 6vmin;
+  margin-left: -15vmin;
+  border-radius: 50%;
+  background: radial-gradient(rgba(220, 220, 214, 0.8), transparent 70%);
+  opacity: 0;
+  animation: pro-dust 3s ease-out 5s forwards;
+}
+@keyframes pro-dust { 0% { opacity: 0.9; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.6); } }
+
+/* ---------- Субтитры ---------- */
+.prologue__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bar-h);
+  padding: 22px clamp(16px, 6vw, 90px) 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(rgba(2, 3, 10, 0.7), rgba(2, 3, 10, 0.96));
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.prologue__text {
+  margin: 0;
+  max-width: 980px;
+  text-align: center;
+  font-size: clamp(18px, 2.6vw, 30px);
+  line-height: 1.5;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  animation: pro-sub 0.8s ease both;
+}
+@keyframes pro-sub { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.prologue__timer { width: min(360px, 60vw); height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.prologue__timer > div { height: 100%; background: var(--accent, #ffd166); transform-origin: left; animation: pro-timer linear forwards; }
+@keyframes pro-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.prologue__dots { margin: 0; padding: 0; list-style: none; display: flex; gap: 12px; }
+.prologue__dots li { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); }
+.prologue__dots li.is-done { background: rgba(255, 255, 255, 0.6); }
+.prologue__dots li.is-on { background: var(--accent, #ffd166); transform: scale(1.3); }
+.prologue__actions { display: flex; gap: 16px; min-height: 52px; }
+
+/* ---------- Конец игры: ракета летит домой ---------- */
+.ending { text-align: center; }
+.ending__rocket { width: 54px; margin: 0 auto 14px; animation: pro-lift 1.4s ease-in-out infinite alternate; }
+@keyframes pro-lift { from { transform: translateY(4px); } to { transform: translateY(-10px); } }
+.ending--lost h2 { color: #ff7a7a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-fly, .pro-land, .scene { transition-duration: 0.01s; }
+  .prologue__stars i, .rocket-svg__flame, .pro-smoke, .pro-dust, .ending__rocket { animation: none; }
+  .prologue__timer > div { animation-duration: 0.01s !important; }
+}

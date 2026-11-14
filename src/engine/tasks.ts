@@ -27,9 +27,11 @@ const count = (s: GameState, type: ModuleType) => s.modules.filter((m) => m.type
 
 // Порядок = приоритет: сначала выдаются верхние, ещё не выполненные
 export const TASK_DEFS: TaskDef[] = [
+  // на старте панелей нет, а без энергии не работает ничего: это первое, о чём просит экипаж
+  { id: "solar", role: "engineer", done: (s) => count(s, "solar") >= 1 },
   { id: "greenhouse", role: "scientist", done: (s) => count(s, "greenhouse") >= 1 },
   { id: "rocks", role: "scientist", done: (s) => count(s, "rockMine") >= 1 },
-  { id: "solar2", role: "engineer", done: (s) => count(s, "solar") >= 2 },
+  { id: "solar2", role: "engineer", fromDay: 3, done: (s) => count(s, "solar") >= 2 },
   { id: "shelter", role: "doctor", deadline: () => dayOfEvent("flare"), done: (s) => count(s, "shelter") >= 1 },
   { id: "ice", role: "scientist", done: (s) => count(s, "iceMine") >= 1 },
   { id: "storage", role: "engineer", fromDay: 3, done: (s) => count(s, "storage") >= 1 },
