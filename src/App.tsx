@@ -213,13 +213,17 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
 
   // Фоновый космический эмбиент станции
   useEffect(() => {
-    if (isPlaying && event === null) {
+    sound.setNightMode(state.isNight);
+  }, [state.isNight]);
+
+  useEffect(() => {
+    if (isPlaying) {
       sound.startAmbient();
-    } else {
+    } else if (!isPlaying) {
       sound.stopAmbient();
     }
     return () => sound.stopAmbient();
-  }, [isPlaying, event]);
+  }, [isPlaying]);
 
   // Esc отменяет постройку
   useEffect(() => {
@@ -352,7 +356,7 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
                   key={choice.id}
                   className="btn btn--choice"
                   onClick={() => {
-                    sound.playClick();
+                    sound.playDecisionConfirm();
                     dispatch({ type: "resolveEvent", choice: choice.id });
                   }}
                 >
