@@ -69,7 +69,7 @@ function AlertIcon({ kind }: { kind: Alert["kind"] }) {
   );
 }
 
-export function SidePanel({ state }: { state: GameState }) {
+export function SidePanel({ state, onResearch }: { state: GameState; onResearch: (answer: "shield" | "brush") => void }) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
   const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
@@ -108,6 +108,31 @@ export function SidePanel({ state }: { state: GameState }) {
               <div className="goal__bar"><div style={{ width: `${progress}%` }} /></div>
               <span>{state.day} / {MISSION_DAYS}</span>
             </div>
+          </>
+        )}
+      </section>
+
+      <section className="hud-panel research-card" aria-labelledby="research-title">
+        <div className="panel-head">
+          <h2 className="hud-title" id="research-title">{t("research.title")}</h2>
+          {state.research?.includes("moonDust") && <span aria-label={t("research.completed")}>✓</span>}
+        </div>
+        {state.research?.includes("moonDust") ? (
+          <p>{t("research.completedText")}</p>
+        ) : (
+          <>
+            <p><strong>{t("research.moonDust.title")}</strong></p>
+            <p>{t("research.moonDust.evidence")}</p>
+            <p className="muted">{t("research.moonDust.question")}</p>
+            <div className="research-card__choices">
+              <button className="btn btn--choice" onClick={() => onResearch("shield")}>
+                {t("research.moonDust.shield")}
+              </button>
+              <button className="btn btn--choice" onClick={() => onResearch("brush")}>
+                {t("research.moonDust.brush")}
+              </button>
+            </div>
+            <small className="muted"><a href="https://www.nasa.gov/learning-resources/for-kids-and-students/nasa-knows-what-is-lunar-regolith-grades-5-8/" target="_blank" rel="noreferrer">{t("research.source")}</a></small>
           </>
         )}
       </section>

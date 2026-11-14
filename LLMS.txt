@@ -6,17 +6,19 @@
 1. **DO NOT scan or read all project files.** Complete, unambiguous technical documentation is provided in:
    👉 **`PROJECT_DOCUMENTATION.md`** (read this file first for full architecture, data schemas, rules, and recipes).
 2. **Deterministic Engine Rule:** The game engine (`src/engine/`) is a pure headless state reducer (`reduce(state, action)`). All randomness is seeded (`mulberry32`). Never use unseeded `Math.random()` inside the engine.
-3. **Crew Structure:** The crew has exactly 3 astronauts:
-   - ID 1: Maksym (Engineer)
-   - ID 2: Olena (Scientist)
-   - ID 4: Danylo (Technician)
-   *(Doctor / Sofia ID 3 was removed. Shelter and medbay modules are built by Technician).*
+3. **Crew Structure:** The crew has exactly 4 astronauts (names differ per language, ids and roles do not):
+   - ID 1: Alice / Алиса / Аліса (Engineer)
+   - ID 2: Max / Максим (Scientist)
+   - ID 3: Vitaliy / Виталий / Віталій (Doctor)
+   - ID 4: Daniel / Даниил / Данило (Technician)
+   *(The crew size has changed twice, always re-check `CREW_ROLES` in `src/engine/engine.ts`. Shelter and medbay are built by the Doctor.)*
 4. **Time & Clocks:**
    - `DAY_MS = 120000` (2 minutes).
    - `BUILD_MS = 60000` (1 minute / 0.5 day).
    - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
 5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts`. Do not use root `en.ts`, `ru.ts`, `uk.ts` (they are empty artifacts).
-6. **Testing:** Always run `npm run check` (`node scripts/run-checks.mjs && node scripts/run-online-checks.mjs`) to verify engine balance and room protocol after modifying code or JSON configs.
+6. **Multiplayer:** the server only replays actions. Every new action type must be added to `Action` in `src/types.ts` AND to `ACTION_TYPES` in `server/index.mjs`; `npm run check` fails if they differ (`nextDay` is the only exception).
+7. **Testing:** Always run `npm run check` (`node scripts/run-checks.mjs && node scripts/run-online-checks.mjs`) to verify engine balance and room protocol after modifying code or JSON configs.
 
 ## Key Files Reference
 - `PROJECT_DOCUMENTATION.md`: Master specification for human and AI developers.

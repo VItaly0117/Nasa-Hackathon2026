@@ -21,7 +21,7 @@ export const FACT_NAMES = [
   "builtGreenhouse", "builtBattery", "builtShelter",
   "batteryBeforeNight",            // батарея стояла до заката
   "flareHappened", "flareHidInShelter", "flareHidNoShelter", "flareWorked",
-  "breakdownRepaired", "breakdownIgnored",
+  "breakdownRepaired", "breakdownRepairedLate", "breakdownIgnored", // починили сразу / отложили и починили позже / так и не починили
   "ranOutOxygen", "ranOutWater", "ranOutFood", "anyShortage",
   "blackoutAtNight", "blackoutByDay",
   "illnessHappened", "illnessTreated", "illnessIgnored", "medbayBuilt", // болезнь во время стройки и медпункт
@@ -97,7 +97,8 @@ export function collectFacts(state: GameState): Facts {
     flareHidNoShelter: !!hid && hid.unprotected,
     flareWorked: !!chose("flare", "work"),
     breakdownRepaired: !!chose("breakdown", "repair"),
-    breakdownIgnored: !!chose("breakdown", "ignore"),
+    breakdownRepairedLate: !!chose("breakdown", "repairLater") && !chose("breakdown", "repair"),
+    breakdownIgnored: !!chose("breakdown", "ignore") && !chose("breakdown", "repairLater"),
     ranOutOxygen: ranOut("oxygen"),
     ranOutWater: ranOut("water"),
     ranOutFood: ranOut("food"),

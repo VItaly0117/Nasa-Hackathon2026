@@ -1,6 +1,6 @@
 import modulesData from "../data/modules.json";
 import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
-import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
+import { applyEventStart, choiceCost, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, nearestGroundSlot } from "./placement";
 import { moduleName, t } from "../i18n";
 import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START } from "./constants";
@@ -80,6 +80,7 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
     lastIllnessDay: 0,
     crew: CREW_ROLES.map(({ id, role }): CrewMember => ({ id, role, morale: MORALE_START, status: { kind: "free" } })),
     tasks: [],
+    research: [],
     clockMs: 0,
     day: 1,
     isNight: false,
@@ -280,9 +281,11 @@ function tick(state: GameState, ms: number): GameState {
   return s;
 }
 
-export const REPAIR_COST: Partial<Resources> = { water: 10, energy: 10 };
+// Починка кликом по модулю стоит столько же, сколько выбор «починить» в окне поломки (цена в events.json)
+export const REPAIR_COST: Partial<Resources> = choiceCost("breakdown", "repair");
 
 function repairModule(state: GameState, slot: number): GameState {
+  if (state.status !== "playing") return state; // после конца игры ничего не чиним
   const mod = state.modules.find((m) => m.slot === slot);
   if (!mod || !mod.broken) return state;
   const resources = { ...state.resources };
@@ -292,11 +295,13 @@ function repairModule(state: GameState, slot: number): GameState {
     resources[key] -= cost;
   }
   const modules = state.modules.map((m) => (m.slot === slot ? { ...m, broken: false } : m));
-  // Якщо було активне модальне вікно поломки — закриваємо його також
-  const activeEvent = state.activeEvent === "breakdown" ? null : state.activeEvent;
+  // Если окно поломки было открыто, починка закрывает его: это то же самое, что выбор «починить».
+  // Если окно уже закрыли («отложить ремонт») и чинят позже, в истории это «repairLater»: разбор отличает их
+  const atOnce = state.activeEvent === "breakdown";
+  const activeEvent = atOnce ? null : state.activeEvent;
   const history: typeof state.history = [
     ...state.history,
-    { day: state.day, kind: "choice", event: "breakdown", choice: "repair", unprotected: false },
+    { day: state.day, kind: "choice", event: "breakdown", choice: atOnce ? "repair" : "repairLater", unprotected: false },
   ];
   return {
     ...state,
@@ -305,6 +310,26 @@ function repairModule(state: GameState, slot: number): GameState {
     activeEvent,
     history,
     log: [...state.log, { day: state.day, text: t("log.repaired") }],
+  };
+}
+
+function completeResearch(state: GameState, id: "moonDust", answer: "shield" | "brush"): GameState {
+  if (state.status !== "playing" || state.research?.includes(id)) return state;
+  const correct = answer === "shield";
+  const energy = correct ? 24 : 8;
+  const materials = correct ? 12 : 0;
+  const capacity = capacityOf(state.modules);
+  const resources = {
+    ...state.resources,
+    energy: clamp(state.resources.energy + energy, capacity.energy),
+    materials: clamp(state.resources.materials + materials, capacity.materials),
+  };
+  const explanation = t(correct ? "research.moonDust.resultShield" : "research.moonDust.resultBrush");
+  return {
+    ...state,
+    research: [...(state.research ?? []), id],
+    resources,
+    log: [...state.log, { day: state.day, text: t("research.log", { result: explanation }) }],
   };
 }
 
@@ -318,6 +343,8 @@ export function reduce(state: GameState, action: Action): GameState {
       return build(state, action.slot, action.module);
     case "repair":
       return repairModule(state, action.slot);
+    case "research":
+      return completeResearch(state, action.id, action.answer);
     case "resolveEvent": {
       const next = resolveEvent(state, action.choice);
       return next.resources.health <= 0 ? { ...next, status: "lost" } : next;

@@ -300,7 +300,7 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
       </header>
 
       <CrewPanel health={state.resources.health} crew={state.crew} />
-      <SidePanel state={state} />
+      <SidePanel state={state} onResearch={(answer) => dispatch({ type: "research", id: "moonDust", answer })} />
 
       <BuildMenu
         defs={MODULES}

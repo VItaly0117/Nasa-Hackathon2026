@@ -19,6 +19,7 @@
     {"id": "day-blackout", "kind": "hurt", "when": ["blackoutByDay"]},
     {"id": "flare-shelter", "kind": "helped", "when": ["flareHidInShelter"], "hint": "flare"},
     {"id": "breakdown-repaired", "kind": "helped", "when": ["breakdownRepaired"], "hint": "water"},
+    {"id": "breakdown-repaired-late", "kind": "helped", "when": ["breakdownRepairedLate"], "hint": "water"},
     {"id": "night-survived", "kind": "helped", "when": ["reachedNight", "batteryBeforeNight", "!blackoutAtNight"], "hint": "night"},
     {"id": "greenhouse-fed", "kind": "helped", "when": ["builtGreenhouse", "!ranOutFood"]},
     {"id": "crew-healthy", "kind": "helped", "when": ["won", "healthHigh"]},

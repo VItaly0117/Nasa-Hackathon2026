@@ -1,14 +1,14 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
 import { t } from "../i18n";
-import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce } from "./engine";
+import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce, REPAIR_COST } from "./engine";
 import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
 import eventsData from "../data/events.json";
 import { en } from "../i18n/en";
 import { ru } from "../i18n/ru";
 import { uk } from "../i18n/uk";
 import type { EventDef } from "../types";
-import { dayOfEvent } from "./events";
+import { choiceCost, dayOfEvent } from "./events";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
 import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./tasks";
 
@@ -172,6 +172,58 @@ export function runChecks(): CheckResult[] {
   check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
   const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
   check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
+
+  // Поломка и починка
+  const breakdownOpen = (): GameState => {
+    let s = initialState(1);
+    for (let i = 0; i < 12 && s.activeEvent !== "breakdown"; i++) s = reduce(s, { type: "tick", ms: DAY_MS });
+    return { ...s, resources: { ...s.resources, water: 50, energy: 50 } };
+  };
+  const lifeSupportOf = (s: GameState) => s.modules.find((m) => m.type === "lifeSupport")!;
+  const atBreakdown = breakdownOpen();
+  check("На 6-й день ломается жизнеобеспечение", atBreakdown.activeEvent === "breakdown" && lifeSupportOf(atBreakdown).broken, `день ${atBreakdown.day}`);
+  check(
+    "Починка кликом стоит столько же, сколько выбор «починить» в окне (цена из events.json)",
+    JSON.stringify(REPAIR_COST) === JSON.stringify(choiceCost("breakdown", "repair")) && Object.keys(REPAIR_COST).length > 0,
+    JSON.stringify(REPAIR_COST),
+  );
+  const fixedAtOnce = reduce(atBreakdown, { type: "repair", slot: lifeSupportOf(atBreakdown).slot });
+  check(
+    "Починка при открытом окне поломки закрывает окно и списывает цену",
+    !lifeSupportOf(fixedAtOnce).broken && fixedAtOnce.activeEvent === null && atBreakdown.resources.water - fixedAtOnce.resources.water === (REPAIR_COST.water ?? 0),
+    `вода −${atBreakdown.resources.water - fixedAtOnce.resources.water}`,
+  );
+  const postponed = reduce(atBreakdown, { type: "resolveEvent", choice: "ignore" });
+  const fixedLater = reduce(postponed, { type: "repair", slot: lifeSupportOf(postponed).slot });
+  const reportIds = (s: GameState) => {
+    const r = buildReport(s);
+    return [...r.hurt, ...r.helped].map((l) => l.id);
+  };
+  check("Починили сразу: в разборе «починили», без «не починили»", reportIds(fixedAtOnce).includes("breakdown-repaired") && !reportIds(fixedAtOnce).includes("breakdown-ignored"), reportIds(fixedAtOnce).join(", "));
+  check(
+    "Отложили, потом починили: в разборе «починили позже», без «не починили» и без «починили сразу»",
+    reportIds(fixedLater).includes("breakdown-repaired-late") && !reportIds(fixedLater).includes("breakdown-ignored") && !reportIds(fixedLater).includes("breakdown-repaired"),
+    reportIds(fixedLater).join(", "),
+  );
+  check("Отложили и не починили: в разборе только «не починили»", reportIds(postponed).includes("breakdown-ignored") && !reportIds(postponed).includes("breakdown-repaired-late"), reportIds(postponed).join(", "));
+  const overBroken: GameState = { ...postponed, status: "lost" };
+  const frozen =
+    reduce(overBroken, { type: "repair", slot: lifeSupportOf(overBroken).slot }) === overBroken &&
+    reduce(overBroken, { type: "research", id: "moonDust", answer: "shield" }) === overBroken;
+  check("После конца игры починка и исследование ничего не меняют", frozen, frozen ? "состояние то же" : "состояние изменилось");
+
+  // Научная экспедиция (исследование про лунную пыль)
+  const base = initialState(1);
+  const shield = reduce(base, { type: "research", id: "moonDust", answer: "shield" });
+  const brush = reduce(base, { type: "research", id: "moonDust", answer: "brush" });
+  check(
+    "Исследование: верный ответ даёт +24 энергии и +12 материалов, неверный только +8 энергии",
+    shield.resources.energy - base.resources.energy === 24 && shield.resources.materials - base.resources.materials === 12 && brush.resources.energy - base.resources.energy === 8 && brush.resources.materials === base.resources.materials,
+    `верный: +${shield.resources.energy - base.resources.energy} энергии, +${shield.resources.materials - base.resources.materials} материалов; неверный: +${brush.resources.energy - base.resources.energy}`,
+  );
+  check("Исследование выполняется один раз", reduce(shield, { type: "research", id: "moonDust", answer: "shield" }) === shield && shield.research.length === 1, `выполнено: ${shield.research.join(", ")}`);
+  const nearFull = reduce({ ...base, resources: { ...base.resources, energy: 95 } }, { type: "research", id: "moonDust", answer: "shield" });
+  check("Награда за исследование не выходит за лимит хранения", nearFull.resources.energy === capacityOf(base.modules).energy, `энергия ${nearFull.resources.energy}`);
 
   // Подсказка в окне события должна называть те же числа, что и цена в events.json (на всех трёх языках)
   const dicts: Record<string, Record<string, string>> = { ru, uk, en };
