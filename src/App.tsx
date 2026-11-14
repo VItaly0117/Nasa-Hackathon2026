@@ -1,6 +1,9 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START, REPAIR_COST } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
+import { summarizeDay } from "./engine/daySummary";
+import { allTasksDone } from "./engine/tasks";
+import type { DaySummary as DaySummaryData } from "./engine/daySummary";
 import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
 import { openStream, sendAction } from "./net/online";
 import type { Player, Session } from "./net/online";
@@ -21,6 +24,7 @@ import { BuildMenu } from "./ui/BuildMenu";
 import { Intro } from "./ui/Intro";
 import { Prologue, Rocket } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
+import { DaySummary } from "./ui/DaySummary";
 import { TaskToast } from "./ui/TaskToast";
 import { Avatar } from "./ui/CrewPanel";
 import { CREW } from "./ui/crewData";
@@ -61,6 +65,8 @@ type Mode = { kind: "solo"; resume: GameState | null } | { kind: "online"; sessi
 const ONLINE_TICK_MS = 500;
 // Одиночную игру сохраняем не чаще, чем раз в столько мс: время идёт непрерывно
 const SAVE_EVERY_MS = 2000;
+// Пауза между «все задания выполнены» и досрочным концом дня
+const WRAP_UP_MS = 2500;
 
 function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; onMenu: () => void }) {
   const online = mode.kind === "online" ? mode.session : null;
@@ -145,15 +151,38 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   // Правила, открытые во время игры
   const [rulesOpen, setRulesOpen] = useState(false);
 
+  // Итоги дня: состояние на начало дня запоминаем, а при смене дня сравниваем с ним.
+  // Последний день не показываем: вместо него итог всей миссии
+  // Считаем прямо при отрисовке, а не в эффекте: так итоги появляются в том же кадре, что и новый день,
+  // и часы не успевают пройти лишний тик
+  const [dayStart, setDayStart] = useState(state);
+  const [summary, setSummary] = useState<DaySummaryData | null>(null);
+  if (state.day !== dayStart.day) {
+    setDayStart(state);
+    if (state.status === "playing") setSummary(summarizeDay(dayStart, state));
+  }
+
   const delta = dailyDelta(state);
-  const event = EVENTS.find((e) => e.id === state.activeEvent) ?? null;
+  // Пока открыты итоги дня, событие ждёт: сначала итоги, потом новое решение
+  const event = summary ? null : (EVENTS.find((e) => e.id === state.activeEvent) ?? null);
   const daysToNight = NIGHT_START - state.day;
   const isPlaying = state.status === "playing";
-  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места.
+  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места, ни итогов дня.
   // В совместной игре время общее: его двигает только ведущий и останавливает только событие
   const clockRunning = online
-    ? isHost && connected && isPlaying && event === null
-    : isPlaying && event === null && !rulesOpen && buildType === null;
+    ? isHost && connected && isPlaying && state.activeEvent === null
+    : isPlaying && state.activeEvent === null && !summary && !rulesOpen && buildType === null;
+
+  // Все задания дня выполнены, а время ещё осталось: через пару секунд (чтобы игрок увидел результат
+  // и мог передумать, открыв правила или выбрав место) день завершается сам.
+  // Следим за изменением состояния, а не по таймеру опроса. В совместной игре clockRunning верно только у ведущего,
+  // поэтому действие отправит один клиент
+  const wrapUp = clockRunning && allTasksDone(state);
+  useEffect(() => {
+    if (!wrapUp) return;
+    const timer = window.setTimeout(() => dispatch({ type: "nextDay" }), WRAP_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [wrapUp, state.day]);
 
   // Баннер «День N» на несколько секунд при смене дня
   const [banner, setBanner] = useState<{ day: number; night: boolean } | null>(null);
@@ -404,10 +433,18 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
         </div>
       )}
 
-      {banner && isPlaying && !event && (
+      {summary && isPlaying && <DaySummary summary={summary} onClose={() => setSummary(null)} />}
+
+      {banner && isPlaying && !event && !summary && (
         <div key={banner.day} className={`day-banner ${banner.night ? "day-banner--night" : ""}`} aria-live="polite">
           {t("app.dayOf", { day: banner.day, total: MISSION_DAYS })}
           {banner.night ? ` · ${t("app.night")}` : ""}
+        </div>
+      )}
+
+      {wrapUp && !banner && (
+        <div className="wrapup" role="status" aria-live="polite">
+          {t("app.allDone")}
         </div>
       )}
 

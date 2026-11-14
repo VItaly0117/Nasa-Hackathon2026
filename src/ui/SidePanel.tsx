@@ -74,7 +74,6 @@ export function SidePanel({ state }: { state: GameState }) {
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
   const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
   const [tasksClosed, toggleTasks] = useCollapsed(startsCollapsed());
-  const [journalClosed, toggleJournal] = useCollapsed(startsCollapsed());
   // Открытые задания экипажа: самые срочные сверху
   const openTasks = state.tasks.filter((task) => task.status === "open").sort((a, b) => a.deadline - b.deadline);
   const doneCount = state.tasks.filter((task) => task.status === "done").length;
@@ -134,22 +133,6 @@ export function SidePanel({ state }: { state: GameState }) {
               </li>
             ))}
             {openTasks.length === 0 && <li className="task">{t("tasks.allDone")}</li>}
-          </ul>
-        )}
-      </section>
-
-      <section className="hud-panel journal">
-        <div className="panel-head">
-          <h2 className="hud-title">{t("journal.title")}</h2>
-          <CollapseButton collapsed={journalClosed} onClick={toggleJournal} />
-        </div>
-        {!journalClosed && (
-          <ul>
-            {state.log.slice(-4).reverse().map((entry, i) => (
-              <li key={i}>
-                <span className="muted">{t("journal.day", { n: entry.day })}</span> {entry.text}
-              </li>
-            ))}
           </ul>
         )}
       </section>

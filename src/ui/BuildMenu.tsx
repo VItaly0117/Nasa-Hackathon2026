@@ -3,7 +3,7 @@ import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "../typ
 import { moduleDesc, moduleName, t } from "../i18n";
 import { ModulePreview } from "./map/art";
 import { ResourceIcon } from "./icons";
-import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
+import { startsCollapsed, useCollapsed } from "./Collapse";
 import "./BuildMenu.css";
 
 type Props = {
@@ -80,25 +80,31 @@ export function BuildMenu({
 
   return (
     <>
-      <section className={`hud-panel build ${collapsed ? "build--collapsed" : ""}`} aria-label={t("build.aria")}>
-        <div className="build__tabs">
-          <span className="build__tab">
-            <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
-              <path d="M3 17 L11 9 M9 3 l8 8 l-3 3 l-8 -8 Z" stroke="#3b2a00" strokeWidth="2.2" fill="none" strokeLinejoin="round" />
-            </svg>
-            {t("build.tab")}
-          </span>
-          <span className="build__hint">
-            {placing ? t("build.hintPlacing") : t("build.hintPick")}
-          </span>
-          {placing && (
+      <div className="build-dock">
+        {placing && (
+          <>
+            <span className="build-dock__hint">{t("build.hintPlacing")}</span>
             <button className="btn btn--ghost btn--small" onClick={onCancel}>
               {t("build.cancel")}
             </button>
-          )}
-          <CollapseButton collapsed={collapsed} onClick={toggle} />
-        </div>
-        {!collapsed && (
+          </>
+        )}
+        <button
+          className={`build-toggle ${!collapsed ? "build-toggle--open" : ""}`}
+          onClick={toggle}
+          aria-expanded={!collapsed}
+          aria-label={t("build.tab")}
+          title={t("build.tab")}
+        >
+          <svg viewBox="0 0 20 20" width="30" height="30" aria-hidden="true">
+            <path d="M3 17 L11 9 M9 3 l8 8 l-3 3 l-8 -8 Z" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinejoin="round" />
+          </svg>
+          <span className="build-toggle__label">{t("build.tab")}</span>
+        </button>
+      </div>
+      {!collapsed && (
+      <section className="hud-panel build" aria-label={t("build.aria")}>
+        {(
           <ul className="build__list">
             {defs.map((d) => (
               <li key={d.type}>
@@ -117,6 +123,7 @@ export function BuildMenu({
           </ul>
         )}
       </section>
+      )}
 
       {def && !collapsed && (
         <section className="hud-panel detail" aria-label={t("build.moduleAria", { name: moduleName(def.type) })}>
