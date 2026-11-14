@@ -4,6 +4,9 @@ import { days, t } from "../i18n";
 import { formatMsg } from "../i18n/messages";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
+// Что панели нужно от игры (не всё состояние, чтобы она не перерисовывалась на каждый tick)
+export type SideState = Pick<GameState, "day" | "isNight" | "pending" | "tasks" | "research" | "log">;
+
 type Alert = { title: string; text: string; kind: "flare" | "night" | "warn" };
 
 const EVENT_ALERTS: Record<string, (inDays: number) => Alert> = {
@@ -20,7 +23,7 @@ const EVENT_ALERTS: Record<string, (inDays: number) => Alert> = {
 };
 
 // Самое важное, о чём игрок должен узнать заранее
-function pickAlert(state: GameState): Alert | null {
+function pickAlert(state: SideState): Alert | null {
   const pending = state.pending[0];
   if (pending) {
     return {
@@ -70,7 +73,7 @@ function AlertIcon({ kind }: { kind: Alert["kind"] }) {
 }
 
 export function SidePanel({ state, onResearch, surveyingIce, onStartIceSurvey, onCancelIceSurvey }: {
-  state: GameState;
+  state: SideState;
   onResearch: (answer: "shield" | "brush") => void;
   surveyingIce: boolean;
   onStartIceSurvey: () => void;

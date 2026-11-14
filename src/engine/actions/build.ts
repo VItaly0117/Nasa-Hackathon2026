@@ -35,8 +35,9 @@ export function build(state: GameState, slot: number, type: ModuleType): GameSta
 // Если пришло время болезни, открывается событие
 export function advanceBuilds(state: GameState, ms: number): GameState {
   if (!state.modules.some((m) => m.build)) return state;
-  const log = [...state.log];
-  const history = [...state.history];
+  // Журнал и историю копируем, только если в них что-то добавилось: за такт обычно меняется лишь время стройки,
+  // и тогда у состояния остаются прежние ссылки на log, history и crew (интерфейс не перерисовывает то, что не изменилось)
+  const added: { log: GameState["log"]; history: GameState["history"] } = { log: [], history: [] };
   const freed = new Set<number>();
   const sick: { crewId: number; slot: number }[] = [];
   const modules = state.modules.map((m) => {
@@ -51,12 +52,14 @@ export function advanceBuilds(state: GameState, ms: number): GameState {
       return { ...m, build: { ...m.build, leftMs } };
     }
     freed.add(m.build.crewId);
-    log.push({ day: state.day, ...msg("log.built", { name: m.type }) });
-    history.push({ day: state.day, kind: "built", module: m.type });
+    added.log.push({ day: state.day, ...msg("log.built", { name: m.type }) });
+    added.history.push({ day: state.day, kind: "built", module: m.type });
     const { build: _done, ...ready } = m;
     return ready;
   });
-  const crew = state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c));
+  const crew = freed.size ? state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c)) : state.crew;
+  const log = added.log.length ? [...state.log, ...added.log] : state.log;
+  const history = added.history.length ? [...state.history, ...added.history] : state.history;
   // Достроили модуль: задание могло выполниться, это видно сразу, а не на следующий день
   const next = reviewTasks({ ...state, modules, crew, log, history });
   return sick.length === 0 ? next : startIllness(next, sick[0]);

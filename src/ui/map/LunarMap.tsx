@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ModuleDef, ModuleType, PlacedModule } from "../../types";
+import type { ReactNode } from "react";
+import type { ModuleDef, ModuleType } from "../../types";
 import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } from "../../engine";
 import type { Terrain, TileInfo } from "../../engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "../../data/map";
@@ -7,12 +8,11 @@ import { moduleName, t } from "../../i18n";
 import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";
 import moonBg from "../../assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
-import { BuildProgress } from "./BuildProgress";
 import type { WalkTarget } from "./Walkers";
 import "./LunarMap.css";
 
 interface LunarMapProps {
-  modules: PlacedModule[];
+  modules: MapModule[];
   defs: ModuleDef[];
   isNight: boolean;
   buildType: ModuleType | null;
@@ -22,7 +22,13 @@ interface LunarMapProps {
   canAffordRepair?: boolean;
   onRepairModule?: (slot: number) => void;
   onSelectTile?: (tile: TileInfo) => void;
+  // Живые части стройки (полоска и проценты). Отдельно от modules: прогресс меняется 10 раз в секунду,
+  // а карта при этом не должна перерисовываться. Эти части подписываются на время сами
+  renderBuild?: { progress: (module: MapModule) => ReactNode; percent: (module: MapModule) => ReactNode };
 }
+
+// Что карте нужно знать о модуле. Время стройки (leftMs) сюда намеренно не входит
+export type MapModule = { slot: number; type: ModuleType; broken: boolean; building: boolean; waiting: boolean };
 
 const OK_COLOR = "#4ADE80";
 const BAD_COLOR = "#FF6B6B";
@@ -76,7 +82,7 @@ function Bubble({
   y: number;
   k: number;
   title: string;
-  text: string;
+  text: ReactNode;
   onRepair?: () => void;
   canRepair?: boolean;
 }) {
@@ -147,6 +153,7 @@ export default function LunarMap({
   canAffordRepair = true,
   onRepairModule,
   onSelectTile,
+  renderBuild,
 }: LunarMapProps) {
   const [selected, setSelected] = useState<TileInfo | null>(null);
   const [hovered, setHovered] = useState<TileInfo | null>(null);
@@ -328,10 +335,10 @@ export default function LunarMap({
         x,
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
         title: moduleName(def.type),
-        text: module.build
-          ? module.build.crewId === null
+        text: module.building
+          ? module.waiting
             ? t("map.waiting")
-            : t("map.building", { n: Math.round((1 - module.build.leftMs / module.build.totalMs) * 100) })
+            : renderBuild?.percent(module)
           : isBroken
             ? t("map.broken")
             : perDayText(def, isNight),
@@ -498,10 +505,10 @@ export default function LunarMap({
                     style={{ cursor: "pointer" }}
                     pointerEvents={buildType ? "none" : "auto"}
                   >
-                    <g opacity={module.build ? 0.45 : 1}>
+                    <g opacity={module.building ? 0.45 : 1}>
                       <ModuleArt type={module.type} broken={module.broken} />
                     </g>
-                    {module.build && <BuildProgress type={module.type} done={1 - module.build.leftMs / module.build.totalMs} />}
+                    {module.building && renderBuild?.progress(module)}
                   </g>
                 );
               }
