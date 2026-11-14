@@ -4,9 +4,7 @@ export type Resources = Record<ResourceKey, number>;
 export type ModuleType = "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter";
 
 export type ModuleDef = {
-  type: ModuleType;
-  name: string;
-  description?: string;
+  type: ModuleType;   // название и описание лежат в словарях i18n: module.<type>.name / .desc
   cost: Partial<Resources>;         // разово при постройке
   perDay: Partial<Resources>;       // каждый день: + даёт, − берёт
   nightPerDay?: Partial<Resources>; // ночью, если отличается (панели, батарея)

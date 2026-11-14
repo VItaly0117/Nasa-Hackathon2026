@@ -1,19 +1,21 @@
 import type { GameState } from "../types";
 import { MISSION_DAYS, NIGHT_START } from "../engine/engine";
 import { nextScheduledEvent } from "../engine/events";
+import { days, t } from "../i18n";
+import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
 type Alert = { title: string; text: string; kind: "flare" | "night" | "warn" };
 
 const EVENT_ALERTS: Record<string, (inDays: number) => Alert> = {
   flare: (n) => ({
     kind: "flare",
-    title: "Солнечная вспышка!",
-    text: `Через ${n} дн. ожидается повышенный уровень радиации. Убежище защитит экипаж.`,
+    title: t("alert.flare.title"),
+    text: t("alert.flare.text", { days: days(n) }),
   }),
   breakdown: (n) => ({
     kind: "warn",
-    title: "Износ фильтров",
-    text: `Через ${n} дн. система жизнеобеспечения может сломаться. Держи запас воды и энергии на ремонт.`,
+    title: t("alert.breakdown.title"),
+    text: t("alert.breakdown.text", { days: days(n) }),
   }),
 };
 
@@ -21,7 +23,11 @@ const EVENT_ALERTS: Record<string, (inDays: number) => Alert> = {
 function pickAlert(state: GameState): Alert | null {
   const pending = state.pending[0];
   if (pending) {
-    return { kind: "warn", title: "Последствия", text: `Через ${pending.inDays} дн.: ${pending.reason}` };
+    return {
+      kind: "warn",
+      title: t("alert.pending.title"),
+      text: t("alert.pending.text", { days: days(pending.inDays), reason: pending.reason }),
+    };
   }
 
   const event = nextScheduledEvent(state.day);
@@ -29,10 +35,10 @@ function pickAlert(state: GameState): Alert | null {
 
   const toNight = NIGHT_START - state.day;
   if (state.isNight) {
-    return { kind: "night", title: "Лунная ночь", text: "Солнечные панели не дают энергии. База живёт на батареях и запасах." };
+    return { kind: "night", title: t("alert.night.title"), text: t("alert.night.text") };
   }
   if (toNight > 0 && toNight <= 3) {
-    return { kind: "night", title: "Скоро ночь", text: `Через ${toNight} дн. солнце сядет на 14 суток. Панели перестанут работать.` };
+    return { kind: "night", title: t("alert.soon.title"), text: t("alert.soon.text", { days: days(toNight) }) };
   }
   return null;
 }
@@ -66,6 +72,8 @@ function AlertIcon({ kind }: { kind: Alert["kind"] }) {
 export function SidePanel({ state }: { state: GameState }) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
+  const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
+  const [journalClosed, toggleJournal] = useCollapsed(startsCollapsed());
 
   return (
     <aside className="side">
@@ -80,28 +88,40 @@ export function SidePanel({ state }: { state: GameState }) {
       )}
 
       <section className="hud-panel goal">
-        <h2 className="hud-title">
-          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-            <path d="M10 1 L12.6 7 L19 7.6 L14 11.8 L15.6 18.2 L10 14.8 L4.4 18.2 L6 11.8 L1 7.6 L7.4 7 Z" fill="#f5b83d" />
-          </svg>
-          Текущая цель
-        </h2>
-        <p>Продержаться {MISSION_DAYS} дней и сохранить экипаж</p>
-        <div className="goal__row">
-          <div className="goal__bar"><div style={{ width: `${progress}%` }} /></div>
-          <span>{state.day} / {MISSION_DAYS}</span>
+        <div className="panel-head">
+          <h2 className="hud-title">
+            <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
+              <path d="M10 1 L12.6 7 L19 7.6 L14 11.8 L15.6 18.2 L10 14.8 L4.4 18.2 L6 11.8 L1 7.6 L7.4 7 Z" fill="#f5b83d" />
+            </svg>
+            {t("goal.title")}
+          </h2>
+          <CollapseButton collapsed={goalClosed} onClick={toggleGoal} />
         </div>
+        {!goalClosed && (
+          <>
+            <p>{t("goal.text", { days: days(MISSION_DAYS) })}</p>
+            <div className="goal__row">
+              <div className="goal__bar"><div style={{ width: `${progress}%` }} /></div>
+              <span>{state.day} / {MISSION_DAYS}</span>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="hud-panel journal">
-        <h2 className="hud-title">Журнал</h2>
-        <ul>
-          {state.log.slice(-4).reverse().map((entry, i) => (
-            <li key={i}>
-              <span className="muted">День {entry.day}</span> {entry.text}
-            </li>
-          ))}
-        </ul>
+        <div className="panel-head">
+          <h2 className="hud-title">{t("journal.title")}</h2>
+          <CollapseButton collapsed={journalClosed} onClick={toggleJournal} />
+        </div>
+        {!journalClosed && (
+          <ul>
+            {state.log.slice(-4).reverse().map((entry, i) => (
+              <li key={i}>
+                <span className="muted">{t("journal.day", { n: entry.day })}</span> {entry.text}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </aside>
   );

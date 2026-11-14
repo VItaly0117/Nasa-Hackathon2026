@@ -2,6 +2,7 @@ import modulesData from "../data/modules.json";
 import type { Action, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "../types";
 import { applyEventStart, eventForDay, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
+import { moduleName, t } from "../i18n";
 
 export const MISSION_DAYS = 20;
 export const NIGHT_START = 14;
@@ -10,7 +11,7 @@ const MODULES = modulesData as ModuleDef[];
 const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health"];
 const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
 const VITAL: ResourceKey[] = ["oxygen", "water", "food"];
-const VITAL_NAMES: Partial<Record<ResourceKey, string>> = { oxygen: "кислорода", water: "воды", food: "еды" };
+const vitalName = (key: ResourceKey) => t(`vital.${key}`);
 
 export function getDef(type: ModuleType): ModuleDef {
   return MODULES.find((m) => m.type === type)!;
@@ -36,14 +37,15 @@ export function initialState(): GameState {
     isNight: false,
     resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100 },
     modules: [
-      // стартовая база вокруг посадочной площадки (ряд 5, колонка 12) — ближе к середине карты
-      { slot: slotOf(4, 13), type: "habitat", broken: false },
-      { slot: slotOf(6, 13), type: "lifeSupport", broken: false },
-      { slot: slotOf(5, 13), type: "solar", broken: false },
+      // стартовая база вокруг посадочной площадки (ряд 5, колонка 12): каждый модуль в двух клетках
+      // от неё в своей стороне, чтобы между зданиями оставалось место
+      { slot: slotOf(3, 11), type: "habitat", broken: false },
+      { slot: slotOf(7, 11), type: "lifeSupport", broken: false },
+      { slot: slotOf(5, 14), type: "solar", broken: false },
     ],
     pending: [],
     activeEvent: null,
-    log: [{ day: 1, text: "Экипаж высадился на южном полюсе Луны" }],
+    log: [{ day: 1, text: t("log.landed") }],
     status: "playing",
   };
 }
@@ -68,7 +70,7 @@ function nextDay(state: GameState): GameState {
     if (noPower && (output.energy ?? 0) < 0) continue;
     addTo(resources, output);
   }
-  if (noPower) log.push({ day, text: "Нет энергии: системы, которым она нужна, отключены" });
+  if (noPower) log.push({ day, text: t("log.noPower") });
   addTo(resources, CREW_PER_DAY);
   for (const key of KEYS) resources[key] = clamp(resources[key]);
 
@@ -86,14 +88,14 @@ function nextDay(state: GameState): GameState {
   // Закончился жизненно важный ресурс — последствие наступит через 2 дня
   for (const key of VITAL) {
     if (resources[key] > 0) continue;
-    const reason = `Без ${VITAL_NAMES[key]} экипаж слабеет: здоровье −20`;
+    const reason = t("log.vitalHealth", { what: vitalName(key) });
     if (pending.some((p) => p.reason === reason)) continue;
     pending.push({ inDays: 2, key: "health", amount: -20, reason });
-    log.push({ day, text: `Закончились запасы ${VITAL_NAMES[key]}` });
+    log.push({ day, text: t("log.vitalOut", { what: vitalName(key) }) });
   }
 
-  if (day === NIGHT_START - 2) log.push({ day, text: "Через 2 дня наступит лунная ночь" });
-  if (day === NIGHT_START) log.push({ day, text: "Наступила лунная ночь: панели не дают энергии" });
+  if (day === NIGHT_START - 2) log.push({ day, text: t("log.night2") });
+  if (day === NIGHT_START) log.push({ day, text: t("log.nightStart") });
 
   let next: GameState = {
     ...state,
@@ -126,7 +128,7 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
     ...state,
     resources,
     modules: [...state.modules, { slot, type, broken: false }],
-    log: [...state.log, { day: state.day, text: `Построен модуль «${def.name}»` }],
+    log: [...state.log, { day: state.day, text: t("log.built", { name: moduleName(type) }) }],
   };
 }
 
