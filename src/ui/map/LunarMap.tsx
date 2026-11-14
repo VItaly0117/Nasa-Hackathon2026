@@ -85,6 +85,7 @@ const SHORT: Record<string, string> = {
   food: "еды",
   energy: "кВт",
   health: "здоровья",
+  materials: "мат.",
 };
 
 // «+6 еды · −3 воды · −5 кВт в день»
