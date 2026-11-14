@@ -19,6 +19,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "server.back": "Назад",
   "server.badName": "Лише латинські літери A–Z, від 1 до 20",
   "server.unavailable": "Сервер не відповідає. Попроси того, хто запускає гру, увімкнути сервер: npm run server",
+  "server.staticOnly": "На цій сторінці немає сервера спільної гри. Грати вдвох можна, коли гру запускають із сервером: npm run server. Одиночна гра працює й тут.",
   "online.badge": "Сервер {room} · ти: {role}",
   "online.players": "Гравців: {n}",
   "online.lockedBy": "Це будує {role}",

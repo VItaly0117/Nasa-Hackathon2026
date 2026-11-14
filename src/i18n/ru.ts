@@ -20,6 +20,7 @@ export const ru = {
   "server.back": "Назад",
   "server.badName": "Только латинские буквы A–Z, от 1 до 20",
   "server.unavailable": "Сервер не отвечает. Попроси того, кто запускает игру, включить сервер: npm run server",
+  "server.staticOnly": "На этой странице нет сервера совместной игры. Играть вдвоём можно, когда игру запускают с сервером: npm run server. Одиночная игра работает и здесь.",
   "online.badge": "Сервер {room} · ты: {role}",
   "online.players": "Игроков: {n}",
   "online.lockedBy": "Это строит {role}",

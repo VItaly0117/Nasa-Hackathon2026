@@ -5,6 +5,10 @@ import type { Action, Role } from "@/types";
 // его можно задать при сборке: VITE_SERVER_URL=https://... npm run build
 const BASE = `${import.meta.env.VITE_SERVER_URL ?? ""}/api/rooms`;
 
+// Сервер есть при разработке (прокси Vite на npm run server) или если сборку собрали с адресом сервера.
+// Статическая страница (GitHub Pages) сервера не имеет: тогда кнопка «Сервер» объясняет это, а не ведёт в тупик
+export const SERVER_AVAILABLE = import.meta.env.DEV || Boolean(import.meta.env.VITE_SERVER_URL);
+
 export const ROOM_NAME = /^[A-Za-z]{1,20}$/;
 
 export type Player = { id: string; role: Role };

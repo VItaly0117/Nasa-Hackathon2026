@@ -19,6 +19,7 @@ export const en: Record<keyof typeof ru, string> = {
   "server.back": "Back",
   "server.badName": "Latin letters A–Z only, 1 to 20 of them",
   "server.unavailable": "The server is not responding. Ask whoever runs the game to start it: npm run server",
+  "server.staticOnly": "This page has no co-op server. Two-player games work when the game is started with the server: npm run server. Solo play works here too.",
   "online.badge": "Server {room} · you: {role}",
   "online.players": "Players: {n}",
   "online.lockedBy": "The {role} builds this",

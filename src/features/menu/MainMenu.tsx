@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLang, langName, t } from "@/i18n";
 import type { Lang } from "@/i18n";
-import { joinRoom, ROOM_NAME } from "@/net/online";
+import { joinRoom, ROOM_NAME, SERVER_AVAILABLE } from "@/net/online";
 import type { Session } from "@/net/online";
 import { LangSelect } from "./LangSelect";
 import { MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
@@ -54,6 +54,22 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
       setError(t("server.unavailable"));
       setJoining(false);
     }
+  }
+
+  if (view === "server" && !SERVER_AVAILABLE) {
+    return (
+      <div className="overlay">
+        <div className="modal intro menu" role="dialog" aria-labelledby="server-title">
+          <h2 id="server-title">{t("server.title")}</h2>
+          <p className="menu__hint">{t("server.staticOnly")}</p>
+          <div className="intro__actions">
+            <button type="button" className="btn btn--primary" onClick={() => setView("main")}>
+              {t("server.back")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (view === "server") {
