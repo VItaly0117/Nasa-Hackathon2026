@@ -108,4 +108,5 @@ export type Action =
   | { type: "build"; slot: number; module: ModuleType }
   | { type: "repair"; slot: number }
   | { type: "research"; id: "moonDust"; answer: "shield" | "brush" }
+  | { type: "research"; id: "iceScout"; answer: "ice" | "rock" }
   | { type: "resolveEvent"; choice: string };

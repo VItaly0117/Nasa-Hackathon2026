@@ -1,10 +1,12 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START, REPAIR_COST } from "./engine/engine";
-import { buildDebrief } from "./engine/debrief";
-import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
+import { clearSave, loadGame, loadLang, loadRecords, recordFrom, saveGame, saveLang, saveRecord } from "./engine/storage";
+import type { GameRecord } from "./engine/storage";
 import { openStream, sendAction } from "./net/online";
 import type { Player, Session } from "./net/online";
 import { MainMenu } from "./ui/MainMenu";
+import { ResultsScreen } from "./ui/ResultsScreen";
+import { SourcesPanel } from "./ui/SourcesPanel";
 import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
@@ -19,7 +21,7 @@ import { CrewPanel } from "./ui/CrewPanel";
 import { SidePanel } from "./ui/SidePanel";
 import { BuildMenu } from "./ui/BuildMenu";
 import { Intro } from "./ui/Intro";
-import { Prologue, Rocket } from "./ui/Prologue";
+import { Prologue } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
 import { TaskToast } from "./ui/TaskToast";
 import { Avatar } from "./ui/CrewPanel";
@@ -62,7 +64,7 @@ const ONLINE_TICK_MS = 500;
 // Одиночную игру сохраняем не чаще, чем раз в столько мс: время идёт непрерывно
 const SAVE_EVERY_MS = 2000;
 
-function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; onMenu: () => void }) {
+function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: () => void; onMenu: () => void; onSources: () => void }) {
   const online = mode.kind === "online" ? mode.session : null;
   // Совместная игра: та же игра получается из seed комнаты и всех действий, что уже случились до входа
   const [state, apply] = useReducer(reduce, undefined, () =>
@@ -142,6 +144,7 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   const [selectedType, setSelectedType] = useState<ModuleType | null>("greenhouse");
   // Игрок выбирает место на карте: карта подсвечивает, куда можно поставить
   const [buildType, setBuildType] = useState<ModuleType | null>(null);
+  const [surveyingIce, setSurveyingIce] = useState(false);
   // Правила, открытые во время игры
   const [rulesOpen, setRulesOpen] = useState(false);
 
@@ -149,6 +152,18 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   const event = EVENTS.find((e) => e.id === state.activeEvent) ?? null;
   const daysToNight = NIGHT_START - state.day;
   const isPlaying = state.status === "playing";
+
+  // Одиночная миссия закончилась: записываем результат один раз и запоминаем, лучший ли он
+  const [record, setRecord] = useState<{ best: GameRecord; isNew: boolean } | null>(null);
+  const recorded = useRef(false);
+  useEffect(() => {
+    if (online || isPlaying || recorded.current) return;
+    recorded.current = true;
+    const mine = recordFrom(state);
+    const hadBefore = loadRecords().length > 0;
+    const better = saveRecord(mine);
+    setRecord({ best: loadRecords()[0] ?? mine, isNew: better && hadBefore });
+  }, [online, isPlaying, state]);
   // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места.
   // В совместной игре время общее: его двигает только ведущий и останавливает только событие
   const clockRunning = online
@@ -234,6 +249,11 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   }, []);
 
   function handleSelectTile(tile: TileInfo) {
+    if (surveyingIce) {
+      dispatch({ type: "research", id: "iceScout", answer: tile.terrain === "ice" ? "ice" : "rock" });
+      setSurveyingIce(false);
+      return;
+    }
     if (!buildType || !hasFreeCrew(state) || !canPlace(state, buildType, tile.row, tile.col)) return;
     sound.playBuildStart();
     dispatch({ type: "build", slot: slotOf(tile.row, tile.col), module: buildType });
@@ -247,6 +267,7 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
         defs={MODULES}
         isNight={state.isNight}
         buildType={buildType}
+        surveyingIce={surveyingIce}
         crewActive={isPlaying && event === null}
         canPlaceAt={(row, col) => buildType !== null && canPlace(state, buildType, row, col)}
         canAffordRepair={canAfford(state.resources, REPAIR_COST)}
@@ -300,7 +321,13 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
       </header>
 
       <CrewPanel health={state.resources.health} crew={state.crew} />
-      <SidePanel state={state} onResearch={(answer) => dispatch({ type: "research", id: "moonDust", answer })} />
+      <SidePanel
+        state={state}
+        surveyingIce={surveyingIce}
+        onCancelIceSurvey={() => setSurveyingIce(false)}
+        onStartIceSurvey={() => { setBuildType(null); setSurveyingIce(true); }}
+        onResearch={(answer) => dispatch({ type: "research", id: "moonDust", answer })}
+      />
 
       <BuildMenu
         defs={MODULES}
@@ -367,41 +394,23 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
       )}
 
       {!isPlaying && (
-        <div className="overlay">
-          <div className={`modal ending ending--${state.status}`}>
-            {state.status === "won" && <Rocket className="ending__rocket" flame />}
-            <h2>{state.status === "won" ? t("app.win") : t("app.lose")}</h2>
-            <p>{state.status === "won" ? t("app.winText") : t("app.loseText")}</p>
-            <p className="muted">{t("app.daysOnMoon", { n: state.day })}</p>
-            <ul className="debrief">
-              {buildDebrief(state).map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <div className="modal__choices">
-              {!online && (
-                <button
-                  className="btn btn--primary"
-                  onClick={() => {
-                    sound.playClick();
-                    onRestart();
-                  }}
-                >
-                  {t("app.playAgain")}
-                </button>
-              )}
-              <button
-                className={`btn ${online ? "btn--primary" : "btn--ghost"}`}
-                onClick={() => {
-                  sound.playClick();
-                  toMenu();
-                }}
-              >
-                {t("app.toMenu")}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ResultsScreen
+          state={state}
+          online={!!online}
+          record={record}
+          onRestart={() => {
+            sound.playClick();
+            onRestart();
+          }}
+          onMenu={() => {
+            sound.playClick();
+            toMenu();
+          }}
+          onSources={() => {
+            sound.playClick();
+            onSources();
+          }}
+        />
       )}
 
       {banner && isPlaying && !event && (
@@ -435,6 +444,8 @@ export default function App() {
   const [mode, setMode] = useState<Mode>({ kind: "solo", resume: null });
   // Новый ключ пересоздаёт Game с чистым состоянием, поэтому restart не нужен в движке
   const [runId, setRunId] = useState(0);
+  // Экран «Данные NASA» открывается из меню и из итогов
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   // Нужен только чтобы перерисовать дерево после смены языка: сам язык хранится в i18n
   const [, setLangState] = useState<Lang | null>(restoreLang);
   // Сохранение читаем при каждом показе меню: игрок мог только что выйти из игры
@@ -465,7 +476,9 @@ export default function App() {
           }}
           onContinue={() => saved && start({ kind: "solo", resume: saved }, "game")}
           onJoined={(session) => start({ kind: "online", session }, "game")}
+          onSources={() => setSourcesOpen(true)}
         />
+        {sourcesOpen && <SourcesPanel onClose={() => setSourcesOpen(false)} />}
         <RotateHint />
       </div>
     );
@@ -473,15 +486,19 @@ export default function App() {
 
   if (stage === "game") {
     return (
-      <Game
-        key={runId}
-        mode={mode}
-        onRestart={() => {
-          clearSave();
-          start({ kind: "solo", resume: null }, "game");
-        }}
-        onMenu={() => setStage("menu")}
-      />
+      <>
+        <Game
+          key={runId}
+          mode={mode}
+          onRestart={() => {
+            clearSave();
+            start({ kind: "solo", resume: null }, "game");
+          }}
+          onMenu={() => setStage("menu")}
+          onSources={() => setSourcesOpen(true)}
+        />
+        {sourcesOpen && <SourcesPanel onClose={() => setSourcesOpen(false)} />}
+      </>
     );
   }
 

@@ -1,5 +1,6 @@
 import debriefData from "../data/debrief.json";
 import hintsData from "../data/hints.json";
+import healthData from "../data/health.json";
 import { days as daysText, t } from "../i18n";
 import { ru } from "../i18n/ru";
 import type { GameState, HistoryEntry, ModuleType, ResourceKey } from "../types";
@@ -44,6 +45,13 @@ type Rule = {
 
 const DATA = debriefData as { verdicts: Verdict[]; rules: Rule[] };
 const HINT_IDS = (hintsData as { id: string }[]).map((h) => h.id);
+const FACTS = healthData as { id: string; source?: string }[];
+
+// Факт NASA о здоровье астронавтов для итогового экрана. Выбирается по seed: чистая функция,
+// в одной и той же игре (и у всех игроков совместной игры) факт один и тот же
+export function missionFact(state: GameState): { id: string; source?: string } {
+  return FACTS[(state.seed >>> 0) % FACTS.length];
+}
 
 export type DebriefLine = {
   id: string;
@@ -180,6 +188,9 @@ export function validateDebriefData(): string[] {
     ...DATA.verdicts.flatMap((v) => ["title", "summary", "rating"].map((f) => `debrief.verdict.${v.id}.${f}`)),
   ];
   for (const key of keys) if (!(key in ru)) problems.push(`нет текста "${key}" в словарях i18n`);
+  // Тексты подсказок и фактов лежат в словарях: hint.<id> и fact.<id>
+  for (const id of HINT_IDS) if (!(`hint.${id}` in ru)) problems.push(`нет текста "hint.${id}" в словарях i18n`);
+  for (const f of FACTS) if (!(`fact.${f.id}` in ru)) problems.push(`нет текста "fact.${f.id}" в словарях i18n`);
   const ids = [...DATA.verdicts, ...DATA.rules].map((x) => x.id);
   for (const id of new Set(ids)) if (ids.filter((x) => x === id).length > 1) problems.push(`повтор id "${id}"`);
   return problems;

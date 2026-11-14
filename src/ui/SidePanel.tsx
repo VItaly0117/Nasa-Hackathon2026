@@ -69,7 +69,13 @@ function AlertIcon({ kind }: { kind: Alert["kind"] }) {
   );
 }
 
-export function SidePanel({ state, onResearch }: { state: GameState; onResearch: (answer: "shield" | "brush") => void }) {
+export function SidePanel({ state, onResearch, surveyingIce, onStartIceSurvey, onCancelIceSurvey }: {
+  state: GameState;
+  onResearch: (answer: "shield" | "brush") => void;
+  surveyingIce: boolean;
+  onStartIceSurvey: () => void;
+  onCancelIceSurvey: () => void;
+}) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
   const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
@@ -118,7 +124,11 @@ export function SidePanel({ state, onResearch }: { state: GameState; onResearch:
           {state.research?.includes("moonDust") && <span aria-label={t("research.completed")}>✓</span>}
         </div>
         {state.research?.includes("moonDust") ? (
-          <p>{t("research.completedText")}</p>
+          <p>{state.research.includes("moonDust:shield")
+            ? t("research.moonDust.resultShield")
+            : state.research.includes("moonDust:brush")
+              ? t("research.moonDust.resultBrush")
+              : t("research.completedText")}</p>
         ) : (
           <>
             <p><strong>{t("research.moonDust.title")}</strong></p>
@@ -134,6 +144,31 @@ export function SidePanel({ state, onResearch }: { state: GameState; onResearch:
             </div>
             <small className="muted"><a href="https://www.nasa.gov/learning-resources/for-kids-and-students/nasa-knows-what-is-lunar-regolith-grades-5-8/" target="_blank" rel="noreferrer">{t("research.source")}</a></small>
           </>
+        )}
+        <hr />
+        {state.research?.includes("iceScout") ? (
+          <div>
+            <p><strong>{t("research.iceScout.title")}</strong></p>
+            <p>{state.research.includes("iceScout:ice")
+              ? t("research.iceScout.resultIce")
+              : state.research.includes("iceScout:rock")
+                ? t("research.iceScout.resultRock")
+                : t("research.iceScout.completed")}</p>
+          </div>
+        ) : (
+          <div>
+            <p><strong>{t("research.iceScout.title")}</strong></p>
+            <p>{t("research.iceScout.evidence")}</p>
+            {surveyingIce ? (
+              <div className="research-card__choices">
+                <p className="muted">{t("research.iceScout.pick")}</p>
+                <button className="btn btn--ghost" onClick={onCancelIceSurvey}>{t("research.iceScout.cancel")}</button>
+              </div>
+            ) : (
+              <button className="btn btn--choice" onClick={onStartIceSurvey}>{t("research.iceScout.start")}</button>
+            )}
+            <small className="muted"><a href="https://science.nasa.gov/mission/viper/" target="_blank" rel="noreferrer">{t("research.iceScout.source")}</a></small>
+          </div>
         )}
       </section>
 

@@ -1,9 +1,10 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
-import { buildReport, validateDebriefData } from "./debrief";
+import { buildReport, missionFact, validateDebriefData } from "./debrief";
 import { t } from "../i18n";
 import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce, REPAIR_COST } from "./engine";
 import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
 import eventsData from "../data/events.json";
+import sourcesData from "../data/sources.json";
 import { en } from "../i18n/en";
 import { ru } from "../i18n/ru";
 import { uk } from "../i18n/uk";
@@ -221,7 +222,16 @@ export function runChecks(): CheckResult[] {
     shield.resources.energy - base.resources.energy === 24 && shield.resources.materials - base.resources.materials === 12 && brush.resources.energy - base.resources.energy === 8 && brush.resources.materials === base.resources.materials,
     `верный: +${shield.resources.energy - base.resources.energy} энергии, +${shield.resources.materials - base.resources.materials} материалов; неверный: +${brush.resources.energy - base.resources.energy}`,
   );
-  check("Исследование выполняется один раз", reduce(shield, { type: "research", id: "moonDust", answer: "shield" }) === shield && shield.research.length === 1, `выполнено: ${shield.research.join(", ")}`);
+  check("Исследование выполняется один раз", reduce(shield, { type: "research", id: "moonDust", answer: "shield" }) === shield && shield.research.filter((x) => x === "moonDust").length === 1, `выполнено: ${shield.research.join(", ")}`);
+  // Второе исследование: разведка льда
+  const iceRight = reduce(base, { type: "research", id: "iceScout", answer: "ice" });
+  const iceWrong = reduce(base, { type: "research", id: "iceScout", answer: "rock" });
+  check(
+    "Разведка льда: верный ответ даёт воду и энергию, неверный немного материалов; оба один раз и независимо от пыли",
+    iceRight.resources.water > base.resources.water && iceRight.resources.energy > base.resources.energy && iceWrong.resources.materials > base.resources.materials && iceWrong.resources.water === base.resources.water &&
+      reduce(iceRight, { type: "research", id: "iceScout", answer: "ice" }) === iceRight && reduce(shield, { type: "research", id: "iceScout", answer: "ice" }) !== shield,
+    `верный: вода +${iceRight.resources.water - base.resources.water}, энергия +${iceRight.resources.energy - base.resources.energy}; неверный: материалы +${iceWrong.resources.materials - base.resources.materials}`,
+  );
   const nearFull = reduce({ ...base, resources: { ...base.resources, energy: 95 } }, { type: "research", id: "moonDust", answer: "shield" });
   check("Награда за исследование не выходит за лимит хранения", nearFull.resources.energy === capacityOf(base.modules).energy, `энергия ${nearFull.resources.energy}`);
 
@@ -240,6 +250,23 @@ export function runChecks(): CheckResult[] {
     }
   }
   check("Подсказки в окнах событий совпадают с ценами в events.json", drift.length === 0, drift.join("; ") || "ru, uk, en");
+
+  // Итоговый экран: факты NASA и источники
+  const noSourceText = (sourcesData as { id: string }[]).flatMap((x) => [`source.${x.id}.name`, `source.${x.id}.usedFor`]).filter((k) => !(k in ru));
+  check("У каждого источника на экране «Данные NASA» есть название и описание", noSourceText.length === 0, noSourceText.join(", ") || `${(sourcesData as unknown[]).length} источников`);
+  const facts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => missionFact(initialState(seed)).id);
+  check(
+    "Факт NASA в итогах выбирается по seed: один seed даёт один факт, и текст у него есть",
+    missionFact(initialState(3)).id === missionFact(initialState(3)).id && facts.every((id) => `fact.${id}` in ru),
+    facts.join(", "),
+  );
+  const flawless = { ...prepared, tasks: prepared.tasks.map((x) => ({ ...x, status: "done" as const })) };
+  const ignoredAsks = { ...prepared, tasks: prepared.tasks.map((x) => ({ ...x, status: "missed" as const })) };
+  check(
+    "«На отлично» только если экипаж не остался без ответа на большинство просьб",
+    buildReport(flawless).rating === t("debrief.verdict.perfect.rating") && buildReport(ignoredAsks).rating !== t("debrief.verdict.perfect.rating"),
+    `выполнены: ${buildReport(flawless).rating}, просрочены: ${buildReport(ignoredAsks).rating}`,
+  );
 
   // Задания от экипажа
   const first = initialState();

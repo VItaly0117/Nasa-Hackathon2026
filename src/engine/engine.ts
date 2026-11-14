@@ -313,21 +313,30 @@ function repairModule(state: GameState, slot: number): GameState {
   };
 }
 
-function completeResearch(state: GameState, id: "moonDust", answer: "shield" | "brush"): GameState {
+function completeResearch(
+  state: GameState,
+  id: "moonDust" | "iceScout",
+  answer: "shield" | "brush" | "ice" | "rock",
+): GameState {
   if (state.status !== "playing" || state.research?.includes(id)) return state;
-  const correct = answer === "shield";
-  const energy = correct ? 24 : 8;
-  const materials = correct ? 12 : 0;
+  const correct = id === "moonDust" ? answer === "shield" : answer === "ice";
+  const energy = id === "moonDust" ? (correct ? 24 : 8) : (correct ? 8 : 0);
+  const water = id === "iceScout" && correct ? 22 : 0;
+  const materials = id === "moonDust" ? (correct ? 12 : 0) : (correct ? 0 : 5);
   const capacity = capacityOf(state.modules);
   const resources = {
     ...state.resources,
     energy: clamp(state.resources.energy + energy, capacity.energy),
+    water: clamp(state.resources.water + water, capacity.water),
     materials: clamp(state.resources.materials + materials, capacity.materials),
   };
-  const explanation = t(correct ? "research.moonDust.resultShield" : "research.moonDust.resultBrush");
+  const resultKey = id === "moonDust"
+    ? (correct ? "research.moonDust.resultShield" : "research.moonDust.resultBrush")
+    : (correct ? "research.iceScout.resultIce" : "research.iceScout.resultRock");
+  const explanation = t(resultKey);
   return {
     ...state,
-    research: [...(state.research ?? []), id],
+    research: [...(state.research ?? []), id, `${id}:${answer}`],
     resources,
     log: [...state.log, { day: state.day, text: t("research.log", { result: explanation }) }],
   };
