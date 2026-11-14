@@ -193,6 +193,7 @@ export const ru = {
   "build.perDay": "{sign}{n} {unit} в день",
   "build.aria": "Строительство",
   "build.tab": "Строительство",
+  "build.close": "Закрыть",
   "build.hintPlacing": "Выбери зелёную клетку на карте",
   "build.hintPick": "Выбери модуль",
   "build.night": "Ночью работает иначе",

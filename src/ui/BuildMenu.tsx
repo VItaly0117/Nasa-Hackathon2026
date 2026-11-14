@@ -93,13 +93,19 @@ export function BuildMenu({
           className={`build-toggle ${!collapsed ? "build-toggle--open" : ""}`}
           onClick={toggle}
           aria-expanded={!collapsed}
-          aria-label={t("build.tab")}
-          title={t("build.tab")}
+          aria-label={collapsed ? t("build.tab") : t("build.close")}
+          title={collapsed ? t("build.tab") : t("build.close")}
         >
-          <svg viewBox="0 0 20 20" width="30" height="30" aria-hidden="true">
-            <path d="M3 17 L11 9 M9 3 l8 8 l-3 3 l-8 -8 Z" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinejoin="round" />
-          </svg>
-          <span className="build-toggle__label">{t("build.tab")}</span>
+          {collapsed ? (
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 20 20" width="24" height="24" aria-hidden="true">
+              <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          )}
+          <span className="build-toggle__label">{collapsed ? t("build.tab") : t("build.close")}</span>
         </button>
       </div>
       {!collapsed && (

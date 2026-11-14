@@ -183,6 +183,7 @@ export const en: Record<keyof typeof ru, string> = {
   "build.perDay": "{sign}{n} {unit} per day",
   "build.aria": "Construction",
   "build.tab": "Construction",
+  "build.close": "Close",
   "build.hintPlacing": "Pick a green tile on the map",
   "build.hintPick": "Pick a module",
   "build.night": "Works differently at night",

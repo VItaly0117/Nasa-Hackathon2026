@@ -183,6 +183,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "build.perDay": "{sign}{n} {unit} на день",
   "build.aria": "Будівництво",
   "build.tab": "Будівництво",
+  "build.close": "Закрити",
   "build.hintPlacing": "Обери зелену клітинку на карті",
   "build.hintPick": "Обери модуль",
   "build.night": "Вночі працює інакше",
