@@ -24,7 +24,9 @@ function format(ms: number) {
 // от тех же часов идут день и стройка, поэтому они всегда согласованы
 export function DayClock({ running, progress, onTick, children }: Props) {
   const tickRef = useRef(onTick);
-  tickRef.current = onTick;
+  useEffect(() => {
+    tickRef.current = onTick;
+  });
 
   useEffect(() => {
     if (!running) return;

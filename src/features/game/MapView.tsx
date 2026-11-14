@@ -3,7 +3,7 @@ import { canPlace, hasFreeCrew, REPAIR_COST, slotOf } from "@/engine";
 import type { TileInfo } from "@/engine";
 import type { ModuleDef, ModuleType } from "@/types";
 import { sound } from "@/audio/audio";
-import { useGame, useSend, useSession } from "@/session/react";
+import { useGame, useSend, useSession } from "@/session/hooks";
 import { BuildProgress } from "@/features/game/map/BuildProgress";
 import LunarMap from "@/features/game/map/LunarMap";
 import type { MapModule } from "@/features/game/map/LunarMap";

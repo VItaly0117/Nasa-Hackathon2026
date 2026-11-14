@@ -3,7 +3,8 @@ import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/type
 import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
 import { ResourceIcon } from "@/ui/icons";
-import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
+import { CollapseButton } from "@/ui/Collapse";
+import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 import "./BuildMenu.css";
 
 type Props = {

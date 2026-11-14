@@ -2,7 +2,8 @@ import type { GameState } from "@/types";
 import { MISSION_DAYS, nextScheduledEvent, NIGHT_START } from "@/engine";
 import { days, t, tDynamic } from "@/i18n";
 import { formatMsg } from "@/i18n/messages";
-import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
+import { CollapseButton } from "@/ui/Collapse";
+import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 
 // Что панели нужно от игры (не всё состояние, чтобы она не перерисовывалась на каждый tick)
 export type SideState = Pick<GameState, "day" | "isNight" | "pending" | "tasks" | "research" | "log">;

@@ -57,8 +57,10 @@ export function Walkers({ targets, active }: Props) {
   const roots = useRef<(SVGGElement | null)[]>([]);
   const targetsRef = useRef(targets);
   const activeRef = useRef(active);
-  targetsRef.current = targets;
-  activeRef.current = active;
+  useEffect(() => {
+    targetsRef.current = targets;
+    activeRef.current = active;
+  });
 
   useEffect(() => {
     const parts = CREW.map((_, i) => {

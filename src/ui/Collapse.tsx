@@ -1,16 +1,4 @@
-import { useState } from "react";
 import { t } from "@/i18n";
-
-// Панели по умолчанию свёрнуты на любом экране: карта и астронавты должны быть видны,
-// а нужную панель ребёнок раскрывает сам
-export function startsCollapsed() {
-  return true;
-}
-
-export function useCollapsed(initial = false): [boolean, () => void] {
-  const [collapsed, setCollapsed] = useState(initial);
-  return [collapsed, () => setCollapsed((c) => !c)];
-}
 
 // Кнопка-шеврон в заголовке панели
 export function CollapseButton({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {

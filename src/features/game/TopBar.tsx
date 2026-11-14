@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { DAY_MS, MISSION_DAYS, NIGHT_START } from "@/engine";
 import { days, t } from "@/i18n";
 import { sound } from "@/audio/audio";
-import { useGame, useMeta, useSession } from "@/session/react";
+import { useGame, useMeta, useSession } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
 import { DayClock } from "./DayClock";
 import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";

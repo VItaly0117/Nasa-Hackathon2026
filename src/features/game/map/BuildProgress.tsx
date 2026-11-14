@@ -1,5 +1,5 @@
 import type { ModuleType } from "@/types";
-import { ART_HEIGHT } from "./art";
+import { ART_HEIGHT } from "./art-size";
 
 // Полоска над стройкой: сколько уже построено. Рисуется в тех же координатах, что и сам модуль
 export function BuildProgress({ type, done }: { type: ModuleType; done: number }) {

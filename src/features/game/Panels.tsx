@@ -3,7 +3,7 @@ import { canAffordCost } from "./afford";
 import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
 import type { ModuleDef, Role } from "@/types";
 import { sound } from "@/audio/audio";
-import { useGame, useMeta, useSend, useSession } from "@/session/react";
+import { useGame, useMeta, useSend, useSession } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
 import { BuildMenu } from "./BuildMenu";
 import { CrewPanel } from "./CrewPanel";

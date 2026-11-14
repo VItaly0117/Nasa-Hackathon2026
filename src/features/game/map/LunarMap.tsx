@@ -5,7 +5,8 @@ import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } fro
 import type { Terrain, TileInfo } from "@/engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/map";
 import { moduleName, t, tDynamic } from "@/i18n";
-import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";
+import { ArtDefs, ModuleArt } from "./art";
+import { ART_HEIGHT } from "./art-size";
 import moonBg from "@/assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
 import type { WalkTarget } from "./Walkers";

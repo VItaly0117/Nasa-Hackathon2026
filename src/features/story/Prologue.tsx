@@ -34,10 +34,10 @@ export function Rocket({ className = "", flame = false }: RocketProps) {
 // Одни и те же «случайные» звёзды при каждом показе
 function useStars(count: number) {
   return useMemo(() => {
-    let seed = 7;
+    const rng = { seed: 7 };
     const rnd = () => {
-      seed = (seed * 16807) % 2147483647;
-      return seed / 2147483647;
+      rng.seed = (rng.seed * 16807) % 2147483647;
+      return rng.seed / 2147483647;
     };
     return Array.from({ length: count }, () => ({
       left: rnd() * 100,

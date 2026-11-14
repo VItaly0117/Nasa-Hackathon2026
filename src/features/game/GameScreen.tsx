@@ -1,6 +1,6 @@
 import { sound } from "@/audio/audio";
 import { t } from "@/i18n";
-import { useGame, useMeta, useSession } from "@/session/react";
+import { useGame, useMeta, useSession } from "@/session/hooks";
 import { Intro } from "@/features/story/Intro";
 import { ResultsScreen } from "@/features/results/ResultsScreen";
 import { RotateHint } from "@/ui/RotateHint";
@@ -10,7 +10,8 @@ import { MapView } from "./MapView";
 import { BuildContainer, CrewContainer, SideContainer } from "./Panels";
 import { TaskToasts } from "./TaskToasts";
 import { TopBar } from "./TopBar";
-import { GameUiProvider, useGameUi } from "./ui-state";
+import { GameUiProvider } from "./GameUiProvider";
+import { useGameUi } from "./ui-state";
 import { useSoundEffects } from "./useSoundEffects";
 
 type Props = { onRestart: () => void; onMenu: () => void; onSources: () => void };

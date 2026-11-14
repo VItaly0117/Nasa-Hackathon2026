@@ -1,21 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { ModuleType } from "@/types";
-
-// Что игрок сейчас делает с интерфейсом. Это не состояние игры, оно живёт только на экране
-export type GameUi = {
-  selectedType: ModuleType | null; // модуль, открытый в карточке справа
-  buildType: ModuleType | null;    // игрок выбирает место на карте: карта подсвечивает, куда можно поставить
-  surveyingIce: boolean;
-  rulesOpen: boolean;
-  selectType(type: ModuleType): void;
-  startPlacing(): void;
-  stopPlacing(): void;
-  setSurveyingIce(on: boolean): void;
-  setRulesOpen(open: boolean): void;
-};
-
-const GameUiContext = createContext<GameUi | null>(null);
+import { GameUiContext } from "./ui-state";
+import type { GameUi } from "./ui-state";
 
 export function GameUiProvider({ children }: { children: ReactNode }) {
   const [selectedType, setSelectedType] = useState<ModuleType | null>("greenhouse");
@@ -54,10 +41,4 @@ export function GameUiProvider({ children }: { children: ReactNode }) {
   );
 
   return <GameUiContext.Provider value={value}>{children}</GameUiContext.Provider>;
-}
-
-export function useGameUi(): GameUi {
-  const ui = useContext(GameUiContext);
-  if (!ui) throw new Error("useGameUi вне GameUiProvider");
-  return ui;
 }

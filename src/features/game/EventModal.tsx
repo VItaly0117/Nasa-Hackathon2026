@@ -3,7 +3,7 @@ import type { EventDef } from "@/types";
 import { t, tDynamic } from "@/i18n";
 import { describeFlare } from "@/i18n/messages";
 import { sound } from "@/audio/audio";
-import { useGame, useSend } from "@/session/react";
+import { useGame, useSend } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
 import { Avatar } from "./CrewPanel";
 import { CREW } from "@/ui/crewData";
