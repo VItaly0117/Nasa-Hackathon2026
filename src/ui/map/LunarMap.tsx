@@ -77,15 +77,6 @@ const NEAR_HILLS = hillsPath(TOP + 6, 48, 2.1);
 
 const getTerrainName = (terrain: Terrain) => t(`terrain.${terrain}`);
 
-const SHORT: Record<string, string> = {
-  oxygen: "O₂",
-  water: "воды",
-  food: "еды",
-  energy: "кВт",
-  health: "здоровья",
-  materials: "мат.",
-};
-
 // «+6 еды · −3 воды · −5 кВт в день»
 // «+6 еды · −3 воды · −5 энергии в день»
 function perDayText(def: ModuleDef, isNight: boolean) {

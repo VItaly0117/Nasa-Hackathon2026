@@ -14,8 +14,6 @@ export const ART_HEIGHT: Record<ModuleType, number> = {
   battery: 26,
   greenhouse: 44,
   shelter: 40,
-  iceMine: 30,
-  rockMine: 30,
 };
 
 const WHITE_TOP = "#f4f3f9";
