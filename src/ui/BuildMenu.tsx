@@ -1,4 +1,5 @@
-import type { ModuleDef, ModuleType, Resources, ResourceKey } from "../types";
+import { useEffect, useRef } from "react";
+import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "../types";
 import { moduleDesc, moduleName, t } from "../i18n";
 import { ModulePreview } from "./map/art";
 import { ResourceIcon } from "./icons";
@@ -10,7 +11,10 @@ type Props = {
   selected: ModuleType | null;   // какой модуль открыт в карточке справа
   placing: boolean;              // игрок сейчас выбирает место на карте
   disabled: boolean;
+  crewBusy: boolean;             // все члены экипажа заняты стройкой: ставить нельзя
   isAffordable: (def: ModuleDef) => boolean;
+  // Совместная игра: роль другого игрока, который строит этот модуль, или null, если строить можно самому
+  lockedBy?: (def: ModuleDef) => Role | null;
   onSelect: (type: ModuleType) => void;
   onStartBuild: () => void;
   onCancel: () => void;
@@ -50,15 +54,26 @@ export function BuildMenu({
   selected,
   placing,
   disabled,
+  crewBusy,
   isAffordable,
+  lockedBy,
   onSelect,
   onStartBuild,
   onCancel,
 }: Props) {
   const def = defs.find((d) => d.type === selected) ?? null;
   const lines = def ? perDayLines(def.perDay) : [];
+  const locked = def && lockedBy ? lockedBy(def) : null;
   const affordable = def ? isAffordable(def) : false;
-  const [collapsed, toggle] = useCollapsed(startsCollapsed());
+  const [closed, toggle] = useCollapsed(startsCollapsed());
+  // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
+  const collapsed = closed || placing;
+  const wasPlacing = useRef(false);
+  useEffect(() => {
+    // После постройки или отмены меню остаётся свёрнутым, пока ребёнок сам его не откроет
+    if (wasPlacing.current && !placing && !closed) toggle();
+    wasPlacing.current = placing;
+  }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -126,8 +141,15 @@ export function BuildMenu({
               {t("build.cancel")}
             </button>
           ) : (
-            <button className="btn btn--primary" onClick={onStartBuild} disabled={disabled || !affordable}>
-              {affordable ? t("build.build") : t("build.cantAfford")}
+            <button
+              className="btn btn--primary"
+              onClick={onStartBuild}
+              disabled={disabled || !affordable || crewBusy || locked !== null}
+              title={crewBusy ? t("build.crewBusyHint") : undefined}
+            >
+              {locked
+                ? t("online.lockedBy", { role: t(`role.${locked}`) })
+                : crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
             </button>
           )}
         </section>
