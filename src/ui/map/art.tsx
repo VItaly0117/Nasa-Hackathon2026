@@ -6,12 +6,16 @@ import type { Terrain } from "../../engine/placement";
 
 // Высота рисунка над землёй: по ней облачко-подпись встаёт над объектом
 export const ART_HEIGHT: Record<ModuleType, number> = {
+  iceMine: 30,
+  rockMine: 30,
   habitat: 50,
   lifeSupport: 42,
   solar: 34,
   battery: 26,
   greenhouse: 44,
   shelter: 40,
+  iceMine: 30,
+  rockMine: 30,
 };
 
 const WHITE_TOP = "#f4f3f9";
@@ -173,6 +177,26 @@ function Shelter() {
   );
 }
 
+// Добыча стоит прямо на месторождении: под машиной видно лёд или камни
+function IceMine() {
+  return (
+    <g>
+      <Ice />
+      <Box w={12} d={6} h={18} dx={-20} dy={4} />
+      <Tank x={22} y={4} h={18} r={7} />
+    </g>
+  );
+}
+
+function RockMine() {
+  return (
+    <g>
+      <Rocks variant={0} />
+      <Box w={14} d={7} h={14} dx={18} dy={8} top="#fbbf24" left="#c98a12" right="#e0a21c" />
+    </g>
+  );
+}
+
 const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
   habitat: Habitat,
   lifeSupport: LifeSupport,
@@ -180,6 +204,8 @@ const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
   battery: Battery,
   greenhouse: Greenhouse,
   shelter: Shelter,
+  iceMine: IceMine,
+  rockMine: RockMine,
 };
 
 export function ModuleArt({ type, broken = false }: { type: ModuleType; broken?: boolean }) {
