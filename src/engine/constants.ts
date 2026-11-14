@@ -1,0 +1,13 @@
+// Числа, на которые опираются и движок, и задания. Отдельный файл, чтобы они не импортировали друг друга по кругу
+
+export const MISSION_DAYS = 20;
+export const NIGHT_START = 14;
+// Сколько длится игровой день: ровно 2 минуты. Паузы, ускорения и пропуска дня нет (решение команды)
+export const DAY_MS = 120000;
+// Сколько строится любой модуль: одна минута, то есть полдня
+export const BUILD_MS = 60000;
+
+// Болезни: не чаще одной за ILLNESS_GAP дней, не больше MAX_ILLNESS за миссию, шанс при старте стройки
+export const MAX_ILLNESS = 3;
+export const ILLNESS_GAP = 5;
+export const ILLNESS_CHANCE = 0.4;

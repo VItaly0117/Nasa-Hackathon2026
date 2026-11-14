@@ -6,14 +6,14 @@ import type { Terrain } from "../../engine/placement";
 
 // Высота рисунка над землёй: по ней облачко-подпись встаёт над объектом
 export const ART_HEIGHT: Record<ModuleType, number> = {
-  iceMine: 30,
-  rockMine: 30,
   habitat: 50,
   lifeSupport: 42,
   solar: 34,
   battery: 26,
   greenhouse: 44,
   shelter: 40,
+  storage: 34,
+  medbay: 34,
   iceMine: 30,
   rockMine: 30,
 };
@@ -177,6 +177,31 @@ function Shelter() {
   );
 }
 
+// Склад: три контейнера разного цвета, чтобы было видно, что тут лежат разные запасы
+function Storage() {
+  return (
+    <g>
+      <Shadow rx={42} ry={18} />
+      <Box w={18} d={9} h={24} dx={-14} dy={0} top="#9fd0ff" left="#6f9fd6" right="#86b6ec" />
+      <Box w={18} d={9} h={24} dx={14} dy={6} top="#7fe0b0" left="#4fb083" right="#66c99a" />
+      <Box w={14} d={7} h={14} dx={0} dy={-10} top="#fbbf24" left="#c98a12" right="#e0a21c" />
+    </g>
+  );
+}
+
+// Медпункт: белый домик с красным крестом на стене
+function Medbay() {
+  return (
+    <g>
+      <Shadow rx={40} ry={17} />
+      <Box w={24} d={12} h={26} dx={0} dy={0} />
+      <path d="M -17 -22 L -17 -4 L -7 1 L -7 -17 Z" fill="#9fd0ff" opacity="0.9" />
+      <path d="M 6 -12 L 6 -5 M 2.5 -8.5 L 9.5 -8.5" stroke="#ff4d5e" strokeWidth="3" strokeLinecap="round" transform="translate(6 -4) scale(1.2)" />
+      <Light x={-2} y={-34} />
+    </g>
+  );
+}
+
 // Добыча стоит прямо на месторождении: под машиной видно лёд или камни
 function IceMine() {
   return (
@@ -204,6 +229,8 @@ const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
   battery: Battery,
   greenhouse: Greenhouse,
   shelter: Shelter,
+  storage: Storage,
+  medbay: Medbay,
   iceMine: IceMine,
   rockMine: RockMine,
 };

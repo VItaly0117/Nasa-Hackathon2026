@@ -1,4 +1,5 @@
-import { t } from "../i18n";
+import type { CrewMember } from "../types";
+import { moduleName, t } from "../i18n";
 import { CREW } from "./crewData";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
@@ -6,7 +7,7 @@ import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 // TODO @Regie: у каждого астронавта свои здоровье, усталость и задача
 // Имена и роли лежат в словарях i18n: crew.n1..n4 и crew.r1..r4, а цвета — в crewData.ts
 
-function Avatar({ skin, hair, long, mood }: { skin: string; hair: string; long: boolean; mood: number }) {
+export function Avatar({ skin, hair, long, mood }: { skin: string; hair: string; long: boolean; mood: number }) {
   const mouth = mood > 0 ? "M15 25 Q20 29 25 25" : mood < 0 ? "M15 27 Q20 23 25 27" : "M15 26 H25";
   return (
     <svg viewBox="0 0 40 40" width="52" height="52" aria-hidden="true">
@@ -36,8 +37,10 @@ function Mood({ mood }: { mood: number }) {
   );
 }
 
-export function CrewPanel({ health }: { health: number }) {
-  const mood = health >= 70 ? 1 : health >= 40 ? 0 : -1;
+// Настроение лица: от морали (задания), а при плохом здоровье не бывает весёлым
+const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >= 60 ? 1 : morale >= 30 ? 0 : -1);
+
+export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
 
@@ -49,19 +52,33 @@ export function CrewPanel({ health }: { health: number }) {
       </div>
       {!collapsed && (
       <ul className="crew__list">
-        {CREW.map((p) => (
+        {CREW.map((p) => {
+          const member = crew.find((c) => c.id === p.id);
+          const mood = member?.status.kind === "sick" ? -1 : moodOf(member?.morale ?? 70, health);
+          return (
           <li key={p.id} className="crew__item">
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
             <div className="crew__info">
               <strong>{t(`crew.n${p.id}`)}</strong>
-              <span className="crew__role">{t(`crew.r${p.id}`)}</span>
+              <span className="crew__role">
+                {t(`crew.r${p.id}`)} ·{" "}
+                {(() => {
+                  const status = crew.find((c) => c.id === p.id)?.status;
+                  return status?.kind === "building"
+                    ? t("crew.building", { name: moduleName(status.module) })
+                    : status?.kind === "sick"
+                      ? t("crew.sick")
+                      : t("crew.free");
+                })()}
+              </span>
               <div className="crew__bar">
                 <div style={{ width: `${health}%`, background: barColor }} />
               </div>
             </div>
             <Mood mood={mood} />
           </li>
-        ))}
+          );
+        })}
       </ul>
       )}
     </section>

@@ -1,7 +1,16 @@
-import type { GameState, ModuleType } from "../types";
+import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
-import { initialState, MISSION_DAYS, reduce } from "./engine";
+import { t } from "../i18n";
+import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
+import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
+import eventsData from "../data/events.json";
+import { en } from "../i18n/en";
+import { ru } from "../i18n/ru";
+import { uk } from "../i18n/uk";
+import type { EventDef } from "../types";
+import { dayOfEvent } from "./events";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
+import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./tasks";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
 // Запуск: node scripts/run-checks.mjs
@@ -26,22 +35,36 @@ function tryBuild(state: GameState, type: ModuleType): GameState {
   return state;
 }
 
-export function playMission(strategy: Strategy): GameState {
-  let s = initialState();
+// Робот строит в порядке очереди. Если не хватает ресурсов или все заняты, модуль ждёт и строится, как только можно
+export function playMission(strategy: Strategy, seed = 1): GameState {
+  let s = initialState(seed); // фиксированный seed: болезни случаются одинаково, проверки не прыгают
+  const queue: ModuleType[] = [];
+  let queuedDay = 0;
   // запас по числу шагов, чтобы ошибка в движке не подвесила проверку
   for (let step = 0; step < MISSION_DAYS * 3 && s.status === "playing"; step++) {
     if (s.activeEvent) {
       s = reduce(s, { type: "resolveEvent", choice: strategy.choices[s.activeEvent] });
       continue;
     }
-    for (const type of strategy.builds[s.day] ?? []) s = tryBuild(s, type);
+    if (queuedDay !== s.day) {
+      queuedDay = s.day;
+      queue.push(...(strategy.builds[s.day] ?? []));
+    }
+    for (let i = 0; i < queue.length; ) {
+      const next = tryBuild(s, queue[i]);
+      if (next === s) i++;
+      else {
+        s = next;
+        queue.splice(i, 1);
+      }
+    }
     s = reduce(s, { type: "nextDay" });
   }
   return s;
 }
 
-const CAREFUL = { breakdown: "repair", flare: "hide" };
-const RECKLESS = { breakdown: "ignore", flare: "work" };
+const CAREFUL = { breakdown: "repair", flare: "hide", illness: "treat" };
+const RECKLESS = { breakdown: "ignore", flare: "work", illness: "ignore" };
 
 // Ничего не строим, но на события отвечаем правильно
 const IDLE: Strategy = { builds: {}, choices: CAREFUL };
@@ -52,16 +75,17 @@ const CARELESS: Strategy = { builds: {}, choices: RECKLESS };
 // Готовимся ко всему: еда, энергия, убежище до вспышки, батареи до ночи
 const PREPARED: Strategy = {
   builds: {
-    1: ["greenhouse", "lifeSupport", "solar"],
-    2: ["solar"],
-    3: ["solar"],
-    4: ["lifeSupport"],
-    5: ["shelter"],
+    // на старте панелей нет, а теплица и шахты много тратят: три панели и теплица в первый день
+    1: ["solar", "solar", "solar", "greenhouse"],
+    // карьер (убежище стоит 25 материалов, а с ракеты их 10) и лёд для воды
+    2: ["rockMine", "iceMine"],
+    // убежище должно успеть к вспышке на 9-й день
+    3: ["shelter"],
+    // батареи до ночи (14-й день), и панели, чтобы батареям было что копить
+    5: ["battery", "solar"],
     7: ["battery"],
-    8: ["battery"],
-    10: ["battery"],
+    9: ["battery"],
     11: ["battery"],
-    12: ["battery"],
   },
   choices: CAREFUL,
 };
@@ -73,7 +97,10 @@ const NO_BATTERY: Strategy = {
 };
 
 // Строим всё нужное, но без убежища: вспышку пережидаем за баками
-const NO_SHELTER: Strategy = { builds: { ...PREPARED.builds, 5: [] }, choices: CAREFUL };
+const NO_SHELTER: Strategy = {
+  builds: Object.fromEntries(Object.entries(PREPARED.builds).map(([day, list]) => [day, list.filter((t) => t !== "shelter")])),
+  choices: CAREFUL,
+};
 
 function describe(state: GameState): string {
   const r = state.resources;
@@ -111,6 +138,203 @@ export function runChecks(): CheckResult[] {
     describe(noBattery),
   );
 
+  // Стройка руками экипажа
+  const fresh = initialState();
+  let busy = fresh;
+  for (let i = 0; i < fresh.crew.length; i++) busy = tryBuild(busy, "solar");
+  const allBusy = busy.crew.every((c) => c.status.kind === "building");
+  check("Каждую стройку ведёт отдельный член экипажа, и все четверо заняты", allBusy, busy.crew.map((c) => c.status.kind).join(", "));
+  check("Когда все заняты, пятый модуль не ставится", tryBuild(busy, "solar") === busy, `модулей ${busy.modules.length}`);
+  check(
+    "Стройка не списывает ресурсы повторно и модуль в стройке ничего не даёт",
+    dailyDelta(busy).energy === dailyDelta(fresh).energy,
+    `энергия в день ${dailyDelta(busy).energy} (было ${dailyDelta(fresh).energy})`,
+  );
+  const almost = reduce(busy, { type: "tick", ms: BUILD_MS - 100 });
+  check("За минуту без 0,1 с стройка ещё идёт", almost.crew.every((c) => c.status.kind === "building"), `занято ${almost.crew.filter((c) => c.status.kind === "building").length}`);
+  const finished = reduce(almost, { type: "tick", ms: 100 });
+  check(
+    "Ровно за 60 с игрового времени модуль готов, а строитель свободен",
+    finished.modules.every((m) => !m.build) && finished.crew.every((c) => c.status.kind === "free"),
+    `свободных ${finished.crew.filter((c) => c.status.kind === "free").length}, строек ${finished.modules.filter((m) => m.build).length}`,
+  );
+  const oneDay = reduce(initialState(), { type: "tick", ms: DAY_MS });
+  check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
+  const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
+  check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
+
+  // Подсказка в окне события должна называть те же числа, что и цена в events.json (на всех трёх языках)
+  const dicts: Record<string, Record<string, string>> = { ru, uk, en };
+  const drift: string[] = [];
+  for (const ev of eventsData as EventDef[]) {
+    for (const ch of ev.choices) {
+      const nums = new Set<number>();
+      for (const cost of [ch.cost, ch.costWithout?.cost ?? {}]) for (const v of Object.values(cost)) if (v) nums.add(v);
+      if (ch.rest) [ch.rest.days, ch.rest.daysWith].forEach((n) => nums.add(n));
+      for (const [lang, dict] of Object.entries(dicts)) {
+        const hint = dict[`ev.${ev.id}.${ch.id}.hint`] ?? "";
+        for (const n of nums) if (!new RegExp(`(^|\\D)${n}(\\D|$)`).test(hint)) drift.push(`${lang} ${ev.id}.${ch.id}: нет числа ${n}`);
+      }
+    }
+  }
+  check("Подсказки в окнах событий совпадают с ценами в events.json", drift.length === 0, drift.join("; ") || "ru, uk, en");
+
+  // Задания от экипажа
+  const first = initialState();
+  check("В начале экипаж даёт 2 задания", first.tasks.length === 2 && first.tasks.every((x) => x.status === "open"), first.tasks.map((x) => x.id).join(", "));
+  check(
+    "Задание просит член экипажа с подходящей ролью",
+    first.tasks.every((x) => first.crew.find((c) => c.id === x.giver)?.role === TASK_DEFS.find((d) => d.id === x.id)!.role),
+    first.tasks.map((x) => `${x.id}: ${first.crew.find((c) => c.id === x.giver)?.role}`).join(", "),
+  );
+  const perDay = new Map<number, number>();
+  for (const x of idle.tasks) perDay.set(x.issuedDay, (perDay.get(x.issuedDay) ?? 0) + 1);
+  check(
+    "Новых заданий в день не больше 2 до 10-го дня и не больше 1 после",
+    [...perDay].every(([day, n]) => n <= tasksPerDay(day)),
+    [...perDay].map(([d, n]) => `${d}:${n}`).join(" "),
+  );
+  let maxOpen = 0;
+  let walk = initialState();
+  for (let i = 0; i < MISSION_DAYS && walk.status === "playing"; i++) {
+    if (walk.activeEvent) walk = reduce(walk, { type: "resolveEvent", choice: walk.activeEvent === "flare" ? "hide" : "repair" });
+    walk = reduce(walk, { type: "nextDay" });
+    maxOpen = Math.max(maxOpen, walk.tasks.filter((x) => x.status === "open").length);
+  }
+  check(`Открытых заданий одновременно не больше ${MAX_OPEN}`, maxOpen <= MAX_OPEN, `максимум ${maxOpen}`);
+  const shelterTask = idle.tasks.find((x) => x.id === "shelter");
+  check("Срок задания про убежище = день вспышки", shelterTask?.deadline === dayOfEvent("flare"), `срок ${shelterTask?.deadline}, вспышка ${dayOfEvent("flare")}`);
+  check("Без построек задания просрочены, а настроение экипажа падает", idle.tasks.some((x) => x.status === "missed") && idle.crew.every((c) => c.morale < MORALE_START), `настроение ${idle.crew.map((c) => c.morale).join(",")}`);
+  const greenhouseDone = reviewTasks({ ...first, modules: [...first.modules, { slot: slotOf(0, 0), type: "greenhouse", broken: false }] });
+  check(
+    "Построили теплицу: задание выполнено, настроение растёт",
+    greenhouseDone.tasks.find((x) => x.id === "greenhouse")?.status === "done" && greenhouseDone.crew.every((c) => c.morale === MORALE_START + MORALE_STEP),
+    `настроение ${greenhouseDone.crew.map((c) => c.morale).join(",")}`,
+  );
+  const unfinished = reviewTasks({ ...first, modules: [...first.modules, { slot: slotOf(0, 0), type: "greenhouse", broken: false, build: { leftMs: 1, totalMs: 1, crewId: 1 } }] });
+  check("Модуль в стройке задание ещё не закрывает", unfinished.tasks.find((x) => x.id === "greenhouse")?.status === "open", "статус open");
+  const noText = TASK_DEFS.flatMap((d) => [`task.${d.id}`, `task.${d.id}.why`]).filter((k) => !(k in ru));
+  check("У каждого задания есть текст и объяснение", noText.length === 0, noText.join(", ") || `${TASK_DEFS.length} заданий`);
+
+  // Болезнь во время стройки
+  // seed, при котором строитель панелей на 2-й день заболевает посреди стройки
+  const illnessAt = (seed: number): GameState => {
+    let s = reduce(initialState(seed), { type: "tick", ms: DAY_MS }); // день 2
+    s = tryBuild(s, "solar");
+    return reduce(s, { type: "tick", ms: BUILD_MS });
+  };
+  let sickSeed = 0;
+  for (let seed = 1; seed < 500 && !sickSeed; seed++) if (illnessAt(seed).activeEvent === "illness") sickSeed = seed;
+  check("Во время стройки можно заболеть (нашёлся seed)", sickSeed > 0, `seed ${sickSeed}`);
+
+  const sick = illnessAt(sickSeed);
+  const patient = sick.illness!.crewId;
+  const building = (s: GameState) => s.modules.find((m) => m.build);
+  check(
+    "Событие болезни: строитель отмечен, стройка и часы стоят",
+    sick.activeEvent === "illness" && building(sick)?.build?.crewId === patient && sick.status === "playing",
+    `заболел ${patient}, осталось ${building(sick)?.build?.leftMs} мс`,
+  );
+  const medbay = { slot: slotOf(1, 0), type: "medbay" as const, broken: false };
+  const withMedbay = (s: GameState): GameState => ({ ...s, modules: [...s.modules, medbay] });
+
+  const treated = reduce(sick, { type: "resolveEvent", choice: "treat" });
+  check(
+    "Вылечить: −10 воды и −8 еды, стройка продолжается тем же человеком",
+    sick.resources.water - treated.resources.water === 10 && sick.resources.food - treated.resources.food === 8 && building(treated)?.build?.crewId === patient && treated.activeEvent === null && treated.illness === null,
+    `вода −${sick.resources.water - treated.resources.water}, еда −${sick.resources.food - treated.resources.food}`,
+  );
+  const treatedMed = reduce(withMedbay(sick), { type: "resolveEvent", choice: "treat" });
+  check(
+    "С медпунктом лечение вдвое дешевле",
+    sick.resources.water - treatedMed.resources.water === 5 && sick.resources.food - treatedMed.resources.food === 4,
+    `вода −${sick.resources.water - treatedMed.resources.water}, еда −${sick.resources.food - treatedMed.resources.food}`,
+  );
+
+  const ignored = reduce(sick, { type: "resolveEvent", choice: "ignore" });
+  const patientAfter = ignored.crew.find((c) => c.id === patient)!.status;
+  check(
+    "Не лечить: больной выбывает на 2 дня, здоровье −5, стройку подхватывает другой",
+    patientAfter.kind === "sick" && patientAfter.leftMs === 2 * DAY_MS && sick.resources.health - ignored.resources.health === 5 && building(ignored)?.build?.crewId !== null && building(ignored)?.build?.crewId !== patient,
+    `статус ${patientAfter.kind}, строитель ${building(ignored)?.build?.crewId}`,
+  );
+  const ignoredMed = reduce(withMedbay(sick), { type: "resolveEvent", choice: "ignore" });
+  const medStatus = ignoredMed.crew.find((c) => c.id === patient)!.status;
+  check("С медпунктом больной выбывает на 1 день", medStatus.kind === "sick" && medStatus.leftMs === DAY_MS, `статус ${medStatus.kind}`);
+
+  const recovered = reduce(ignored, { type: "tick", ms: 2 * DAY_MS });
+  check(
+    "Через 2 дня больной выздоравливает и снова свободен",
+    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.text.includes(t("crew.n" + patient))),
+    `статус ${recovered.crew.find((c) => c.id === patient)!.status.kind}`,
+  );
+
+  // Все остальные заняты: стройка стоит и ждёт, потом её подхватывает освободившийся
+  const everyoneElseBusy: GameState = { ...sick, crew: sick.crew.map((c) => (c.id === patient ? c : { ...c, status: { kind: "building", slot: 999, module: "solar" } })) };
+  const waiting = reduce(everyoneElseBusy, { type: "resolveEvent", choice: "ignore" });
+  const stalled = reduce(waiting, { type: "tick", ms: 5000 });
+  check(
+    "Если некому подхватить, стройка стоит и время её не идёт",
+    building(waiting)?.build?.crewId === null && building(stalled)?.build?.leftMs === building(waiting)?.build?.leftMs,
+    `осталось ${building(stalled)?.build?.leftMs} мс`,
+  );
+  const helperId = stalled.crew.find((c) => c.id !== patient)!.id; // любой, кроме больного
+  const freed = reduce({ ...stalled, crew: stalled.crew.map((c) => (c.id === helperId ? { ...c, status: { kind: "free" } } : c)) }, { type: "tick", ms: 100 });
+  check(
+    "Освободился человек: он подхватывает стройку, и она снова идёт",
+    building(freed)?.build?.crewId !== null && (building(freed)?.build?.leftMs ?? 0) < (building(stalled)?.build?.leftMs ?? 0),
+    `строитель ${building(freed)?.build?.crewId}`,
+  );
+
+  // Ограничения и повторяемость
+  let tooEarly = 0;
+  for (let seed = 1; seed <= 80; seed++) {
+    const day1 = reduce(tryBuild(initialState(seed), "solar"), { type: "tick", ms: DAY_MS - 1 });
+    if (day1.activeEvent === "illness") tooEarly++;
+  }
+  check("В первый день никто не заболевает", tooEarly === 0, `случаев ${tooEarly}`);
+  let worst = { count: 0, minGap: Infinity };
+  for (let seed = 1; seed <= 40; seed++) {
+    const run = playMission(PREPARED, seed);
+    const days = run.history.filter((h) => h.kind === "choice" && h.event === "illness").map((h) => h.day);
+    worst = { count: Math.max(worst.count, days.length), minGap: Math.min(worst.minGap, ...days.slice(1).map((d, i) => d - days[i])) };
+  }
+  check(
+    `За миссию не больше ${MAX_ILLNESS} болезней и не чаще, чем раз в ${ILLNESS_GAP} дней (40 разных seed)`,
+    worst.count <= MAX_ILLNESS && worst.minGap >= ILLNESS_GAP,
+    `максимум ${worst.count}, минимальный промежуток ${worst.minGap === Infinity ? "—" : worst.minGap}`,
+  );
+  check("Один seed даёт одну и ту же игру", JSON.stringify(playMission(PREPARED, 7)) === JSON.stringify(playMission(PREPARED, 7)), "две партии совпали");
+  const withMedbayBuilt: GameState = { ...treated, history: [...treated.history, { day: 2, kind: "built", module: "medbay" }] };
+  check(
+    "Разбор болезни: вылечил, не лечил, медпункт",
+    buildReport(treated).helped.some((l) => l.id === "illness-treated") &&
+      buildReport(ignored).hurt.some((l) => l.id === "illness-ignored") &&
+      buildReport(withMedbayBuilt).helped.some((l) => l.id === "medbay-helped") &&
+      !buildReport(treated).helped.some((l) => l.id === "medbay-helped"),
+    "правила сработали",
+  );
+
+  // Лимит хранения: без склада лишнее пропадает, со складом копится
+  const fullWater = (extra: PlacedModule[]): GameState => {
+    const s = initialState();
+    const mine: PlacedModule = { slot: slotOf(0, 0), type: "iceMine", broken: false };
+    return { ...s, resources: { ...s.resources, water: 100 }, modules: [...s.modules, mine, ...extra] };
+  };
+  const storage: PlacedModule = { slot: slotOf(0, 1), type: "storage", broken: false };
+  const battery: PlacedModule = { slot: slotOf(0, 2), type: "battery", broken: false };
+  const noStorage = reduce(fullWater([]), { type: "nextDay" });
+  const withStorage = reduce(fullWater([storage]), { type: "nextDay" });
+  check("Без склада вода не больше 100", noStorage.resources.water <= 100, `вода ${noStorage.resources.water}`);
+  check("Со складом вода копится выше 100", withStorage.resources.water > 100, `вода ${withStorage.resources.water}`);
+  const capBase = capacityOf(initialState().modules);
+  const capBoth = capacityOf([...initialState().modules, storage, battery]);
+  check(
+    "Склад добавляет место воде, еде и материалам, батарея энергии; кислород и здоровье всегда 100",
+    capBase.water === 100 && capBoth.water > 100 && capBoth.food > 100 && capBoth.materials > 100 && capBoth.energy > 100 && capBoth.oxygen === 100 && capBoth.health === 100,
+    JSON.stringify(capBoth),
+  );
+
   // Разбор должен говорить о том, что реально случилось
   const ids = (s: GameState) => {
     const r = buildReport(s);
@@ -130,7 +354,7 @@ export function runChecks(): CheckResult[] {
   expectLines("Разбор: подготовленная база", prepared, ["flare-shelter", "breakdown-repaired", "night-survived", "greenhouse-fed", "real-flare"], ["flare-worked", "no-builds", "water-out", "food-no-greenhouse", "oxygen-out", "night-no-battery"]);
   expectLines("Разбор: без убежища", noShelter, ["flare-no-shelter"], ["flare-shelter"]);
   expectLines("Разбор: без батарей", noBattery, ["night-no-battery"], ["night-survived"]);
-  expectLines("Разбор: без построек", idle, ["no-builds"], ["night-survived", "greenhouse-fed", "night-no-battery"]);
+  expectLines("Разбор: без построек", idle, ["no-builds"], ["night-survived", "greenhouse-fed"]);
   expectLines("Разбор: риск", careless, ["breakdown-ignored", "no-builds"], ["breakdown-repaired"]);
 
   for (const [name, s] of [["idle", idle], ["careless", careless], ["prepared", prepared], ["noShelter", noShelter], ["noBattery", noBattery]] as const) {

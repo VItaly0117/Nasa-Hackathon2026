@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
@@ -220,6 +221,11 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
             )}
           </div>
           <DayClock running={clockRunning} progress={state.clockMs / DAY_MS} onTick={handleTick}>
+          <DayClock
+            running={clockRunning}
+            progress={state.clockMs / DAY_MS}
+            onTick={(ms) => dispatch({ type: "tick", ms })}
+          >
             <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
               ? {t("app.rules")}
             </button>
@@ -339,6 +345,7 @@ function restoreLang(): Lang | null {
   if (lang) setLang(lang);
   return lang;
 }
+type Stage = "lang" | "prologue" | "intro" | "game";
 
 export default function App() {
   const [stage, setStage] = useState<Stage>("menu");
@@ -379,6 +386,7 @@ export default function App() {
         <RotateHint />
       </div>
     );
+    setStage("prologue");
   }
 
   if (stage === "game") {
@@ -406,6 +414,7 @@ export default function App() {
   }
 
   // До начала новой игры показываем небо, а поверх него — правила
+  // До начала игры показываем небо, а поверх него — выбор языка и правила
   return (
     <div className="game">
       <Sky />

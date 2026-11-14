@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { t } from "../i18n";
 
-// Узкий экран (телефон, планшет): панели по умолчанию свёрнуты, чтобы не закрывать базу
+// Панели по умолчанию свёрнуты на любом экране: карта и астронавты должны быть видны,
+// а нужную панель ребёнок раскрывает сам
 export function startsCollapsed() {
-  try {
-    return window.matchMedia("(max-width: 900px), (max-height: 560px)").matches;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 export function useCollapsed(initial = false): [boolean, () => void] {

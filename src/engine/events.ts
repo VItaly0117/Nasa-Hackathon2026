@@ -1,7 +1,9 @@
 import eventsData from "../data/events.json";
 import flaresData from "../data/nasa/flares.json";
-import { getLang, t } from "../i18n";
-import type { EventDef, Flare, GameState, ResourceKey, Resources } from "../types";
+import { days as daysText, getLang, t } from "../i18n";
+import { DAY_MS } from "./constants";
+import { restPatient } from "./crew";
+import type { EventDef, Flare, GameState, ModuleType, ResourceKey, Resources } from "../types";
 
 const FLARES = flaresData as Flare[];
 const EVENTS = eventsData as EventDef[];
@@ -12,7 +14,8 @@ const SCHEDULE: Record<number, string> = {
   9: "flare",
 };
 
-const clamp = (value: number) => Math.max(0, Math.min(100, value));
+// Цена события только отнимает ресурсы, поэтому верхний предел не нужен
+const clamp = (value: number) => Math.max(0, value);
 
 // Случайная РЕАЛЬНАЯ вспышка NASA DONKI. Зовётся один раз при старте миссии (initialState),
 // чтобы reduce оставался чистой функцией.
@@ -28,6 +31,11 @@ export function describeFlare(flare: Flare): string {
     .format(new Date(flare.date))
     .replace(/\s*[гр]\.$/, ""); // Intl добавляет «г.» / «р.»: убираем, чтобы фраза не кончалась двумя точками
   return t("flare.desc", { cls: flare.class, date });
+}
+
+// День, на который запланировано событие (например, вспышка): задания берут срок отсюда
+export function dayOfEvent(id: string): number {
+  return Number(Object.keys(SCHEDULE).find((d) => SCHEDULE[Number(d)] === id));
 }
 
 export function eventForDay(day: number): string | null {
@@ -69,30 +77,35 @@ export function resolveEvent(state: GameState, choiceId: string): GameState {
   const pay = (cost: Partial<Resources>) => {
     for (const key of Object.keys(cost) as ResourceKey[]) resources[key] = clamp(resources[key] - (cost[key] ?? 0));
   };
+  const has = (type: ModuleType) => state.modules.some((m) => m.type === type && !m.build);
 
-  pay(choice.cost);
+  pay(choice.costWith && has(choice.costWith.module) ? choice.costWith.cost : choice.cost);
 
   let textKey = choice.result;
   let unprotected = false;
-  if (choice.costWithout) {
-    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module);
-    if (!hasModule) {
-      unprotected = true;
-      pay(choice.costWithout.cost);
-      textKey = choice.resultWithout ?? textKey;
-    }
+  if (choice.costWithout && !has(choice.costWithout.module)) {
+    unprotected = true;
+    pay(choice.costWithout.cost);
+    textKey = choice.resultWithout ?? textKey;
   }
+  // Болезнь: сколько дней больной выбывает. Медпункт сокращает срок
+  const patient = state.illness;
+  const restDays = patient && choice.rest ? (has(choice.rest.module) ? choice.rest.daysWith : choice.rest.days) : 0;
+  if (choice.rest) unprotected = !has(choice.rest.module);
 
   const modules = choice.repairs
     ? state.modules.map((m) => (m.type === choice.repairs ? { ...m, broken: false } : m))
     : state.modules;
 
-  return {
+  const name = patient ? t(`crew.n${patient.crewId}`) : "";
+  const next: GameState = {
     ...state,
     resources,
     modules,
     activeEvent: null,
-    log: [...state.log, { day: state.day, text: t(textKey) }],
+    illness: null,
+    log: [...state.log, { day: state.day, text: t(textKey, { name, days: daysText(restDays) }) }],
     history: [...state.history, { day: state.day, kind: "choice", event: state.activeEvent!, choice: choice.id, unprotected }],
   };
+  return patient && restDays > 0 ? restPatient(next, patient.crewId, restDays * DAY_MS) : next;
 }

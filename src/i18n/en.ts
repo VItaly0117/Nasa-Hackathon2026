@@ -205,6 +205,7 @@ export const en: Record<keyof typeof ru, string> = {
   "prologue.next": "Next",
   "prologue.go": "To the mission",
   "prologue.p1": "Earth. A crew of three astronauts boards the rocket for a science expedition to the Moon.",
+  "prologue.p1": "Earth. A crew of four astronauts boards the rocket for a science expedition to the Moon.",
   "prologue.p2": "Three, two, one… liftoff! The engines roar and the rocket leaves Earth.",
   "prologue.p3": "Higher and higher. The sky turns black and Earth shrinks behind them.",
   "prologue.p4": "The Moon is getting closer. At its south pole the crew will study ice and radiation.",

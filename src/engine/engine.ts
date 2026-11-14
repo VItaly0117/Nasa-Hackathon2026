@@ -24,6 +24,7 @@ const CREW_ROLES: { id: number; role: Role }[] = [
   { id: 2, role: "scientist" },
   { id: 4, role: "technician" },
 ];
+const CREW_ROLES: Role[] = ["engineer", "scientist", "doctor", "technician"];
 
 const MODULES = modulesData as ModuleDef[];
 const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
@@ -78,6 +79,7 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
     sickCount: 0,
     lastIllnessDay: 0,
     crew: CREW_ROLES.map(({ id, role }): CrewMember => ({ id, role, morale: MORALE_START, status: { kind: "free" } })),
+    crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, morale: MORALE_START, status: { kind: "free" } })),
     tasks: [],
     clockMs: 0,
     day: 1,

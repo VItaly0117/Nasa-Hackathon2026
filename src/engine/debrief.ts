@@ -24,6 +24,8 @@ export const FACT_NAMES = [
   "breakdownRepaired", "breakdownIgnored",
   "ranOutOxygen", "ranOutWater", "ranOutFood", "anyShortage",
   "blackoutAtNight", "blackoutByDay",
+  "illnessHappened", "illnessTreated", "illnessIgnored", "medbayBuilt", // болезнь во время стройки и медпункт
+  "tasksMostlyDone", "tasksMostlyMissed", // задания экипажа: выполнено больше, чем просрочено, и наоборот
 ] as const;
 
 export type FactName = (typeof FACT_NAMES)[number];
@@ -76,6 +78,8 @@ export function collectFacts(state: GameState): Facts {
   const chose = (event: string, choice: string) => choices.find((c) => c.event === event && c.choice === choice);
   const ranOut = (resource: ResourceKey) => shortages.some((s) => s.resource === resource);
   const hid = chose("flare", "hide");
+  const tasksDone = state.tasks.filter((x) => x.status === "done").length;
+  const tasksMissed = state.tasks.filter((x) => x.status === "missed").length;
 
   return {
     won: state.status === "won",
@@ -100,6 +104,12 @@ export function collectFacts(state: GameState): Facts {
     anyShortage: shortages.length > 0,
     blackoutAtNight: blackouts.some((b) => b.night),
     blackoutByDay: blackouts.some((b) => !b.night),
+    illnessHappened: choices.some((c) => c.event === "illness"),
+    illnessTreated: !!chose("illness", "treat"),
+    illnessIgnored: !!chose("illness", "ignore"),
+    medbayBuilt: builtType("medbay"),
+    tasksMostlyDone: tasksDone >= 3 && tasksDone > tasksMissed,
+    tasksMostlyMissed: tasksMissed >= 3 && tasksMissed >= tasksDone,
   };
 }
 
