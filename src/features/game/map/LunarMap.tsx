@@ -4,7 +4,7 @@ import type { ModuleDef, ModuleType } from "@/types";
 import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } from "@/engine";
 import type { Terrain, TileInfo } from "@/engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/data/map";
-import { moduleName, t } from "@/i18n";
+import { moduleName, t, tDynamic } from "@/i18n";
 import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";
 import moonBg from "@/assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
@@ -63,7 +63,7 @@ function perDayText(def: ModuleDef, isNight: boolean) {
   const source = isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
   const parts = Object.entries(source)
     .filter(([, value]) => value)
-    .map(([key, value]) => `${value! > 0 ? "+" : "−"}${Math.abs(value!)} ${t(`unit.${key}`)}`);
+    .map(([key, value]) => `${value! > 0 ? "+" : "−"}${Math.abs(value!)} ${tDynamic(`unit.${key}`)}`);
   return parts.length ? t("map.perDay", { parts: parts.join(" · ") }) : t("map.nothing");
 }
 

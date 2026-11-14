@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { CREW } from "@/ui/crewData";
-import { t } from "@/i18n";
+import { tDynamic } from "@/i18n";
 
 // Место у модуля, куда астронавт идёт работать (координаты карты)
 export type WalkTarget = { type: string; x: number; y: number };
@@ -153,7 +153,7 @@ export function Walkers({ targets, active }: Props) {
           }}
           transform="translate(-9999 -9999)"
         >
-          <Astronaut suit={c.suit} name={t(`crew.n${c.id}`)} />
+          <Astronaut suit={c.suit} name={tDynamic(`crew.n${c.id}`)} />
         </g>
       ))}
     </g>

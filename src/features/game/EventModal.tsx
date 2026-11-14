@@ -1,6 +1,6 @@
 import eventsData from "@/data/events.json";
 import type { EventDef } from "@/types";
-import { t } from "@/i18n";
+import { t, tDynamic } from "@/i18n";
 import { describeFlare } from "@/i18n/messages";
 import { sound } from "@/audio/audio";
 import { useGame, useSend } from "@/session/react";
@@ -29,8 +29,8 @@ export function EventModal() {
             <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
           </div>
         )}
-        <h2 id="event-title">{t(`ev.${event.id}.title`)}</h2>
-        <p>{t(`ev.${event.id}.text`, { name: illness ? t(`crew.n${illness.crewId}`) : "" })}</p>
+        <h2 id="event-title">{tDynamic(`ev.${event.id}.title`)}</h2>
+        <p>{tDynamic(`ev.${event.id}.text`, { name: illness ? tDynamic(`crew.n${illness.crewId}`) : "" })}</p>
         {event.id === "flare" && flare && (
           <p className="muted source">
             {t("ev.flare.source", { flare: describeFlare(flare) })}{" "}
@@ -49,8 +49,8 @@ export function EventModal() {
                 send({ type: "resolveEvent", choice: choice.id });
               }}
             >
-              <strong>{t(`ev.${event.id}.${choice.id}.label`)}</strong>
-              <span className="muted">{t(`ev.${event.id}.${choice.id}.hint`)}</span>
+              <strong>{tDynamic(`ev.${event.id}.${choice.id}.label`)}</strong>
+              <span className="muted">{tDynamic(`ev.${event.id}.${choice.id}.hint`)}</span>
             </button>
           ))}
         </div>

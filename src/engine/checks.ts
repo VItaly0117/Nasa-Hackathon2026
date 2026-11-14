@@ -1,7 +1,7 @@
 import type { GameState, ModuleType, PlacedModule } from "@/types";
 import { DEBRIEF_DATA, FACT_NAMES, HINT_IDS, MISSION_FACTS, missionFact } from "./debrief";
 import { buildReport } from "@/features/results/report";
-import { getLang, setLang, t } from "@/i18n";
+import { days, getLang, setLang, t } from "@/i18n";
 import type { Lang } from "@/i18n";
 import { formatMsg } from "@/i18n/messages";
 import { loadGame, saveGame } from "@/session/storage";
@@ -226,6 +226,22 @@ export function runChecks(): CheckResult[] {
   }
   setLang(savedLang);
   check("Каждое сообщение журнала переводится на ru, uk и en без «дыр» в тексте", broken.length === 0, broken.length ? [...new Set(broken)].join(", ") : `${keys.length} видов сообщений`);
+
+  // Склонение «дней» идёт от правил языка (Intl.PluralRules), а не от ручных остатков
+  const expected: Record<Lang, string[]> = {
+    ru: ["1 день", "2 дня", "5 дней", "11 дней", "21 день", "22 дня", "25 дней"],
+    uk: ["1 день", "2 дні", "5 днів", "11 днів", "21 день", "22 дні", "25 днів"],
+    en: ["1 day", "2 days", "5 days", "11 days", "21 days", "22 days", "25 days"],
+  };
+  const wrong: string[] = [];
+  for (const lang of ["ru", "uk", "en"] as Lang[]) {
+    setLang(lang);
+    [1, 2, 5, 11, 21, 22, 25].forEach((n, i) => {
+      if (days(n) !== expected[lang][i]) wrong.push(`${lang}:${n}=${days(n)}`);
+    });
+  }
+  setLang(savedLang);
+  check("Склонение «день/дня/дней» верно в ru, uk и en", wrong.length === 0, wrong.length ? wrong.join(", ") : "7 чисел × 3 языка");
 
   // Старые сохранения (до журнала на ключах) мигрируют и не теряют текст
   const memory = new Map<string, string>();

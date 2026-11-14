@@ -1,5 +1,5 @@
 import sourcesData from "@/data/sources.json";
-import { t } from "@/i18n";
+import { t, tDynamic } from "@/i18n";
 import "@/features/results/ResultsScreen.css";
 
 type Source = { id: string; url: string; provider: string; inGame: boolean };
@@ -16,8 +16,8 @@ export function SourcesPanel({ onClose }: { onClose: () => void }) {
         <div className="results__cards">
           {SOURCES.map((s) => (
             <div key={s.id} className="results__card">
-              <strong>{t(`source.${s.id}.name`)}</strong>
-              <p>{t(`source.${s.id}.usedFor`)}</p>
+              <strong>{tDynamic(`source.${s.id}.name`)}</strong>
+              <p>{tDynamic(`source.${s.id}.usedFor`)}</p>
               <small>
                 {s.provider} · {s.inGame ? t("sources.inGame") : t("sources.notYet")} ·{" "}
                 <a href={s.url} target="_blank" rel="noreferrer">

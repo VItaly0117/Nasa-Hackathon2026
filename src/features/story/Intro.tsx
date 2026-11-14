@@ -1,4 +1,4 @@
-import { t } from "@/i18n";
+import { t, tDynamic } from "@/i18n";
 import { sound } from "@/audio/audio";
 import "./Intro.css";
 
@@ -21,8 +21,8 @@ export function Intro({ onStart, rulesOnly = false }: Props) {
             <li key={n} className="rules__item">
               <span className="rules__num" aria-hidden="true">{n}</span>
               <div>
-                <strong>{t(`rules.r${n}.title`)}</strong>
-                <p>{t(`rules.r${n}.text`)}</p>
+                <strong>{tDynamic(`rules.r${n}.title`)}</strong>
+                <p>{tDynamic(`rules.r${n}.text`)}</p>
               </div>
             </li>
           ))}

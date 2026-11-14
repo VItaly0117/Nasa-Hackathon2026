@@ -1,5 +1,5 @@
 import type { CrewMember } from "@/types";
-import { moduleName, t } from "@/i18n";
+import { moduleName, t, tDynamic } from "@/i18n";
 import { CREW } from "@/ui/crewData";
 import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
 
@@ -59,9 +59,9 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
           <li key={p.id} className="crew__item">
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
             <div className="crew__info">
-              <strong>{t(`crew.n${p.id}`)}</strong>
+              <strong>{tDynamic(`crew.n${p.id}`)}</strong>
               <span className="crew__role">
-                {t(`crew.r${p.id}`)} ·{" "}
+                {tDynamic(`crew.r${p.id}`)} ·{" "}
                 {(() => {
                   const status = crew.find((c) => c.id === p.id)?.status;
                   return status?.kind === "building"

@@ -1,5 +1,5 @@
-import type { Flare, Msg } from "@/types";
-import { days as daysText, getLang, moduleName, t } from "./index";
+import type { Flare, ModuleType, Msg } from "@/types";
+import { days as daysText, getLang, moduleName, t, tDynamic } from "./index";
 
 // Перевод сообщений ядра игры (журнал, причины отложенных эффектов). Ядро отдаёт ключ и параметры-id,
 // здесь они превращаются в слова на языке игрока. Так состояние игры не зависит от языка.
@@ -32,13 +32,13 @@ export function formatDate(iso: string): string {
 }
 
 const FORMAT: Record<ParamKind, (v: string | number) => string> = {
-  resource: (v) => t(`vital.${v}`),
-  module: (v) => moduleName(String(v)),
-  crew: (v) => t(`crew.n${v}`),
-  crewFrom: (v) => t(`crew.from${v}`), // «задание от Максима»
-  task: (v) => t(`task.${v}`),
+  resource: (v) => tDynamic(`vital.${v}`),
+  module: (v) => moduleName(String(v) as ModuleType),
+  crew: (v) => tDynamic(`crew.n${v}`),
+  crewFrom: (v) => tDynamic(`crew.from${v}`), // «задание от Максима»
+  task: (v) => tDynamic(`task.${v}`),
   days: (v) => daysText(Number(v)),
-  key: (v) => t(String(v)),
+  key: (v) => tDynamic(String(v)),
   date: (v) => formatDate(String(v)),
 };
 
@@ -49,7 +49,7 @@ export function formatMsg(message: Msg): string {
     const kind = kinds[name];
     params[name] = kind ? FORMAT[kind](value) : value;
   }
-  return t(message.key, params);
+  return tDynamic(message.key, params);
 }
 
 // «класс X1.1, 25 мая 2025»

@@ -1,5 +1,5 @@
 import type { Task } from "@/types";
-import { t } from "@/i18n";
+import { t, tDynamic } from "@/i18n";
 import { Avatar } from "./CrewPanel";
 import { CREW } from "@/ui/crewData";
 import { sound } from "@/audio/audio";
@@ -19,10 +19,10 @@ export function TaskToast({ tasks, onClose }: Props) {
             <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={1} />
             <div className="task-toast__body">
               <span className="task-toast__who">
-                {t(`crew.n${person.id}`)} · {t(`crew.r${person.id}`)}
+                {tDynamic(`crew.n${person.id}`)} · {tDynamic(`crew.r${person.id}`)}
               </span>
-              <strong>{t(`task.${task.id}`)}</strong>
-              <span className="task-toast__why">{t(`task.${task.id}.why`)}</span>
+              <strong>{tDynamic(`task.${task.id}`)}</strong>
+              <span className="task-toast__why">{tDynamic(`task.${task.id}.why`)}</span>
               <span className="task-toast__until">{t("tasks.until", { n: task.deadline })}</span>
             </div>
             <button className="task-toast__close" onClick={() => { sound.playClick(); onClose(); }} aria-label={t("task.close")}>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
-import { moduleDesc, moduleName, t } from "@/i18n";
+import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
 import { ResourceIcon } from "@/ui/icons";
 import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
@@ -43,11 +43,11 @@ function perDayLines(perDay: Partial<Resources>) {
       plus: value! > 0,
       sign: value! > 0 ? "+" : "−",
       amount: Math.abs(value!),
-      unit: t(`unit.${key}`),
+      unit: tDynamic(`unit.${key}`),
       text: t("build.perDay", {
         sign: value! > 0 ? "+" : "−",
         n: Math.abs(value!),
-        unit: t(`unit.${key}`),
+        unit: tDynamic(`unit.${key}`),
       }),
     }));
 }

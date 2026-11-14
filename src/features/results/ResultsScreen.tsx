@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import hintsData from "@/data/hints.json";
 import { missionFact } from "@/engine";
 import type { GameRecord } from "@/session/storage";
-import { days as daysText, t } from "@/i18n";
+import { days as daysText, t, tDynamic } from "@/i18n";
 import type { GameState } from "@/types";
 import { Rocket } from "@/features/story/Prologue";
 import { buildReport } from "./report";
@@ -96,7 +96,7 @@ export function ResultsScreen({ state, online, record, onRestart, onMenu, onSour
           <div className="results__cards">
             {hintIds.map((id) => (
               <div key={id} className="results__card">
-                <p>{t(`hint.${id}`)}</p>
+                <p>{tDynamic(`hint.${id}`)}</p>
                 {HINTS.find((h) => h.id === id)?.source && (
                   <small>{t("results.source", { name: HINTS.find((h) => h.id === id)!.source! })}</small>
                 )}
@@ -104,7 +104,7 @@ export function ResultsScreen({ state, online, record, onRestart, onMenu, onSour
             ))}
             <div className="results__card">
               <strong>{t("results.factTitle")}</strong>
-              <p>{t(`fact.${fact.id}`)}</p>
+              <p>{tDynamic(`fact.${fact.id}`)}</p>
               {fact.source && <small>{t("results.source", { name: fact.source })}</small>}
             </div>
           </div>

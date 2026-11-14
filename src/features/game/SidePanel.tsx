@@ -1,6 +1,6 @@
 import type { GameState } from "@/types";
 import { MISSION_DAYS, nextScheduledEvent, NIGHT_START } from "@/engine";
-import { days, t } from "@/i18n";
+import { days, t, tDynamic } from "@/i18n";
 import { formatMsg } from "@/i18n/messages";
 import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
 
@@ -190,9 +190,9 @@ export function SidePanel({ state, onResearch, surveyingIce, onStartIceSurvey, o
                 <span className="task__mark" aria-hidden="true">{state.day >= task.deadline ? "!" : "○"}</span>
                 <span>
                   <strong>
-                    {t(`task.${task.id}`)} {t("tasks.until", { n: task.deadline })}
+                    {tDynamic(`task.${task.id}`)} {t("tasks.until", { n: task.deadline })}
                   </strong>
-                  <span className="task__why">{t(`crew.n${task.giver}`)}: {t(`task.${task.id}.why`)}</span>
+                  <span className="task__why">{tDynamic(`crew.n${task.giver}`)}: {tDynamic(`task.${task.id}.why`)}</span>
                 </span>
               </li>
             ))}

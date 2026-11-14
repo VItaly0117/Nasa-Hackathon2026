@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { t } from "@/i18n";
+import { t, tDynamic } from "@/i18n";
 import { sound } from "@/audio/audio";
 import "./Prologue.css";
 
@@ -57,7 +57,7 @@ export function Prologue({ onDone }: Props) {
 
   const finished = step >= LAST;
   // Время на субтитр зависит от длины текста, чтобы дети успели прочитать
-  const text = t(`prologue.p${step + 1}`);
+  const text = tDynamic(`prologue.p${step + 1}`);
   const readMs = Math.max(STEP_MS[Math.min(step, LAST - 1)], 3500 + text.length * 110);
 
   useEffect(() => {

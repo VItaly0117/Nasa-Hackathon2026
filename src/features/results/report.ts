@@ -1,6 +1,6 @@
 import { analyzeMission, MISSION_DAYS } from "@/engine";
 import type { ReportLine } from "@/engine";
-import { days as daysText, t } from "@/i18n";
+import { days as daysText, tDynamic } from "@/i18n";
 import { describeFlare } from "@/i18n/messages";
 import type { GameState } from "@/types";
 
@@ -37,7 +37,7 @@ export function buildReport(state: GameState): DebriefReport {
   };
 
   const line = (l: ReportLine): DebriefLine => {
-    const out: DebriefLine = { id: l.id, text: t(`debrief.rule.${l.id}`, params) };
+    const out: DebriefLine = { id: l.id, text: tDynamic(`debrief.rule.${l.id}`, params) };
     if (l.hintId) out.hintId = l.hintId;
     if (l.flareSource && state.flare) out.source = { label: state.flare.source, url: state.flare.link };
     return out;
@@ -45,9 +45,9 @@ export function buildReport(state: GameState): DebriefReport {
 
   return {
     won: analysis.won,
-    title: t(`debrief.verdict.${analysis.verdictId}.title`, params),
-    summary: t(`debrief.verdict.${analysis.verdictId}.summary`, params),
-    rating: t(`debrief.verdict.${analysis.verdictId}.rating`),
+    title: tDynamic(`debrief.verdict.${analysis.verdictId}.title`, params),
+    summary: tDynamic(`debrief.verdict.${analysis.verdictId}.summary`, params),
+    rating: tDynamic(`debrief.verdict.${analysis.verdictId}.rating`),
     days: analysis.days,
     health: analysis.health,
     helped: analysis.helped.map(line),
