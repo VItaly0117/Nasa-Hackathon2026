@@ -3,7 +3,7 @@
   --bg: #0b1026;
   --panel: rgba(22, 30, 66, 0.88);
   --panel-border: rgba(110, 140, 230, 0.45);
-  --panel-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --panel-shadow: none;
   --accent: #f5b83d;
   --text: #eef2fb;
   --radius: 16px;

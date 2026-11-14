@@ -52,3 +52,14 @@ export function MoonLogo({ size = 52 }: { size?: number }) {
     </svg>
   );
 }
+
+// Иконка книжечки / справочника правил для кнопки «Правила»
+export function BookIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 19.5 A 2.5 2.5 0 0 1 6.5 17 H 20" />
+      <path d="M6.5 2 H 20 v 20 H 6.5 A 2.5 2.5 0 0 1 4 19.5 v -15 A 2.5 2.5 0 0 1 6.5 2 z" />
+      <path d="M8 7 h 8 M8 11 h 6" strokeWidth="2" />
+    </svg>
+  );
+}

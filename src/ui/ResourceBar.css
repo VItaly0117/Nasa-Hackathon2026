@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -11,9 +11,9 @@
 .resource {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 124px;
-  padding: 10px 14px;
+  gap: 14px;
+  min-width: 130px;
+  padding: 10px 16px;
   border-radius: 16px;
   background: var(--panel);
   border: 1.5px solid var(--panel-border);

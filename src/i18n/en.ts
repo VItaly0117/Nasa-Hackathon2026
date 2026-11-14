@@ -182,6 +182,7 @@ export const en: Record<keyof typeof ru, string> = {
   "terrain.ice": "Ice deposit",
   "terrain.landing": "Landing pad",
   "map.broken": "Broken, needs repair",
+  "map.repair": "Repair",
   "map.nothing": "Gives nothing right now",
   "map.perDay": "{parts} per day",
   "map.mine": "Ice can be mined here",

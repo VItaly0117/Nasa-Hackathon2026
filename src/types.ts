@@ -105,4 +105,5 @@ export type Action =
   | { type: "tick"; ms: number } // прошло ms мс игрового времени: идёт день и стройка
   | { type: "nextDay" }      // пропустить остаток дня
   | { type: "build"; slot: number; module: ModuleType }
+  | { type: "repair"; slot: number }
   | { type: "resolveEvent"; choice: string };

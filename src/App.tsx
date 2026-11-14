@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
+import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START, REPAIR_COST } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
 import { openStream, sendAction } from "./net/online";
@@ -25,7 +25,7 @@ import { DayClock } from "./ui/DayClock";
 import { TaskToast } from "./ui/TaskToast";
 import { Avatar } from "./ui/CrewPanel";
 import { CREW } from "./ui/crewData";
-import { MoonLogo } from "./ui/icons";
+import { BookIcon, MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
 
@@ -196,6 +196,8 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
         buildType={buildType}
         crewActive={isPlaying && event === null}
         canPlaceAt={(row, col) => buildType !== null && canPlace(state, buildType, row, col)}
+        canAffordRepair={canAfford(state.resources, REPAIR_COST)}
+        onRepairModule={(slot) => dispatch({ type: "repair", slot })}
         onSelectTile={handleSelectTile}
       />
 
@@ -220,8 +222,9 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
             )}
           </div>
           <DayClock running={clockRunning} progress={state.clockMs / DAY_MS} onTick={handleTick}>
-            <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
-              ? {t("app.rules")}
+            <button className="btn btn--ghost btn--small btn--help" onClick={() => setRulesOpen(true)}>
+              <BookIcon size={18} />
+              <span>{t("app.rules")}</span>
             </button>
             <button className="btn btn--ghost btn--small" onClick={toMenu}>
               {t("app.menu")}

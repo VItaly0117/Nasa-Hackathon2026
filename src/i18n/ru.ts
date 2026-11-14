@@ -193,6 +193,7 @@ export const ru = {
   "terrain.ice": "Месторождение льда",
   "terrain.landing": "Посадочная площадка",
   "map.broken": "Сломан, нужен ремонт",
+  "map.repair": "Починить",
   "map.nothing": "Сейчас ничего не даёт",
   "map.perDay": "{parts} в день",
   "map.mine": "Здесь можно добывать лёд",

@@ -41,6 +41,9 @@ function perDayLines(perDay: Partial<Resources>) {
     .map(([key, value]) => ({
       key: key as ResourceKey,
       plus: value! > 0,
+      sign: value! > 0 ? "+" : "−",
+      amount: Math.abs(value!),
+      unit: t(`unit.${key}`),
       text: t("build.perDay", {
         sign: value! > 0 ? "+" : "−",
         n: Math.abs(value!),
@@ -77,7 +80,7 @@ export function BuildMenu({
 
   return (
     <>
-      <section className="hud-panel build" aria-label={t("build.aria")}>
+      <section className={`hud-panel build ${collapsed ? "build--collapsed" : ""}`} aria-label={t("build.aria")}>
         <div className="build__tabs">
           <span className="build__tab">
             <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
@@ -106,7 +109,7 @@ export function BuildMenu({
                   aria-pressed={selected === d.type}
                 >
                   <span className="card__name">{moduleName(d.type)}</span>
-                  <ModulePreview type={d.type} size={92} />
+                  <ModulePreview type={d.type} size={70} />
                   <Cost cost={d.cost} />
                 </button>
               </li>
@@ -124,8 +127,10 @@ export function BuildMenu({
               <p>{moduleDesc(def.type)}</p>
               <ul className="detail__lines">
                 {lines.map((l) => (
-                  <li key={l.key} className={l.plus ? "plus" : "minus"}>
-                    <ResourceIcon type={l.key} size={16} /> {l.text}
+                  <li key={l.key} className={`detail__line ${l.plus ? "plus" : "minus"}`}>
+                    <ResourceIcon type={l.key} size={20} />
+                    <span className="detail__line-value">{l.sign}{l.amount}</span>
+                    <span className="detail__line-label">{l.unit} / {t("unit.dShort")}</span>
                   </li>
                 ))}
                 {def.nightPerDay && <li className="detail__night">{t("build.night")}</li>}

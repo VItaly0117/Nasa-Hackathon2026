@@ -16,12 +16,6 @@ const STARS = Array.from({ length: 120 }, (_, k) => ({
   delay: rand(k + 313) * 6,
 }));
 
-const METEORS = [
-  { top: 6, left: 70, delay: 3, dur: 9 },
-  { top: 16, left: 30, delay: 11, dur: 13 },
-  { top: 2, left: 90, delay: 18, dur: 17 },
-];
-
 // Кометы: яркая голова с длинным хвостом, летят по диагонали через всё небо
 const COMETS = [
   { top: 4, left: 105, delay: 2, dur: 16, angle: -24, size: 1 },
@@ -68,14 +62,6 @@ export function Sky() {
           />
         ))}
       </svg>
-
-      {METEORS.map((m, k) => (
-        <span
-          key={k}
-          className="meteor"
-          style={{ top: `${m.top}vh`, left: `${m.left}%`, animationDelay: `${m.delay}s`, animationDuration: `${m.dur}s` }}
-        />
-      ))}
 
       {SPARKLES.map((s, k) => (
         <span

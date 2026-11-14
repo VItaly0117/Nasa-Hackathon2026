@@ -25,6 +25,8 @@ interface LunarMapProps {
   buildType: ModuleType | null;
   crewActive: boolean;
   canPlaceAt: (row: number, col: number) => boolean;
+  canAffordRepair?: boolean;
+  onRepairModule?: (slot: number) => void;
   onSelectTile?: (tile: TileInfo) => void;
 }
 
@@ -34,11 +36,11 @@ const BAD_COLOR = "#FF6B6B";
 // Клетки крупные, а рисунки модулей маленькие относительно клетки: между зданиями остаётся воздух
 const TILE_W = 150;
 const TILE_H = 75;
-const TOP = 140;      // горы на горизонте и место для высоких зданий верхнего ряда
-const BOTTOM = 200;   // грунт под панелью строительства
+const TOP = 240;      // горы на горизонте и место для высоких зданий верхнего ряда
+const BOTTOM = 350;   // грунт под панелью строительства
 const ART_SCALE = 1.45;
 const BUBBLE_W = 300;
-const BUBBLE_H = 100;
+const BUBBLE_H = 140;
 const DRAG_THRESHOLD = 6;
 
 const MIN_ZOOM = 0.3;
@@ -49,11 +51,22 @@ const START_ZOOM = 0.85;
 const MAP_W = MAP_COLS * TILE_W + TILE_W / 2;
 const MAP_H = TOP + MAP_ROWS * (TILE_H / 2) + TILE_H / 2 + BOTTOM;
 
-// «Шахматная» изометрия: нечётные ряды сдвинуты на полклетки вправо
-const getPosition = (row: number, col: number) => ({
-  x: col * TILE_W + (row & 1) * (TILE_W / 2) + TILE_W / 2,
-  y: TOP + row * (TILE_H / 2) + TILE_H / 2,
-});
+// «Шахматная» изометрия с естественной кривизной лунного горизонта:
+// центр карты припіднятий, а краї виразно закруглюються вниз (дуга планетарного купола Місяця)
+const CURVE_AMOUNT = 220; // виразний вигин місячного диска/горизонту
+const curveOffset = (x: number) => {
+  const norm = (x - MAP_W / 2) / (MAP_W / 2); // -1 .. +1
+  return (norm * norm) * CURVE_AMOUNT;
+};
+
+const getPosition = (row: number, col: number) => {
+  const x = col * TILE_W + (row & 1) * (TILE_W / 2) + TILE_W / 2;
+  const baseY = TOP + row * (TILE_H / 2) + TILE_H / 2;
+  return {
+    x,
+    y: baseY + curveOffset(x),
+  };
+};
 
 const diamond = (x: number, y: number) =>
   [
@@ -63,18 +76,29 @@ const diamond = (x: number, y: number) =>
     `${x - TILE_W / 2},${y}`,
   ].join(" ");
 
-// Силуэт гор на горизонте: сумма синусоид, чтобы выглядело неровно, но одинаково при каждом запуске
+// Силуэт гор на горизонте с естественной дугой кривизны Луны
 function hillsPath(base: number, amp: number, k: number) {
   const points: string[] = [];
   for (let x = 0; x <= MAP_W; x += 30) {
-    const y = base - amp * (0.55 + 0.3 * Math.sin(x * 0.004 * k + k) + 0.15 * Math.sin(x * 0.013 * k));
+    const cY = curveOffset(x);
+    const y = base + cY - amp * (0.55 + 0.3 * Math.sin(x * 0.004 * k + k) + 0.15 * Math.sin(x * 0.013 * k));
     points.push(`${x},${y.toFixed(1)}`);
   }
-  return `M 0 ${TOP + 40} L ${points.join(" L ")} L ${MAP_W} ${TOP + 40} Z`;
+  return `M 0 ${MAP_H + 200} L ${points.join(" L ")} L ${MAP_W} ${MAP_H + 200} Z`;
+}
+
+function groundCurvedPath() {
+  const points: string[] = [];
+  for (let x = 0; x <= MAP_W; x += 30) {
+    const y = TOP + curveOffset(x);
+    points.push(`${x},${y.toFixed(1)}`);
+  }
+  return `M 0 ${MAP_H + 200} L ${points.join(" L ")} L ${MAP_W} ${MAP_H + 200} Z`;
 }
 
 const FAR_HILLS = hillsPath(TOP - 10, 110, 1.3);
 const NEAR_HILLS = hillsPath(TOP + 6, 48, 2.1);
+const GROUND_PATH = groundCurvedPath();
 
 const getTerrainName = (terrain: Terrain) => t(`terrain.${terrain}`);
 
@@ -90,14 +114,42 @@ function perDayText(def: ModuleDef, isNight: boolean) {
 
 // Облачко-подпись над объектом на карте. (x, y) — точка, куда указывает хвостик.
 // Масштаб 1/k держит размер текста на экране одинаковым при любом приближении
-function Bubble({ x, y, k, title, text }: { x: number; y: number; k: number; title: string; text: string }) {
+function Bubble({
+  x,
+  y,
+  k,
+  title,
+  text,
+  onRepair,
+  canRepair,
+}: {
+  x: number;
+  y: number;
+  k: number;
+  title: string;
+  text: string;
+  onRepair?: () => void;
+  canRepair?: boolean;
+}) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${1 / k})`} pointerEvents="none">
+    <g transform={`translate(${x} ${y}) scale(${1 / k})`} pointerEvents={onRepair ? "auto" : "none"}>
       <foreignObject x={-BUBBLE_W / 2} y={-BUBBLE_H} width={BUBBLE_W} height={BUBBLE_H}>
         <div className="bubble">
           <div className="bubble__body" role="status">
             <div className="bubble__title">{title}</div>
             <div>{text}</div>
+            {onRepair && (
+              <button
+                className="bubble__repair-btn"
+                disabled={!canRepair}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRepair();
+                }}
+              >
+                {t("map.repair")} (💧10 ⚡10)
+              </button>
+            )}
           </div>
           <div className="bubble__tail" />
         </div>
@@ -122,7 +174,8 @@ function clampView(v: View, size: Size): View {
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);
-  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, 0);
+  const minTopSky = size.h * 0.18; // залишаємо мінімум 18% неба зверху, щоб гори не зрізались
+  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, minTopSky);
   return { x, y, k };
 }
 
@@ -139,6 +192,8 @@ export default function LunarMap({
   buildType,
   crewActive,
   canPlaceAt,
+  canAffordRepair = true,
+  onRepairModule,
   onSelectTile,
 }: LunarMapProps) {
   const [selected, setSelected] = useState<TileInfo | null>(null);
@@ -316,6 +371,7 @@ export default function LunarMap({
     const def = defs.find((d) => d.type === module?.type);
 
     if (module && def) {
+      const isBroken = module.broken;
       return {
         x,
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
@@ -324,9 +380,11 @@ export default function LunarMap({
           ? module.build.crewId === null
             ? t("map.waiting")
             : t("map.building", { n: Math.round((1 - module.build.leftMs / module.build.totalMs) * 100) })
-          : module.broken
+          : isBroken
             ? t("map.broken")
             : perDayText(def, isNight),
+        onRepair: isBroken && onRepairModule ? () => onRepairModule(module.slot) : undefined,
+        canRepair: isBroken ? canAffordRepair : undefined,
       };
     }
 
@@ -402,11 +460,11 @@ export default function LunarMap({
               </pattern>
             </defs>
 
-            {/* Слой 1: горизонт и грунт */}
+            {/* Слой 1: горизонт и грунт с округлой планетарной дугой */}
             <path d={FAR_HILLS} fill="#4a4362" />
             <path d={NEAR_HILLS} fill="#5f5779" />
-            <rect y={TOP} width={MAP_W} height={MAP_H - TOP} fill="url(#ground)" />
-            <rect y={TOP} width={MAP_W} height={MAP_H - TOP} fill="url(#regolith)" />
+            <path d={GROUND_PATH} fill="url(#ground)" />
+            <path d={GROUND_PATH} fill="url(#regolith)" />
 
             {/* Слой 2: невидимые клетки, по которым кликают. В режиме стройки видна сетка */}
             {TILES.map((tile) => {
@@ -427,7 +485,7 @@ export default function LunarMap({
 
             {/* Слой 3: лунная ночь затемняет поверхность, огни зданий остаются яркими */}
             {isNight && (
-              <rect width={MAP_W} height={MAP_H} fill="#050a1a" opacity="0.5" pointerEvents="none" />
+              <path d={FAR_HILLS} fill="#050a1a" opacity="0.5" pointerEvents="none" />
             )}
 
             {/* Слой 4: зелёные клетки, где можно строить выбранный модуль */}

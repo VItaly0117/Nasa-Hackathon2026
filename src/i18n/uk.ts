@@ -182,6 +182,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "terrain.ice": "Родовище льоду",
   "terrain.landing": "Посадковий майданчик",
   "map.broken": "Зламано, потрібен ремонт",
+  "map.repair": "Полагодити",
   "map.nothing": "Зараз нічого не дає",
   "map.perDay": "{parts} на день",
   "map.mine": "Тут можна добувати лід",
