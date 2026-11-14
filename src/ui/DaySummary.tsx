@@ -66,6 +66,17 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
 
         {problems.length > 0 && <p className="daysum__problems">⚠ {problems.join(", ")}</p>}
 
+        {summary.tasksMissed.length > 0 && (
+          <section className="daysum__missed" aria-label={t("sum.missed.title")}>
+            <p className="daysum__missed-title">✕ {t("sum.missed.title")}:</p>
+            <ul>
+              {summary.tasksMissed.map((id) => (
+                <li key={id}>{t(`task.${id}`)}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {summary.left.length > 0 && (
           <section className="daysum__left" aria-label={t("sum.left.title", { n: summary.left.length })}>
             <h3>{t("sum.left.title", { n: summary.left.length })}</h3>

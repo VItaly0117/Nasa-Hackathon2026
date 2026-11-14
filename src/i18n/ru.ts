@@ -142,6 +142,7 @@ export const ru = {
   "sum.verdict.behind": "Ты отстаёшь",
   "sum.done.title": "Что получилось",
   "sum.done.none": "Пока ничего",
+  "sum.missed.title": "Не успел выполнить",
   "sum.blackout": "База осталась без энергии",
   "sum.lowStock": "{what}: ещё на {days}",
   "sum.left.title": "Осталось · {n}",
@@ -253,7 +254,7 @@ export const ru = {
 
   "tasks.title": "Задачи · {done} / {total}",
   "tasks.until": "до дня {n}",
-  "tasks.allDone": "Все задачи выполнены. Продержись до конца миссии!",
+  "tasks.allDone": "Все активные задачи выполнены! Продержись до конца миссии!",
   "research.title": "Научная экспедиция",
   "research.completed": "Исследование выполнено",
   "research.completedText": "Исследование завершено! NASA изучает электростатические экраны, которые отталкивают лунную пыль от оборудования.",

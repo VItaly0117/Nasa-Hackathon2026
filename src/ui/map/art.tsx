@@ -282,7 +282,7 @@ function Rocks({ variant }: { variant: number }) {
   );
 }
 
-function Ice() {
+export function Ice() {
   return (
     <g>
       <ellipse cx="0" cy="2" rx="40" ry="19" fill="#7fd8ff" opacity="0.25" />

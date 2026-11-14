@@ -11,7 +11,7 @@ import {
 import type { Terrain, TileInfo } from "../../engine/placement";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "../../data/map";
 import { moduleName, t } from "../../i18n";
-import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";
+import { ART_HEIGHT, ArtDefs, Ice, ModuleArt } from "./art";
 import moonBg from "../../assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
 import { BuildProgress } from "./BuildProgress";
@@ -483,7 +483,17 @@ export default function LunarMap({
               );
             })()}
 
-            {/* Слой 5: здания и «призрак» строящегося модуля, от дальних к ближним */}
+            {/* Слой 5: поклади льоду, будівлі та «призрак» модуля */}
+            {TILES.map((tile) => {
+              if (tile.terrain !== "ice" || moduleAt(tile.row, tile.col)) return null;
+              const { x, y } = getPosition(tile.row, tile.col);
+              return (
+                <g key={`ice-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} pointerEvents="none">
+                  <Ice />
+                </g>
+              );
+            })}
+
             {TILES.map((tile) => {
               const module = moduleAt(tile.row, tile.col);
               const isGhost =

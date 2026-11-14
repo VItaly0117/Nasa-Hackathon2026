@@ -135,6 +135,7 @@ export const en: Record<keyof typeof ru, string> = {
   "sum.verdict.behind": "You're behind",
   "sum.done.title": "Done today",
   "sum.done.none": "Nothing yet",
+  "sum.missed.title": "Failed to complete in time",
   "sum.blackout": "The base lost power",
   "sum.lowStock": "{what}: {days} left",
   "sum.left.title": "To do · {n}",
@@ -242,7 +243,7 @@ export const en: Record<keyof typeof ru, string> = {
 
   "tasks.title": "Tasks · {done} / {total}",
   "tasks.until": "by day {n}",
-  "tasks.allDone": "All tasks done. Hold out until the end of the mission!",
+  "tasks.allDone": "All active tasks completed! Hold out until the end of the mission!",
   "research.title": "Science expedition",
   "research.completed": "Study complete",
   "research.completedText": "Study complete! NASA is testing electrodynamic shields that push lunar dust away from equipment.",

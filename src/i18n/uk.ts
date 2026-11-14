@@ -135,6 +135,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "sum.verdict.behind": "Ти відстаєш",
   "sum.done.title": "Що вдалося",
   "sum.done.none": "Поки нічого",
+  "sum.missed.title": "Не встиг виконати завдання",
   "sum.blackout": "База залишилася без енергії",
   "sum.lowStock": "{what}: ще на {days}",
   "sum.left.title": "Залишилось · {n}",
@@ -242,7 +243,7 @@ export const uk: Record<keyof typeof ru, string> = {
 
   "tasks.title": "Завдання · {done} / {total}",
   "tasks.until": "до дня {n}",
-  "tasks.allDone": "Усі завдання виконано. Протримайся до кінця місії!",
+  "tasks.allDone": "Усі активні завдання виконано! Протримайся до кінця місії!",
   "research.title": "Наукова експедиція",
   "research.completed": "Дослідження виконано",
   "research.completedText": "Дослідження завершено! NASA вивчає електростатичні екрани, що відштовхують місячний пил від обладнання.",

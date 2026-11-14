@@ -84,7 +84,7 @@ export function BuildMenu({
         {placing && (
           <>
             <span className="build-dock__hint">{t("build.hintPlacing")}</span>
-            <button className="btn btn--ghost btn--small" onClick={onCancel}>
+            <button className="btn btn--solid btn--cancel btn--small" onClick={onCancel}>
               {t("build.cancel")}
             </button>
           </>
@@ -155,7 +155,7 @@ export function BuildMenu({
             <Cost cost={def.cost} />
           </div>
           {placing ? (
-            <button className="btn btn--ghost" onClick={onCancel}>
+            <button className="btn btn--solid btn--cancel" onClick={onCancel}>
               {t("build.cancel")}
             </button>
           ) : (
