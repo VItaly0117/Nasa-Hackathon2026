@@ -1,0 +1,47 @@
+[
+  {
+    "id": "donki",
+    "name": "DONKI — база космической погоды",
+    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+    "provider": "NASA CCMC",
+    "usedFor": "Настоящие солнечные вспышки в игре: дата, класс и ссылка на каждую",
+    "file": "src/data/nasa/flares.json",
+    "inGame": true
+  },
+  {
+    "id": "nasa-open-apis",
+    "name": "NASA Open APIs",
+    "url": "https://api.nasa.gov/",
+    "provider": "NASA",
+    "usedFor": "Официальный вход к данным DONKI (запасной путь для скрипта загрузки)",
+    "file": "scripts/fetch-donki.mjs",
+    "inGame": false
+  },
+  {
+    "id": "radlab",
+    "name": "RadLab — радиация в космосе",
+    "url": "https://visualization.osdr.nasa.gov/radlab/gui/data-api/",
+    "provider": "NASA OSDR",
+    "usedFor": "Настоящие дозы радиации вместо придуманных процентов",
+    "file": "src/data/nasa/radiation.json",
+    "inGame": false
+  },
+  {
+    "id": "osdr",
+    "name": "OSDR — исследования здоровья астронавтов",
+    "url": "https://osdr.nasa.gov/bio/repo/",
+    "provider": "NASA OSDR",
+    "usedFor": "Факты о здоровье астронавтов в подсказках и итоговом разборе",
+    "file": "src/data/nasa/health.json",
+    "inGame": false
+  },
+  {
+    "id": "csa-food",
+    "name": "CSA — производство еды в космосе",
+    "url": "https://www.asc-csa.gc.ca/eng/youth-educators/toolkits/food-production/",
+    "provider": "Канадское космическое агентство",
+    "usedFor": "Факты для теплицы: как растят еду вне Земли",
+    "file": "src/data/hints.json",
+    "inGame": false
+  }
+]

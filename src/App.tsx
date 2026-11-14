@@ -1,11 +1,12 @@
 import { useEffect, useReducer, useState } from "react";
 import { reduce, initialState, dailyDelta, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
+import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";
 import eventsData from "./data/events.json";
-import type { ModuleDef, ModuleType, Resources } from "./types";
+import type { EventDef, ModuleDef, ModuleType, Resources } from "./types";
 import { Sky } from "./ui/Sky";
 import LunarMap from "./ui/map/LunarMap";
 import { ResourceBar } from "./ui/ResourceBar";
@@ -15,14 +16,6 @@ import { BuildMenu } from "./ui/BuildMenu";
 import { MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
-
-// TODO: перенести EventDef в types.ts, когда @Regie утвердит формат events.json
-type EventDef = {
-  id: string;
-  title: string;
-  text: string;
-  choices: { id: string; label: string; hint: string }[];
-};
 
 const MODULES = modulesData as ModuleDef[];
 const EVENTS = eventsData as EventDef[];
@@ -123,6 +116,14 @@ function Game({ onRestart }: { onRestart: () => void }) {
           <div className="modal" role="dialog" aria-labelledby="event-title">
             <h2 id="event-title">{event.title}</h2>
             <p>{event.text}</p>
+            {event.id === "flare" && state.flare && (
+              <p className="muted source">
+                Настоящая вспышка: {describeFlare(state.flare)}. Источник:{" "}
+                <a href={state.flare.link} target="_blank" rel="noreferrer">
+                  {state.flare.source}
+                </a>
+              </p>
+            )}
             <div className="modal__choices">
               {event.choices.map((choice) => (
                 <button
