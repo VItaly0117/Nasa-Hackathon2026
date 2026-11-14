@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { t } from "../i18n";
+import { sound } from "../audio/audio";
 import "./Prologue.css";
 
 // Сколько показывается каждый субтитр, мс. Последний ждёт нажатия кнопки
@@ -58,6 +59,10 @@ export function Prologue({ onDone }: Props) {
   // Время на субтитр зависит от длины текста, чтобы дети успели прочитать
   const text = t(`prologue.p${step + 1}`);
   const readMs = Math.max(STEP_MS[Math.min(step, LAST - 1)], 3500 + text.length * 110);
+
+  useEffect(() => {
+    sound.playRadioChirp();
+  }, [step]);
 
   useEffect(() => {
     // Последний шаг тоже листается сам: после него начинаются правила
@@ -125,16 +130,34 @@ export function Prologue({ onDone }: Props) {
         <div className="prologue__actions">
           {!finished && (
             <>
-              <button className="btn btn--ghost btn--small" onClick={onDone}>
+              <button
+                className="btn btn--ghost btn--small"
+                onClick={() => {
+                  sound.playClick();
+                  onDone();
+                }}
+              >
                 {t("prologue.skip")}
               </button>
-              <button className="btn btn--ghost btn--small" onClick={() => setStep((s) => s + 1)}>
+              <button
+                className="btn btn--ghost btn--small"
+                onClick={() => {
+                  sound.playClick();
+                  setStep((s) => s + 1);
+                }}
+              >
                 {t("prologue.next")}
               </button>
             </>
           )}
           {finished && (
-            <button className="btn btn--primary" onClick={onDone}>
+            <button
+              className="btn btn--primary"
+              onClick={() => {
+                sound.playClick();
+                onDone();
+              }}
+            >
               {t("prologue.go")}
             </button>
           )}

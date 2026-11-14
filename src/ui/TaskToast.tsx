@@ -2,6 +2,7 @@ import type { Task } from "../types";
 import { t } from "../i18n";
 import { Avatar } from "./CrewPanel";
 import { CREW } from "./crewData";
+import { sound } from "../audio/audio";
 import "./TaskToast.css";
 
 type Props = { tasks: Task[]; onClose: () => void };
@@ -24,7 +25,7 @@ export function TaskToast({ tasks, onClose }: Props) {
               <span className="task-toast__why">{t(`task.${task.id}.why`)}</span>
               <span className="task-toast__until">{t("tasks.until", { n: task.deadline })}</span>
             </div>
-            <button className="task-toast__close" onClick={onClose} aria-label={t("task.close")}>
+            <button className="task-toast__close" onClick={() => { sound.playClick(); onClose(); }} aria-label={t("task.close")}>
               ×
             </button>
           </section>
