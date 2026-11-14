@@ -1,13 +1,17 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
+import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
+import { openStream, sendAction } from "./net/online";
+import type { Player, Session } from "./net/online";
+import { MainMenu } from "./ui/MainMenu";
 import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";
 import eventsData from "./data/events.json";
-import type { EventDef, ModuleDef, ModuleType, Resources } from "./types";
-import { days, setLang, t } from "./i18n";
+import type { Action, EventDef, GameState, ModuleDef, ModuleType, Resources } from "./types";
+import { days, LANGS, setLang, t } from "./i18n";
 import type { Lang } from "./i18n";
 import { Sky } from "./ui/Sky";
 import LunarMap from "./ui/map/LunarMap";
@@ -15,7 +19,6 @@ import { ResourceBar } from "./ui/ResourceBar";
 import { CrewPanel } from "./ui/CrewPanel";
 import { SidePanel } from "./ui/SidePanel";
 import { BuildMenu } from "./ui/BuildMenu";
-import { LangSelect } from "./ui/LangSelect";
 import { Intro } from "./ui/Intro";
 import { Prologue, Rocket } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
@@ -51,8 +54,86 @@ function RotateHint() {
   );
 }
 
-function Game({ onRestart }: { onRestart: () => void }) {
-  const [state, dispatch] = useReducer(reduce, undefined, initialState);
+// Одиночная игра (новая или продолженная из сохранения) или совместная на сервере
+type Mode = { kind: "solo"; resume: GameState | null } | { kind: "online"; session: Session };
+
+// Время дня ведущий отправляет на сервер пачками, а не 10 раз в секунду
+const ONLINE_TICK_MS = 500;
+// Одиночную игру сохраняем не чаще, чем раз в столько мс: время идёт непрерывно
+const SAVE_EVERY_MS = 2000;
+
+function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; onMenu: () => void }) {
+  const online = mode.kind === "online" ? mode.session : null;
+  // Совместная игра: та же игра получается из seed комнаты и всех действий, что уже случились до входа
+  const [state, apply] = useReducer(reduce, undefined, () =>
+    online
+      ? online.actions.reduce(reduce, initialState(online.seed))
+      : (mode.kind === "solo" && mode.resume) || initialState()
+  );
+  // В одиночной игре действие применяется сразу. В совместной уходит на сервер и применяется,
+  // когда сервер разошлёт его всем: так у всех игроков один и тот же порядок действий
+  const dispatch = (action: Action) => (online ? void sendAction(online, action) : apply(action));
+
+  const [players, setPlayers] = useState<Player[]>(online?.players ?? []);
+  const [hostId, setHostId] = useState<string | null>(online?.hostId ?? null);
+  const [connected, setConnected] = useState(true);
+  const isHost = !online || hostId === online.playerId;
+  useEffect(() => {
+    if (!online) return;
+    return openStream(online, online.actions.length, {
+      onAction: apply,
+      onPlayers: (list, host) => {
+        setPlayers(list);
+        setHostId(host);
+      },
+      onConnection: setConnected,
+    });
+  }, [online]);
+
+  const tickAcc = useRef(0);
+  function handleTick(ms: number) {
+    if (!online) return apply({ type: "tick", ms });
+    tickAcc.current += ms;
+    if (tickAcc.current < ONLINE_TICK_MS) return;
+    void sendAction(online, { type: "tick", ms: tickAcc.current });
+    tickAcc.current = 0;
+  }
+
+  // Модуль строит игрок с ролью из modules.json. Пока такой роли ни у кого нет, строить может любой
+  const lockedBy = online
+    ? (def: ModuleDef) =>
+        def.builder && def.builder !== online.role && players.some((p) => p.role === def.builder) ? def.builder : null
+    : undefined;
+
+  // Сохранение одиночной игры: «Продолжить игру» в меню начнёт с этого места
+  const latest = useRef(state);
+  const lastSave = useRef(0);
+  useEffect(() => {
+    latest.current = state;
+    if (online) return;
+    if (state.status !== "playing") {
+      clearSave();
+      return;
+    }
+    const now = Date.now();
+    if (now - lastSave.current >= SAVE_EVERY_MS) {
+      saveGame(state);
+      lastSave.current = now;
+    }
+  }, [state, online]);
+  useEffect(() => {
+    if (online) return;
+    const flush = () => {
+      if (latest.current.status === "playing") saveGame(latest.current);
+    };
+    window.addEventListener("beforeunload", flush);
+    return () => window.removeEventListener("beforeunload", flush);
+  }, [online]);
+  // Сохраняем до перехода: меню сразу читает сохранение, чтобы показать «Продолжить игру»
+  function toMenu() {
+    if (!online && latest.current.status === "playing") saveGame(latest.current);
+    onMenu();
+  }
   // Модуль, открытый в карточке справа
   const [selectedType, setSelectedType] = useState<ModuleType | null>("greenhouse");
   // Игрок выбирает место на карте: карта подсвечивает, куда можно поставить
@@ -64,8 +145,11 @@ function Game({ onRestart }: { onRestart: () => void }) {
   const event = EVENTS.find((e) => e.id === state.activeEvent) ?? null;
   const daysToNight = NIGHT_START - state.day;
   const isPlaying = state.status === "playing";
-  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места
-  const clockRunning = isPlaying && event === null && !rulesOpen && buildType === null;
+  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места.
+  // В совместной игре время общее: его двигает только ведущий и останавливает только событие
+  const clockRunning = online
+    ? isHost && connected && isPlaying && event === null
+    : isPlaying && event === null && !rulesOpen && buildType === null;
 
   // Баннер «День N» на несколько секунд при смене дня
   const [banner, setBanner] = useState<{ day: number; night: boolean } | null>(null);
@@ -128,14 +212,19 @@ function Game({ onRestart }: { onRestart: () => void }) {
                   ? t("app.toNight", { days: days(daysToNight) })
                   : t("app.lunarDay")}
             </span>
+            {online && (
+              <span className="online-badge">
+                {t("online.badge", { room: online.room, role: t(`role.${online.role}`) })} ·{" "}
+                {t("online.players", { n: players.length })}
+              </span>
+            )}
           </div>
-          <DayClock
-            running={clockRunning}
-            progress={state.clockMs / DAY_MS}
-            onTick={(ms) => dispatch({ type: "tick", ms })}
-          >
+          <DayClock running={clockRunning} progress={state.clockMs / DAY_MS} onTick={handleTick}>
             <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
               ? {t("app.rules")}
+            </button>
+            <button className="btn btn--ghost btn--small" onClick={toMenu}>
+              {t("app.menu")}
             </button>
           </DayClock>
         </div>
@@ -152,6 +241,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
         disabled={!isPlaying}
         crewBusy={!hasFreeCrew(state)}
         isAffordable={(def) => canAfford(state.resources, def.cost)}
+        lockedBy={lockedBy}
         onSelect={(type) => {
           setSelectedType(type);
           setBuildType(null);
@@ -211,8 +301,13 @@ function Game({ onRestart }: { onRestart: () => void }) {
               ))}
             </ul>
             <div className="modal__choices">
-              <button className="btn btn--primary" onClick={onRestart}>
-                {t("app.playAgain")}
+              {!online && (
+                <button className="btn btn--primary" onClick={onRestart}>
+                  {t("app.playAgain")}
+                </button>
+              )}
+              <button className={`btn ${online ? "btn--primary" : "btn--ghost"}`} onClick={toMenu}>
+                {t("app.toMenu")}
               </button>
             </div>
           </div>
@@ -229,28 +324,75 @@ function Game({ onRestart }: { onRestart: () => void }) {
       <TaskToast tasks={state.tasks.filter((x) => toastIds.includes(x.id))} onClose={() => setToastIds([])} />
 
       {rulesOpen && <Intro rulesOnly onStart={() => setRulesOpen(false)} />}
+      {online && !connected && <div className="online-lost" role="alert">{t("online.lost")}</div>}
       <RotateHint />
     </div>
   );
 }
 
-type Stage = "lang" | "prologue" | "intro" | "game";
+type Stage = "menu" | "prologue" | "intro" | "game";
+
+// Язык с прошлого раза. Если его нет или он неизвестен, остаётся язык по умолчанию из i18n
+function restoreLang(): Lang | null {
+  const saved = loadLang();
+  const lang = LANGS.find((l) => l === saved) ?? null;
+  if (lang) setLang(lang);
+  return lang;
+}
 
 export default function App() {
-  const [stage, setStage] = useState<Stage>("lang");
+  const [stage, setStage] = useState<Stage>("menu");
+  const [mode, setMode] = useState<Mode>({ kind: "solo", resume: null });
   // Новый ключ пересоздаёт Game с чистым состоянием, поэтому restart не нужен в движке
   const [runId, setRunId] = useState(0);
   // Нужен только чтобы перерисовать дерево после смены языка: сам язык хранится в i18n
-  const [, setLangState] = useState<Lang | null>(null);
+  const [, setLangState] = useState<Lang | null>(restoreLang);
+  // Сохранение читаем при каждом показе меню: игрок мог только что выйти из игры
+  const saved = stage === "menu" ? loadGame() : null;
 
   function pickLang(lang: Lang) {
     setLang(lang);
+    saveLang(lang);
     setLangState(lang);
-    setStage("prologue");
+  }
+
+  function start(next: Mode, from: Stage) {
+    setMode(next);
+    setRunId((id) => id + 1);
+    setStage(from);
+  }
+
+  if (stage === "menu") {
+    return (
+      <div className="game">
+        <Sky />
+        <MainMenu
+          savedDay={saved?.day ?? null}
+          onLang={pickLang}
+          onNewGame={() => {
+            clearSave();
+            start({ kind: "solo", resume: null }, "prologue");
+          }}
+          onContinue={() => saved && start({ kind: "solo", resume: saved }, "game")}
+          onJoined={(session) => start({ kind: "online", session }, "game")}
+        />
+        <RotateHint />
+      </div>
+    );
   }
 
   if (stage === "game") {
-    return <Game key={runId} onRestart={() => setRunId((id) => id + 1)} />;
+    return (
+      <Game
+        key={runId}
+        mode={mode}
+        onRestart={() => {
+          clearSave();
+          start({ kind: "solo", resume: null }, "game");
+        }}
+        onMenu={() => setStage("menu")}
+      />
+    );
   }
 
   // Пролог — на весь экран со своим небом, остальное — поверх общего неба
@@ -263,12 +405,12 @@ export default function App() {
     );
   }
 
-  // До начала игры показываем небо, а поверх него — выбор языка и правила
+  // До начала новой игры показываем небо, а поверх него — правила
   return (
     <div className="game">
       <Sky />
-      {stage === "lang" ? <LangSelect onPick={pickLang} /> : <Intro onStart={() => setStage("game")} />}
-      {stage !== "lang" && <RotateHint />}
+      <Intro onStart={() => setStage("game")} />
+      <RotateHint />
     </div>
   );
 }

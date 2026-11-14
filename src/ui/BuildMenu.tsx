@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { ModuleDef, ModuleType, Resources, ResourceKey } from "../types";
+import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "../types";
 import { moduleDesc, moduleName, t } from "../i18n";
 import { ModulePreview } from "./map/art";
 import { ResourceIcon } from "./icons";
@@ -13,6 +13,8 @@ type Props = {
   disabled: boolean;
   crewBusy: boolean;             // все члены экипажа заняты стройкой: ставить нельзя
   isAffordable: (def: ModuleDef) => boolean;
+  // Совместная игра: роль другого игрока, который строит этот модуль, или null, если строить можно самому
+  lockedBy?: (def: ModuleDef) => Role | null;
   onSelect: (type: ModuleType) => void;
   onStartBuild: () => void;
   onCancel: () => void;
@@ -54,12 +56,14 @@ export function BuildMenu({
   disabled,
   crewBusy,
   isAffordable,
+  lockedBy,
   onSelect,
   onStartBuild,
   onCancel,
 }: Props) {
   const def = defs.find((d) => d.type === selected) ?? null;
   const lines = def ? perDayLines(def.perDay) : [];
+  const locked = def && lockedBy ? lockedBy(def) : null;
   const affordable = def ? isAffordable(def) : false;
   const [closed, toggle] = useCollapsed(startsCollapsed());
   // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
@@ -140,10 +144,12 @@ export function BuildMenu({
             <button
               className="btn btn--primary"
               onClick={onStartBuild}
-              disabled={disabled || !affordable || crewBusy}
+              disabled={disabled || !affordable || crewBusy || locked !== null}
               title={crewBusy ? t("build.crewBusyHint") : undefined}
             >
-              {crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
+              {locked
+                ? t("online.lockedBy", { role: t(`role.${locked}`) })
+                : crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
             </button>
           )}
         </section>
