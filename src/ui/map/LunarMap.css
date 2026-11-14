@@ -3,6 +3,10 @@
 .map-frame {
   position: absolute;
   inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   overflow: hidden;
   cursor: grab;
   user-select: none;
@@ -36,9 +40,40 @@
   font-size: 16px;
   line-height: 1.35;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .bubble__title { font-weight: 800; font-size: 18px; }
+
+.bubble__repair-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  background: #f5b83d;
+  color: #1a1505;
+  border: none;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.1s, background 0.15s;
+  margin-top: 2px;
+}
+.bubble__repair-btn:hover:not(:disabled) {
+  background: #ffc85a;
+  transform: translateY(-1px);
+}
+.bubble__repair-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.bubble__repair-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .bubble__tail {
   width: 0;
@@ -46,6 +81,21 @@
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid #7FA6F5;
+}
+
+/* Бейджи з іменами астронавтів на карті */
+.astro__name-tag {
+  font-family: var(--font, "Nunito", sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  fill: #ffffff;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.astro__name-bg {
+  fill: rgba(14, 26, 58, 0.85);
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1.2px;
 }
 
 /* Кнопки приближения слева внизу */
@@ -77,7 +127,6 @@
 .zoom__btn:active { transform: scale(0.94); }
 
 @media (max-height: 620px), (max-width: 900px) {
-  .map-frame { top: 22vh; }
   .zoom { left: 10px; bottom: 10px; gap: 8px; }
   .zoom__btn { width: 46px; height: 46px; font-size: 26px; }
 }

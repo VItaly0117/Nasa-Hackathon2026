@@ -6,7 +6,7 @@ export type ModuleType =
   | "iceMine" | "rockMine" | "storage" | "medbay";
 
 // Роль определяет, кого игра ставит строить в первую очередь: у каждого модуля есть builder в modules.json
-export type Role = "engineer" | "scientist" | "doctor" | "technician";
+export type Role = "engineer" | "scientist" | "technician";
 
 export type CrewMember = {
   id: number; // 1..4, совпадает с crew.n<id> / crew.r<id> в словарях и с crewData.ts
@@ -105,4 +105,5 @@ export type Action =
   | { type: "tick"; ms: number } // прошло ms мс игрового времени: идёт день и стройка
   | { type: "nextDay" }      // пропустить остаток дня
   | { type: "build"; slot: number; module: ModuleType }
+  | { type: "repair"; slot: number }
   | { type: "resolveEvent"; choice: string };

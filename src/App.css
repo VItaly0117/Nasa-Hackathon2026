@@ -282,7 +282,24 @@ button { font-family: inherit; }
 .crew__bar > div { height: 100%; border-radius: 4px; transition: width 0.4s; }
 
 /* ---------- Правая колонка ---------- */
-.side { position: absolute; right: 18px; top: 118px; width: 350px; display: flex; flex-direction: column; gap: 14px; z-index: 1; }
+.side {
+  position: absolute;
+  right: 18px;
+  top: 118px;
+  bottom: 18px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.side::-webkit-scrollbar {
+  display: none;
+}
 .alert { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
 .alert p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; }
 .alert--flare { border-color: #ff8a3d; background: rgba(70, 30, 30, 0.9); }
@@ -296,16 +313,44 @@ button { font-family: inherit; }
 .goal__bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .goal__bar > div { height: 100%; background: var(--accent); transition: width 0.4s; }
 
-.tasks { padding: 14px 16px; }
-.tasks ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.35; }
-.task { display: flex; gap: 8px; align-items: flex-start; }
-.task strong { display: block; }
+.tasks { padding: 16px 18px; }
+.tasks ul {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tasks ul::-webkit-scrollbar {
+  display: none;
+}
+.task { display: flex; gap: 12px; align-items: flex-start; }
+.task strong { display: block; margin-bottom: 3px; }
 .task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
-.task__why { opacity: 0.75; font-size: 14px; }
+.task__why { opacity: 0.8; font-size: 14px; display: block; line-height: 1.35; }
 .task--late .task__mark, .task--late strong { color: #ff9b9b; }
 
-.journal { padding: 14px 16px; }
-.journal ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.4; }
+.journal { padding: 16px 18px; }
+.journal ul {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.journal li {
+  padding-bottom: 2px;
+}
 
 /* ---------- Кнопки ---------- */
 .btn {
@@ -330,7 +375,18 @@ button { font-family: inherit; }
 .btn--small { min-height: 44px; padding: 0 14px; font-size: 16px; }
 .btn--on { background: var(--accent); color: #3b2a00; border-color: var(--accent); }
 .btn--next { display: inline-flex; align-items: center; gap: 8px; }
-.btn--help { padding: 0 16px; }
+.btn--help {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+}
+.btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
 .btn--choice {
   display: flex;
   flex-direction: column;
@@ -367,6 +423,11 @@ button { font-family: inherit; }
   box-shadow: var(--panel-shadow);
   font-size: 18px;
   line-height: 1.5;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+.modal::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 .modal h2 { margin-top: 0; font-size: 28px; }
 .modal a { color: var(--accent); }
@@ -440,10 +501,22 @@ button { font-family: inherit; }
   .hud-title { font-size: 16px; }
   .btn { min-height: 46px; font-size: 16px; padding: 0 14px; }
   .btn--small { min-height: 40px; padding: 0 10px; font-size: 14px; }
-  .crew { left: 10px; top: 112px; width: 220px; padding: 10px; }
+  .crew {
+    left: 10px;
+    top: 112px;
+    bottom: 10px;
+    width: 220px;
+    padding: 10px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .crew::-webkit-scrollbar {
+    display: none;
+  }
   .crew__list { gap: 8px; margin-top: 8px; }
   .crew__item { padding: 6px; }
-  .side { right: 10px; top: 80px; width: 250px; gap: 8px; }
+  .side { right: 10px; top: 80px; bottom: 10px; width: 250px; gap: 8px; }
   .alert, .goal, .journal { padding: 10px 12px; }
   .alert p, .goal p, .journal ul { font-size: 13px; }
   .modal { padding: 18px; font-size: 16px; }

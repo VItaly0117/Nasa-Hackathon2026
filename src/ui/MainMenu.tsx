@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getLang, langName, t } from "../i18n";
 import type { Lang } from "../i18n";
 import { joinRoom, ROOM_NAME } from "../net/online";
 import type { Session } from "../net/online";
 import { LangSelect } from "./LangSelect";
-import { MoonLogo } from "./icons";
+import { MoonLogo, SoundOffIcon, SoundOnIcon } from "./icons";
+import { sound } from "../audio/audio";
 import "./Intro.css";
 import "./MainMenu.css";
 
@@ -22,11 +23,15 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: 
   const [room, setRoom] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [muted, setMuted] = useState(() => sound.isMuted());
+
+  useEffect(() => sound.subscribe(setMuted), []);
 
   if (view === "lang") {
     return (
       <LangSelect
         onPick={(lang) => {
+          sound.playClick();
           onLang(lang);
           setView("main");
         }}
@@ -95,16 +100,29 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: 
         <h1 id="menu-title" className="menu__title">{t("app.title")}</h1>
         <p className="menu__tagline">{t("menu.tagline")}</p>
         <div className="menu__buttons">
-          <button className="btn btn--ghost menu__btn" onClick={() => setView("lang")}>
+          <button className="btn btn--ghost menu__btn" onClick={() => { sound.playClick(); setView("lang"); }}>
             {t("menu.language", { lang: langName(getLang()) })}
           </button>
-          <button className="btn btn--primary menu__btn" onClick={onNewGame}>
+          <button
+            type="button"
+            className="btn btn--ghost menu__btn"
+            onClick={() => sound.toggleMute()}
+            title={muted ? t("app.soundOff") : t("app.soundOn")}
+          >
+            {muted ? <SoundOffIcon size={20} /> : <SoundOnIcon size={20} />}
+            <span>{muted ? t("app.soundOff") : t("app.soundOn")}</span>
+          </button>
+          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); onNewGame(); }}>
             {t("menu.newGame")}
           </button>
-          <button className="btn btn--primary menu__btn" onClick={onContinue} disabled={savedDay === null}>
+          <button
+            className="btn btn--primary menu__btn"
+            onClick={() => { sound.playClick(); onContinue(); }}
+            disabled={savedDay === null}
+          >
             {savedDay === null ? t("menu.continue") : t("menu.continueDay", { day: savedDay })}
           </button>
-          <button className="btn btn--primary menu__btn" onClick={() => setView("server")}>
+          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); setView("server"); }}>
             {t("menu.server")}
           </button>
         </div>

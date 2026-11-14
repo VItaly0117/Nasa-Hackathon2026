@@ -1,0 +1,31 @@
+# Moonbase — LLM & AI Agent Context Guide
+
+> This repository is Moonbase, a 20-day Moon base survival simulation developed for NASA Space Apps Hackathon 2026 by team Qcold.
+
+## Critical Instructions for LLMs & AI Coding Agents
+1. **DO NOT scan or read all project files.** Complete, unambiguous technical documentation is provided in:
+   👉 **`PROJECT_DOCUMENTATION.md`** (read this file first for full architecture, data schemas, rules, and recipes).
+2. **Deterministic Engine Rule:** The game engine (`src/engine/`) is a pure headless state reducer (`reduce(state, action)`). All randomness is seeded (`mulberry32`). Never use unseeded `Math.random()` inside the engine.
+3. **Crew Structure:** The crew has exactly 3 astronauts:
+   - ID 1: Maksym (Engineer)
+   - ID 2: Olena (Scientist)
+   - ID 4: Danylo (Technician)
+   *(Doctor / Sofia ID 3 was removed. Shelter and medbay modules are built by Technician).*
+4. **Time & Clocks:**
+   - `DAY_MS = 120000` (2 minutes).
+   - `BUILD_MS = 60000` (1 minute / 0.5 day).
+   - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
+5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts`. Do not use root `en.ts`, `ru.ts`, `uk.ts` (they are empty artifacts).
+6. **Testing:** Always run `npm run check` (`node scripts/run-checks.mjs && node scripts/run-online-checks.mjs`) to verify engine balance and room protocol after modifying code or JSON configs.
+
+## Key Files Reference
+- `PROJECT_DOCUMENTATION.md`: Master specification for human and AI developers.
+- `src/types.ts`: TypeScript contracts for `GameState`, `Action`, `ModuleDef`, `CrewMember`, `Task`, etc.
+- `src/engine/engine.ts`: Core state transitions (`reduce`, `tick`, `build`, `repair`).
+- `src/engine/constants.ts`: Fundamental numbers and timings.
+- `src/engine/placement.ts`: Isometric coordinate mapping and terrain checks.
+- `src/engine/tasks.ts`: 16 dynamic crew tasks with conditions and deadlines.
+- `src/engine/events.ts`: Scheduled events (breakdown day 6, solar flare day 9) and DONKI flare data.
+- `src/data/modules.json`: Costs, production, and storage capacities of 10 modules.
+- `src/audio/audio.ts`: Real-time Web Audio API procedural sound synthesizer (retro SFX, alarms, ambient, quindar tones).
+- `server/index.mjs`: Zero-dependency Node HTTP + SSE multiplayer room server.

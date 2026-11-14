@@ -18,7 +18,7 @@ export function nextRandom(seed: number): [number, number] {
   return [((x ^ (x >>> 14)) >>> 0) / 4294967296, s];
 }
 // id совпадают с crew.n<id> в словарях и с crewData.ts. Номера 3 больше нет: Софию убрали из экипажа,
-// врача на базе нет, убежище и медпункт строит любой свободный
+// врача на базе нет, поэтому убежище и медпункт закреплены за техником.
 const CREW_ROLES: { id: number; role: Role }[] = [
   { id: 1, role: "engineer" },
   { id: 2, role: "scientist" },
@@ -279,6 +279,34 @@ function tick(state: GameState, ms: number): GameState {
   return s;
 }
 
+export const REPAIR_COST: Partial<Resources> = { water: 10, energy: 10 };
+
+function repairModule(state: GameState, slot: number): GameState {
+  const mod = state.modules.find((m) => m.slot === slot);
+  if (!mod || !mod.broken) return state;
+  const resources = { ...state.resources };
+  for (const key of KEYS) {
+    const cost = REPAIR_COST[key] ?? 0;
+    if (resources[key] < cost) return state;
+    resources[key] -= cost;
+  }
+  const modules = state.modules.map((m) => (m.slot === slot ? { ...m, broken: false } : m));
+  // Якщо було активне модальне вікно поломки — закриваємо його також
+  const activeEvent = state.activeEvent === "breakdown" ? null : state.activeEvent;
+  const history: typeof state.history = [
+    ...state.history,
+    { day: state.day, kind: "choice", event: "breakdown", choice: "repair", unprotected: false },
+  ];
+  return {
+    ...state,
+    resources,
+    modules,
+    activeEvent,
+    history,
+    log: [...state.log, { day: state.day, text: t("log.repaired") }],
+  };
+}
+
 export function reduce(state: GameState, action: Action): GameState {
   switch (action.type) {
     case "tick":
@@ -287,6 +315,8 @@ export function reduce(state: GameState, action: Action): GameState {
       return tick(state, DAY_MS - state.clockMs);
     case "build":
       return build(state, action.slot, action.module);
+    case "repair":
+      return repairModule(state, action.slot);
     case "resolveEvent": {
       const next = resolveEvent(state, action.choice);
       return next.resources.health <= 0 ? { ...next, status: "lost" } : next;

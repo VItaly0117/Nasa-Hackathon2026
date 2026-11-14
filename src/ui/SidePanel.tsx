@@ -112,7 +112,7 @@ export function SidePanel({ state }: { state: GameState }) {
         )}
       </section>
 
-      {/* Три ближайшие невыполненные задачи: больше сразу ребёнку не нужно */}
+      {/* Список завдань */}
       <section className="hud-panel tasks">
         <div className="panel-head">
           <h2 className="hud-title">
@@ -121,8 +121,8 @@ export function SidePanel({ state }: { state: GameState }) {
           <CollapseButton collapsed={tasksClosed} onClick={toggleTasks} />
         </div>
         {!tasksClosed && (
-          <ul>
-            {openTasks.slice(0, 3).map((task) => (
+          <ul className="tasks__list">
+            {openTasks.map((task) => (
               <li key={task.id} className={`task ${state.day >= task.deadline ? "task--late" : ""}`}>
                 <span className="task__mark" aria-hidden="true">{state.day >= task.deadline ? "!" : "○"}</span>
                 <span>

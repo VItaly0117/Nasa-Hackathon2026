@@ -1,32 +1,126 @@
-# React + TypeScript + Vite
+# 🌕 Moonbase — NASA Space Apps Hackathon 2026 (Team Qcold)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Научно-образовательная стратегия выживания лунной базы с реальными данными NASA о космической погоде (DONKI), биологическими исследованиями NASA OSDR и многопользовательским кооперативным режимом.**
 
-Currently, two official plugins are available:
+[![CI Checks](https://github.com/kalinicenkovitalijmikolajovic/Qcold-team-Nasa-Hackathon2026/actions/workflows/ci.yml/badge.svg)](https://github.com/kalinicenkovitalijmikolajovic/Qcold-team-Nasa-Hackathon2026/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-brightgreen)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🤖 Для ИИ-агентов и нейросетей (AI & LLM Guide)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> 💡 **ВАЖНО ДЛЯ НЕЙРОСЕТЕЙ И РАЗРАБОТЧИКОВ:**  
+> Чтобы не читать все файлы проекта целиком, используйте единый мастер-документ:  
+> 📖 **[PROJECT_DOCUMENTATION.md](./PROJECT_DOCUMENTATION.md)** — полная архитектура, описание всех 10 модулей, механика времени, болезней, системы заданий экипажа, сетевой протокол комнат, формулы баланса и пошаговые инструкции по расширению.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 🚀 О проекте
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+**Moonbase** — интерактивный образовательный симулятор управления первой постоянной исследовательской станцией на Луне. Игрок берет на себя руководство миссией на 20 дней, где каждое решение опирается на физические законы и реальные исследования космоса.
+
+### 🌟 Ключевые особенности
+1. **Реальная космическая погода NASA:** На 9-й день базу накрывает солнечная вспышка с параметрами и датой из каталога **NASA DONKI** (Space Weather Database Of Notifications, Knowledge, Information).
+2. **Научная база NASA OSDR и CSA:** Итоговый разбор полета знакомит игроков с влиянием невесомости на кости и мышцы, дозиметрией базы RadLab и системами гидропоники Канадского космического агентства.
+3. **Экипаж со специализацией:** Три астронавта (Инженер, Ученый, Техник) строят базу своими руками, выдают задания, болеют и реагируют на успехи миссии изменением морали.
+4. **Выживание в лунную ночь:** С 14-го по 20-й день солнечные панели обесточиваются — выживание зависит от накопленного заряда в аккумуляторах.
+5. **Кооперативный мультиплеер:** Встроенный легковесный сервер совместной игры (SSE + детерминированный движок) позволяет играть нескольким участникам одновременно без задержек и расхождений.
+6. **Процедурный ретро-звуковой движок:** Аудио на чистом Web Audio API без внешних аудио-файлов (радиосигналы квиндар-тона Apollo, тревожные сирены вспышек, звуки стройки и фоновый эмбиент станции).
+7. **Полная мультиязычность:** Полная поддержка Украинского (по умолчанию), Английского и Русского языков.
+
+---
+
+## 🕹️ Игровой процесс
+
+- **Длительность миссии:** 20 дней.
+- **Длина дня:** ровно 2 минуты реального времени (`120 000 мс`).
+- **Время постройки модуля:** 1 минута (`60 000 мс`, полдня).
+- **6 ресурсов базы:** Кислород ($O_2$), Вода ($H_2O$), Еда, Энергия, Здоровье экипажа, Реголит (Материалы).
+- **10 типов модулей:** Жилой блок, Жизнеобеспечение, Солнечные батареи, Аккумуляторы, Теплица, Радиационное укрытие, Ледниковая шахта, Карьер реголита, Склады запасов, Медпункт.
+- **Опасности:** Авария жизнеобеспечения (день 6), солнечная вспышка (день 9), болезни строителей, 7 дней холодной лунной ночи (дни 14–20).
+
+---
+
+## 🛠️ Быстрый старт
+
+### Требования
+- Node.js версии **20+**
+- npm версии **10+**
+
+### Установка зависимостей
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### Запуск клиента в режиме разработки
+```bash
+npm run dev
+```
+Приложение откроется по адресу `http://localhost:5173`.
+
+### Запуск сервера совместной игры
+```bash
+npm run server
+```
+Сервер запустится на порту `8787` (Vite автоматически проксирует вызовы `/api` на него).
+
+### Запуск тестов и проверок
+```bash
+npm run check
+```
+Запускает 48 автоматических тестов баланса игрового движка (`scripts/run-checks.mjs`) и интеграционные тесты сетевых комнат (`scripts/run-online-checks.mjs`).
+
+### Сборка для продакшена
+```bash
+npm run build
+```
+Скомпилированное приложение сохраняется в директорию `dist/`.
+
+### Линтинг
+```bash
+npm run lint
+```
+Быстрая проверка кода с помощью Oxlint.
+
+---
+
+## 📂 Структура проекта
+
+```
+.
+├── PROJECT_DOCUMENTATION.md  # 📘 Полная техническая документация для ИИ и разработчиков
+├── LLMS.txt                  # 🤖 Инструкция и указатель для AI-агентов
+├── server/index.mjs          # Сервер совместной игры (HTTP + Server-Sent Events)
+├── scripts/
+│   ├── run-checks.mjs        # Автоматическое тестирование 48 сценариев баланса
+│   ├── run-online-checks.mjs # Тестирование мультиплеера
+│   └── fetch-donki.mjs       # Скрипт синхронизации вспышек с NASA API
+├── src/
+│   ├── engine/               # Детерминированный игровой движок (чистый TypeScript)
+│   ├── data/                 # JSON-конфигурации модулей, событий и фактов NASA
+│   ├── ui/                   # React-интерфейс, HUD, изометрическая SVG-карта
+│   ├── net/                  # Сетевой клиент комнат совместной игры
+│   ├── i18n/                 # Словари локализации (UK, EN, RU)
+│   ├── types.ts              # Все структуры данных и типы TypeScript
+│   └── App.tsx               # Главный компонент и стейт-машина UI
+```
+
+---
+
+## 🛰️ Данные и источники NASA
+
+- **NASA DONKI** (Space Weather Database of Notifications, Knowledge, and Information) — каталог солнечных вспышек класса M5+.
+- **NASA OSDR** (Open Science Data Repository) & **RadLab** — биологические исследования и радиационный мониторинг.
+- **CSA (Canadian Space Agency)** — материалы о космическом растениеводстве и технологиях закрытых экосистем.
+
+Подробные ссылки и манифест использования данных доступны в [`src/data/sources.json`](./src/data/sources.json).
+
+---
+
+## 👥 Команда Qcold
+
+Создано для **NASA Space Apps Hackathon 2026**.
+Лицензия: MIT.

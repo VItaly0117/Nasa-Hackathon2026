@@ -15,9 +15,9 @@ import { createServer } from "node:http";
 import { randomBytes, randomInt } from "node:crypto";
 
 const PORT = Number(process.env.PORT) || 8787;
-const ROLES = ["engineer", "technician", "doctor", "scientist"];
+const ROLES = ["engineer", "technician", "scientist"];
 const NAME_RE = /^[A-Za-z]{1,20}$/;
-const ACTION_TYPES = new Set(["tick", "build", "resolveEvent"]);
+const ACTION_TYPES = new Set(["tick", "build", "resolveEvent", "repair"]);
 const EMPTY_ROOM_TTL_MS = 10 * 60 * 1000; // пустая комната живёт 10 минут: можно обновить страницу и вернуться
 const JOIN_TIMEOUT_MS = 30 * 1000;        // зашёл, но не подключился к потоку: место освобождается
 

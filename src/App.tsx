@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
+import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START, REPAIR_COST } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { clearSave, loadGame, loadLang, saveGame, saveLang } from "./engine/storage";
 import { openStream, sendAction } from "./net/online";
@@ -25,7 +25,8 @@ import { DayClock } from "./ui/DayClock";
 import { TaskToast } from "./ui/TaskToast";
 import { Avatar } from "./ui/CrewPanel";
 import { CREW } from "./ui/crewData";
-import { MoonLogo } from "./ui/icons";
+import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "./ui/icons";
+import { sound } from "./audio/audio";
 import "./styles/tokens.css";
 import "./App.css";
 
@@ -77,7 +78,11 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   const [players, setPlayers] = useState<Player[]>(online?.players ?? []);
   const [hostId, setHostId] = useState<string | null>(online?.hostId ?? null);
   const [connected, setConnected] = useState(true);
+  const [muted, setMuted] = useState(() => sound.isMuted());
   const isHost = !online || hostId === online.playerId;
+
+  useEffect(() => sound.subscribe(setMuted), []);
+
   useEffect(() => {
     if (!online) return;
     return openStream(online, online.actions.length, {
@@ -156,6 +161,11 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
   useEffect(() => {
     if (state.day === 1) return;
     setBanner({ day: state.day, night: state.isNight });
+    if (state.day === NIGHT_START) {
+      sound.playNightfall();
+    } else {
+      sound.playDayChange();
+    }
     const timer = window.setTimeout(() => setBanner(null), 1800);
     return () => window.clearTimeout(timer);
   }, [state.day, state.isNight]);
@@ -166,9 +176,50 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
     const fresh = state.tasks.filter((x) => x.issuedDay === state.day && x.status === "open").map((x) => x.id);
     setToastIds(fresh);
     if (fresh.length === 0) return;
+    sound.playTaskToast();
     const timer = window.setTimeout(() => setToastIds([]), 9000);
     return () => window.clearTimeout(timer);
   }, [state.tasks, state.day]);
+
+  // Звуковое оповещение о завершении стройки
+  const prevBuildingCount = useRef(state.modules.filter((m) => m.build).length);
+  useEffect(() => {
+    const currentBuildingCount = state.modules.filter((m) => m.build).length;
+    if (prevBuildingCount.current > currentBuildingCount) {
+      sound.playBuildComplete();
+    }
+    prevBuildingCount.current = currentBuildingCount;
+  }, [state.modules]);
+
+  // Сирена при наступлении опасных событий (вспышка, поломка, болезнь)
+  const prevEvent = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.activeEvent && state.activeEvent !== prevEvent.current) {
+      sound.playAlarm(state.activeEvent as "flare" | "breakdown" | "illness");
+    }
+    prevEvent.current = state.activeEvent;
+  }, [state.activeEvent]);
+
+  // Окончание миссии (победа или поражение)
+  const prevStatus = useRef(state.status);
+  useEffect(() => {
+    if (prevStatus.current === "playing" && state.status !== "playing") {
+      sound.stopAmbient();
+      if (state.status === "won") sound.playVictory();
+      else if (state.status === "lost") sound.playDefeat();
+    }
+    prevStatus.current = state.status;
+  }, [state.status]);
+
+  // Фоновый космический эмбиент станции
+  useEffect(() => {
+    if (isPlaying && event === null) {
+      sound.startAmbient();
+    } else {
+      sound.stopAmbient();
+    }
+    return () => sound.stopAmbient();
+  }, [isPlaying, event]);
 
   // Esc отменяет постройку
   useEffect(() => {
@@ -181,6 +232,7 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
 
   function handleSelectTile(tile: TileInfo) {
     if (!buildType || !hasFreeCrew(state) || !canPlace(state, buildType, tile.row, tile.col)) return;
+    sound.playBuildStart();
     dispatch({ type: "build", slot: slotOf(tile.row, tile.col), module: buildType });
     setBuildType(null);
   }
@@ -196,6 +248,11 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
         buildType={buildType}
         crewActive={isPlaying && event === null}
         canPlaceAt={(row, col) => buildType !== null && canPlace(state, buildType, row, col)}
+        canAffordRepair={canAfford(state.resources, REPAIR_COST)}
+        onRepairModule={(slot) => {
+          sound.playRepair();
+          dispatch({ type: "repair", slot });
+        }}
         onSelectTile={handleSelectTile}
       />
 
@@ -220,10 +277,20 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
             )}
           </div>
           <DayClock running={clockRunning} progress={state.clockMs / DAY_MS} onTick={handleTick}>
-            <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
-              ? {t("app.rules")}
+            <button
+              type="button"
+              className="btn btn--ghost btn--small btn--icon"
+              onClick={() => sound.toggleMute()}
+              aria-label={muted ? t("app.soundOff") : t("app.soundOn")}
+              title={muted ? t("app.soundOff") : t("app.soundOn")}
+            >
+              {muted ? <SoundOffIcon size={18} /> : <SoundOnIcon size={18} />}
             </button>
-            <button className="btn btn--ghost btn--small" onClick={toMenu}>
+            <button className="btn btn--ghost btn--small btn--help" onClick={() => { sound.playClick(); setRulesOpen(true); }}>
+              <BookIcon size={18} />
+              <span>{t("app.rules")}</span>
+            </button>
+            <button className="btn btn--ghost btn--small" onClick={() => { sound.playClick(); toMenu(); }}>
               {t("app.menu")}
             </button>
           </DayClock>
@@ -243,11 +310,18 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
         isAffordable={(def) => canAfford(state.resources, def.cost)}
         lockedBy={lockedBy}
         onSelect={(type) => {
+          sound.playClick();
           setSelectedType(type);
           setBuildType(null);
         }}
-        onStartBuild={() => setBuildType(selectedType)}
-        onCancel={() => setBuildType(null)}
+        onStartBuild={() => {
+          sound.playClick();
+          setBuildType(selectedType);
+        }}
+        onCancel={() => {
+          sound.playClick();
+          setBuildType(null);
+        }}
       />
 
       {event && (
@@ -277,7 +351,10 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
                 <button
                   key={choice.id}
                   className="btn btn--choice"
-                  onClick={() => dispatch({ type: "resolveEvent", choice: choice.id })}
+                  onClick={() => {
+                    sound.playClick();
+                    dispatch({ type: "resolveEvent", choice: choice.id });
+                  }}
                 >
                   <strong>{t(`ev.${event.id}.${choice.id}.label`)}</strong>
                   <span className="muted">{t(`ev.${event.id}.${choice.id}.hint`)}</span>
@@ -302,11 +379,23 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
             </ul>
             <div className="modal__choices">
               {!online && (
-                <button className="btn btn--primary" onClick={onRestart}>
+                <button
+                  className="btn btn--primary"
+                  onClick={() => {
+                    sound.playClick();
+                    onRestart();
+                  }}
+                >
                   {t("app.playAgain")}
                 </button>
               )}
-              <button className={`btn ${online ? "btn--primary" : "btn--ghost"}`} onClick={toMenu}>
+              <button
+                className={`btn ${online ? "btn--primary" : "btn--ghost"}`}
+                onClick={() => {
+                  sound.playClick();
+                  toMenu();
+                }}
+              >
                 {t("app.toMenu")}
               </button>
             </div>
