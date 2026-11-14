@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
-import type { Action, GameState } from "../types";
+import type { Action, GameState } from "@/types";
 import type { GameSession, SessionMeta } from "./types";
 
 const SessionContext = createContext<GameSession | null>(null);

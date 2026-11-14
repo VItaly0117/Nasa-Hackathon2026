@@ -1,6 +1,6 @@
-import modulesData from "../../data/modules.json";
-import { msg } from "../msg";
-import type { CrewMember, GameState, ModuleDef, ModuleType } from "../../types";
+import modulesData from "@/data/modules.json";
+import { msg } from "@/engine/msg";
+import type { CrewMember, GameState, ModuleDef, ModuleType } from "@/types";
 
 const MODULES = modulesData as ModuleDef[];
 

@@ -1,5 +1,5 @@
-import { t } from "../i18n";
-import { sound } from "../audio/audio";
+import { t } from "@/i18n";
+import { sound } from "@/audio/audio";
 import "./Intro.css";
 
 const RULES = [1, 2, 3, 4, 5, 6];

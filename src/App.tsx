@@ -1,20 +1,20 @@
 import { useState } from "react";
-import { clearSave, loadGame, loadLang, saveLang } from "./session/storage";
-import { createOnlineSession } from "./session/online";
-import { SessionProvider } from "./session/react";
-import { createSoloSession } from "./session/solo";
-import type { GameSession } from "./session/types";
+import { clearSave, loadGame, loadLang, saveLang } from "@/session/storage";
+import { createOnlineSession } from "@/session/online";
+import { SessionProvider } from "@/session/react";
+import { createSoloSession } from "@/session/solo";
+import type { GameSession } from "@/session/types";
 import type { GameState } from "./types";
-import { LANGS, setLang } from "./i18n";
-import type { Lang } from "./i18n";
-import { GameScreen } from "./features/game/GameScreen";
-import { Intro } from "./ui/Intro";
-import { MainMenu } from "./ui/MainMenu";
-import { Prologue } from "./ui/Prologue";
-import { RotateHint } from "./ui/RotateHint";
-import { SourcesPanel } from "./ui/SourcesPanel";
+import { LANGS, setLang } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { GameScreen } from "@/features/game/GameScreen";
+import { Intro } from "@/features/story/Intro";
+import { MainMenu } from "@/features/menu/MainMenu";
+import { Prologue } from "@/features/story/Prologue";
+import { RotateHint } from "@/ui/RotateHint";
+import { SourcesPanel } from "@/features/menu/SourcesPanel";
 import "./styles/tokens.css";
-import "./App.css";
+import "./styles/index.css";
 
 type Stage = "menu" | "prologue" | "intro" | "game";
 

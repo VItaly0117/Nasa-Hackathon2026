@@ -1,7 +1,7 @@
-import type { GameState } from "../../types";
-import { BUILD_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS } from "../constants";
-import { msg } from "../msg";
-import { nextRandom } from "../random";
+import type { GameState } from "@/types";
+import { BUILD_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS } from "@/engine/constants";
+import { msg } from "@/engine/msg";
+import { nextRandom } from "@/engine/random";
 
 // Заболеет ли строитель, решаем в момент старта стройки по seed: так игра воспроизводима, а проверки не прыгают.
 // Возвращает, когда строитель заболеет (leftMs, при котором это случится), и новый seed

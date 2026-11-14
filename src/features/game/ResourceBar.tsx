@@ -1,6 +1,6 @@
-import type { ResourceKey, Resources } from "../types";
-import { daysShort, t } from "../i18n";
-import { ResourceIcon } from "./icons";
+import type { ResourceKey, Resources } from "@/types";
+import { daysShort, t } from "@/i18n";
+import { ResourceIcon } from "@/ui/icons";
 import "./ResourceBar.css";
 
 type Props = {

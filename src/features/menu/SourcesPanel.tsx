@@ -1,6 +1,6 @@
-import sourcesData from "../data/sources.json";
-import { t } from "../i18n";
-import "./ResultsScreen.css";
+import sourcesData from "@/data/sources.json";
+import { t } from "@/i18n";
+import "@/features/results/ResultsScreen.css";
 
 type Source = { id: string; url: string; provider: string; inGame: boolean };
 

@@ -1,6 +1,6 @@
-import type { GameState, ModuleType } from "../types";
-import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
-import type { Terrain } from "../data/map";
+import type { GameState, ModuleType } from "@/types";
+import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "@/data/map";
+import type { Terrain } from "@/data/map";
 
 export type { Terrain };
 export { MAP_LAYOUT, MAP_ROWS, MAP_COLS };

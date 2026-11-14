@@ -1,0 +1,77 @@
+/* ---------- Правая колонка ---------- */
+.side {
+  position: absolute;
+  right: 18px;
+  top: 118px;
+  bottom: 18px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.side::-webkit-scrollbar {
+  display: none;
+}
+.alert { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
+.alert p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; }
+.alert--flare { border-color: #ff8a3d; background: rgba(70, 30, 30, 0.9); }
+.alert--warn { border-color: var(--accent); }
+.alert--night { border-color: #8a96ff; }
+.alert__text { flex: 1; }
+
+.goal { padding: 14px 16px; }
+.goal p { margin: 10px 0 12px; font-size: 15px; line-height: 1.4; }
+.goal__row { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 800; color: var(--accent); }
+.goal__bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+.goal__bar > div { height: 100%; background: var(--accent); transition: width 0.4s; }
+
+.research-card { padding: 14px 16px; }
+.research-card p { margin: 8px 0; font-size: 14px; line-height: 1.4; }
+.research-card__choices { display: grid; gap: 8px; margin: 10px 0; }
+.research-card__choices .btn--choice { padding: 10px 12px; font-size: 14px; }
+.research-card small { display: block; font-size: 12px; }
+.research-card a { color: inherit; }
+
+.tasks { padding: 16px 18px; }
+.tasks ul {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tasks ul::-webkit-scrollbar {
+  display: none;
+}
+.task { display: flex; gap: 12px; align-items: flex-start; }
+.task strong { display: block; margin-bottom: 3px; }
+.task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
+.task__why { opacity: 0.8; font-size: 14px; display: block; line-height: 1.35; }
+.task--late .task__mark, .task--late strong { color: #ff9b9b; }
+
+.journal { padding: 16px 18px; }
+.journal ul {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.journal li {
+  padding-bottom: 2px;
+}

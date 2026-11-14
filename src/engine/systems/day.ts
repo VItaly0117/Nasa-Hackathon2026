@@ -1,7 +1,7 @@
-import type { GameState, ResourceKey } from "../../types";
-import { MISSION_DAYS, NIGHT_START, SHORTAGE_DAMAGE } from "../constants";
-import { msg } from "../msg";
-import { addTo, capacityOf, clamp, CREW_PER_DAY, moduleOutput, RESOURCE_KEYS } from "../selectors";
+import type { GameState, ResourceKey } from "@/types";
+import { MISSION_DAYS, NIGHT_START, SHORTAGE_DAMAGE } from "@/engine/constants";
+import { msg } from "@/engine/msg";
+import { addTo, capacityOf, clamp, CREW_PER_DAY, moduleOutput, RESOURCE_KEYS } from "@/engine/selectors";
 import { applyEventStart, eventForDay } from "./events";
 import { issueTasks, reviewTasks } from "./tasks";
 

@@ -1,11 +1,11 @@
-import type { CrewMember, GameState, ModuleType } from "../../types";
-import { BUILD_MS } from "../constants";
-import { msg } from "../msg";
-import { canPlace, cellOf } from "../placement";
-import { getDef, RESOURCE_KEYS } from "../selectors";
-import { pickBuilder } from "../systems/crew";
-import { rollIllness, startIllness } from "../systems/illness";
-import { reviewTasks } from "../systems/tasks";
+import type { CrewMember, GameState, ModuleType } from "@/types";
+import { BUILD_MS } from "@/engine/constants";
+import { msg } from "@/engine/msg";
+import { canPlace, cellOf } from "@/engine/placement";
+import { getDef, RESOURCE_KEYS } from "@/engine/selectors";
+import { pickBuilder } from "@/engine/systems/crew";
+import { rollIllness, startIllness } from "@/engine/systems/illness";
+import { reviewTasks } from "@/engine/systems/tasks";
 
 // Начать стройку: свободный член экипажа берёт модуль, ресурсы списываются сразу
 export function build(state: GameState, slot: number, type: ModuleType): GameState {

@@ -1,9 +1,9 @@
-import { sound } from "../../audio/audio";
-import { t } from "../../i18n";
-import { useGame, useMeta, useSession } from "../../session/react";
-import { Intro } from "../../ui/Intro";
-import { ResultsScreen } from "../../ui/ResultsScreen";
-import { RotateHint } from "../../ui/RotateHint";
+import { sound } from "@/audio/audio";
+import { t } from "@/i18n";
+import { useGame, useMeta, useSession } from "@/session/react";
+import { Intro } from "@/features/story/Intro";
+import { ResultsScreen } from "@/features/results/ResultsScreen";
+import { RotateHint } from "@/ui/RotateHint";
 import { DayBanner } from "./DayBanner";
 import { EventModal } from "./EventModal";
 import { MapView } from "./MapView";

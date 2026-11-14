@@ -1,7 +1,7 @@
-import debriefData from "../data/debrief.json";
-import hintsData from "../data/hints.json";
-import healthData from "../data/health.json";
-import type { GameState, HistoryEntry, ModuleType, ResourceKey } from "../types";
+import debriefData from "@/data/debrief.json";
+import hintsData from "@/data/hints.json";
+import healthData from "@/data/health.json";
+import type { GameState, HistoryEntry, ModuleType, ResourceKey } from "@/types";
 import { NIGHT_START } from "./constants";
 
 // Итоговый разбор (чистая часть: без текстов и без языка). Работает в два шага:

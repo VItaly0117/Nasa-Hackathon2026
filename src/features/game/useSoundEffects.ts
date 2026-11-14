@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { NIGHT_START } from "../../engine";
-import type { GameState } from "../../types";
-import { sound } from "../../audio/audio";
-import { useSession } from "../../session/react";
+import { NIGHT_START } from "@/engine";
+import type { GameState } from "@/types";
+import { sound } from "@/audio/audio";
+import { useSession } from "@/session/react";
 
 const freshTaskIds = (s: GameState) => s.tasks.filter((x) => x.issuedDay === s.day && x.status === "open").map((x) => x.id);
 const buildingCount = (s: GameState) => s.modules.filter((m) => m.build).length;

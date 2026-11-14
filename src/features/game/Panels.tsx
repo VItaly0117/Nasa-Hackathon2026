@@ -1,14 +1,14 @@
-import modulesData from "../../data/modules.json";
+import modulesData from "@/data/modules.json";
 import { canAffordCost } from "./afford";
-import { capacityOf, dailyDelta, hasFreeCrew } from "../../engine";
-import type { ModuleDef, Role } from "../../types";
-import { sound } from "../../audio/audio";
-import { useGame, useMeta, useSend, useSession } from "../../session/react";
-import { shallowEqual } from "../../session/store";
-import { BuildMenu } from "../../ui/BuildMenu";
-import { CrewPanel } from "../../ui/CrewPanel";
-import { ResourceBar } from "../../ui/ResourceBar";
-import { SidePanel } from "../../ui/SidePanel";
+import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
+import type { ModuleDef, Role } from "@/types";
+import { sound } from "@/audio/audio";
+import { useGame, useMeta, useSend, useSession } from "@/session/react";
+import { shallowEqual } from "@/session/store";
+import { BuildMenu } from "./BuildMenu";
+import { CrewPanel } from "./CrewPanel";
+import { ResourceBar } from "./ResourceBar";
+import { SidePanel } from "./SidePanel";
 import { useGameUi } from "./ui-state";
 
 const MODULES = modulesData as ModuleDef[];

@@ -1,4 +1,4 @@
-import type { Action, Role } from "../types";
+import type { Action, Role } from "@/types";
 
 // Связь с сервером совместной игры (server/index.mjs).
 // В разработке Vite перенаправляет /api на сервер (vite.config.ts). Если сервер живёт по другому адресу,

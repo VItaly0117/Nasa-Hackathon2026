@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { DAY_MS, MISSION_DAYS, NIGHT_START } from "../../engine";
-import { days, t } from "../../i18n";
-import { sound } from "../../audio/audio";
-import { useGame, useMeta, useSession } from "../../session/react";
-import { shallowEqual } from "../../session/store";
-import { DayClock } from "../../ui/DayClock";
-import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "../../ui/icons";
+import { DAY_MS, MISSION_DAYS, NIGHT_START } from "@/engine";
+import { days, t } from "@/i18n";
+import { sound } from "@/audio/audio";
+import { useGame, useMeta, useSession } from "@/session/react";
+import { shallowEqual } from "@/session/store";
+import { DayClock } from "./DayClock";
+import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
 import { ResourcesContainer } from "./Panels";
 import { useGameUi } from "./ui-state";
 

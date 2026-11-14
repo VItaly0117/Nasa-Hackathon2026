@@ -1,5 +1,5 @@
-import { initialState, reduce } from "../engine";
-import type { GameState } from "../types";
+import { initialState, reduce } from "@/engine";
+import type { GameState } from "@/types";
 import { clearSave, loadRecords, recordFrom, saveGame, saveRecord } from "./storage";
 import { createStore, createValueStore } from "./store";
 import type { GameSession, SessionMeta } from "./types";

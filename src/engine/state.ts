@@ -1,9 +1,9 @@
-import type { CrewMember, GameState, Role } from "../types";
+import type { CrewMember, GameState, Role } from "@/types";
 import { msg } from "./msg";
 import { nearestGroundSlot } from "./placement";
 import { nextRandom } from "./random";
-import { pickFlare } from "./systems/events";
-import { issueTasks, MORALE_START } from "./systems/tasks";
+import { pickFlare } from "@/engine/systems/events";
+import { issueTasks, MORALE_START } from "@/engine/systems/tasks";
 
 // id совпадают с crew.n<id> в словарях и с crewData.ts. Под номером 3 теперь врач Виталий:
 // убежище и медпункт закреплены за ним.

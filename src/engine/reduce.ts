@@ -1,10 +1,10 @@
-import type { Action, GameState } from "../types";
-import { build } from "./actions/build";
-import { repairModule } from "./actions/repair";
-import { completeResearch } from "./actions/research";
-import { tick } from "./actions/tick";
+import type { Action, GameState } from "@/types";
+import { build } from "@/engine/actions/build";
+import { repairModule } from "@/engine/actions/repair";
+import { completeResearch } from "@/engine/actions/research";
+import { tick } from "@/engine/actions/tick";
 import { DAY_MS } from "./constants";
-import { resolveEvent } from "./systems/events";
+import { resolveEvent } from "@/engine/systems/events";
 
 // Корневой редюсер ядра: только маршрутизация действий. Сама логика в actions/ и systems/
 export function reduce(state: GameState, action: Action): GameState {

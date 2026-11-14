@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import hintsData from "../data/hints.json";
-import { missionFact } from "../engine";
-import type { GameRecord } from "../session/storage";
-import { days as daysText, t } from "../i18n";
-import type { GameState } from "../types";
-import { Rocket } from "./Prologue";
+import hintsData from "@/data/hints.json";
+import { missionFact } from "@/engine";
+import type { GameRecord } from "@/session/storage";
+import { days as daysText, t } from "@/i18n";
+import type { GameState } from "@/types";
+import { Rocket } from "@/features/story/Prologue";
 import { buildReport } from "./report";
 import type { DebriefLine } from "./report";
 import "./ResultsScreen.css";

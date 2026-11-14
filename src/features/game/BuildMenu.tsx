@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "../types";
-import { moduleDesc, moduleName, t } from "../i18n";
-import { ModulePreview } from "./map/art";
-import { ResourceIcon } from "./icons";
-import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
+import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
+import { moduleDesc, moduleName, t } from "@/i18n";
+import { ModulePreview } from "@/features/game/map/art";
+import { ResourceIcon } from "@/ui/icons";
+import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
 import "./BuildMenu.css";
 
 type Props = {

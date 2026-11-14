@@ -1,18 +1,18 @@
-import type { GameState, ModuleType, PlacedModule } from "../types";
+import type { GameState, ModuleType, PlacedModule } from "@/types";
 import { DEBRIEF_DATA, FACT_NAMES, HINT_IDS, MISSION_FACTS, missionFact } from "./debrief";
-import { buildReport } from "../ui/report";
-import { getLang, setLang, t } from "../i18n";
-import type { Lang } from "../i18n";
-import { formatMsg } from "../i18n/messages";
-import { loadGame, saveGame } from "../session/storage";
+import { buildReport } from "@/features/results/report";
+import { getLang, setLang, t } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { formatMsg } from "@/i18n/messages";
+import { loadGame, saveGame } from "@/session/storage";
 import { BUILD_MS, canPlace, capacityOf, choiceCost, dailyDelta, DAY_MS, dayOfEvent, getDef, ILLNESS_GAP, initialState, MAP_COLS, MAP_ROWS, MAX_ILLNESS, MISSION_DAYS, reduce, REPAIR_COST, slotOf } from "./index";
-import eventsData from "../data/events.json";
-import sourcesData from "../data/sources.json";
-import { en } from "../i18n/en";
-import { ru } from "../i18n/ru";
-import { uk } from "../i18n/uk";
-import type { EventDef } from "../types";
-import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./systems/tasks";
+import eventsData from "@/data/events.json";
+import sourcesData from "@/data/sources.json";
+import { en } from "@/i18n/en";
+import { ru } from "@/i18n/ru";
+import { uk } from "@/i18n/uk";
+import type { EventDef } from "@/types";
+import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "@/engine/systems/tasks";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
 // Запуск: node scripts/run-checks.mjs

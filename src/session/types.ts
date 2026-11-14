@@ -1,5 +1,5 @@
-import type { Action, GameState, Role } from "../types";
-import type { Player } from "../net/online";
+import type { Action, GameState, Role } from "@/types";
+import type { Player } from "@/net/online";
 import type { GameRecord } from "./storage";
 import type { Store, ValueStore } from "./store";
 

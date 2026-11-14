@@ -1,5 +1,5 @@
-import modulesData from "../data/modules.json";
-import type { GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "../types";
+import modulesData from "@/data/modules.json";
+import type { GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "@/types";
 
 // Чтение состояния и таблиц модулей: чистые функции без изменений
 

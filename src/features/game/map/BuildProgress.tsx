@@ -1,4 +1,4 @@
-import type { ModuleType } from "../../types";
+import type { ModuleType } from "@/types";
 import { ART_HEIGHT } from "./art";
 
 // Полоска над стройкой: сколько уже построено. Рисуется в тех же координатах, что и сам модуль

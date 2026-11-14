@@ -8,9 +8,9 @@ export { nextRandom } from "./random";
 export { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START, SHORTAGE_DAMAGE } from "./constants";
 export { BASE_CAPACITY, capacityOf, clamp, dailyDelta, getDef, isWorking } from "./selectors";
 
-export { REPAIR_COST } from "./actions/repair";
-export { hasFreeCrew, pickBuilder } from "./systems/crew";
-export { choiceCost, dayOfEvent, nextScheduledEvent } from "./systems/events";
+export { REPAIR_COST } from "@/engine/actions/repair";
+export { hasFreeCrew, pickBuilder } from "@/engine/systems/crew";
+export { choiceCost, dayOfEvent, nextScheduledEvent } from "@/engine/systems/events";
 
 export { BUILD_RADIUS, canPlace, cellOf, getTileInfo, isNearBase, nearestGroundSlot, slotOf, MAP_COLS, MAP_LAYOUT, MAP_ROWS } from "./placement";
 export type { Terrain, TileInfo } from "./placement";

@@ -1,13 +1,13 @@
-import modulesData from "../../data/modules.json";
-import { canPlace, hasFreeCrew, REPAIR_COST, slotOf } from "../../engine";
-import type { TileInfo } from "../../engine";
-import type { ModuleDef, ModuleType } from "../../types";
-import { sound } from "../../audio/audio";
-import { useGame, useSend, useSession } from "../../session/react";
-import { BuildProgress } from "../../ui/map/BuildProgress";
-import LunarMap from "../../ui/map/LunarMap";
-import type { MapModule } from "../../ui/map/LunarMap";
-import { t } from "../../i18n";
+import modulesData from "@/data/modules.json";
+import { canPlace, hasFreeCrew, REPAIR_COST, slotOf } from "@/engine";
+import type { TileInfo } from "@/engine";
+import type { ModuleDef, ModuleType } from "@/types";
+import { sound } from "@/audio/audio";
+import { useGame, useSend, useSession } from "@/session/react";
+import { BuildProgress } from "@/features/game/map/BuildProgress";
+import LunarMap from "@/features/game/map/LunarMap";
+import type { MapModule } from "@/features/game/map/LunarMap";
+import { t } from "@/i18n";
 import { canAffordCost } from "./afford";
 import { useGameUi } from "./ui-state";
 

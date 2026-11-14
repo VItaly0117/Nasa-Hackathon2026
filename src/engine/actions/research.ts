@@ -1,6 +1,6 @@
-import type { GameState } from "../../types";
-import { msg } from "../msg";
-import { capacityOf, clamp } from "../selectors";
+import type { GameState } from "@/types";
+import { msg } from "@/engine/msg";
+import { capacityOf, clamp } from "@/engine/selectors";
 
 // Научная экспедиция: один вопрос с наградой ресурсами. Каждая выполняется один раз за миссию
 export function completeResearch(

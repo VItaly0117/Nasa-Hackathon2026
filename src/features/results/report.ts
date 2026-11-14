@@ -1,8 +1,8 @@
-import { analyzeMission, MISSION_DAYS } from "../engine";
-import type { ReportLine } from "../engine";
-import { days as daysText, t } from "../i18n";
-import { describeFlare } from "../i18n/messages";
-import type { GameState } from "../types";
+import { analyzeMission, MISSION_DAYS } from "@/engine";
+import type { ReportLine } from "@/engine";
+import { days as daysText, t } from "@/i18n";
+import { describeFlare } from "@/i18n/messages";
+import type { GameState } from "@/types";
 
 // Итоги миссии словами: анализ из ядра (engine/debrief.ts) плюс тексты из словарей на языке игрока
 

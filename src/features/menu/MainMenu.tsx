@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { getLang, langName, t } from "../i18n";
-import type { Lang } from "../i18n";
-import { joinRoom, ROOM_NAME } from "../net/online";
-import type { Session } from "../net/online";
+import { getLang, langName, t } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { joinRoom, ROOM_NAME } from "@/net/online";
+import type { Session } from "@/net/online";
 import { LangSelect } from "./LangSelect";
-import { MoonLogo, SoundOffIcon, SoundOnIcon } from "./icons";
-import { sound } from "../audio/audio";
-import "./Intro.css";
+import { MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
+import { sound } from "@/audio/audio";
+import "@/features/story/Intro.css";
 import "./MainMenu.css";
 
 type Props = {

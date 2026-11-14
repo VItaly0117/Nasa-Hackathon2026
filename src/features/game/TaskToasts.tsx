@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useGame } from "../../session/react";
-import { TaskToast } from "../../ui/TaskToast";
+import { useGame } from "@/session/react";
+import { TaskToast } from "./TaskToast";
 
 // Новые задания от экипажа: карточка с портретом на несколько секунд
 export function TaskToasts() {

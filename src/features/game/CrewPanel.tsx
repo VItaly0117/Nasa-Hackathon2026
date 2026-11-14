@@ -1,7 +1,7 @@
-import type { CrewMember } from "../types";
-import { moduleName, t } from "../i18n";
-import { CREW } from "./crewData";
-import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
+import type { CrewMember } from "@/types";
+import { moduleName, t } from "@/i18n";
+import { CREW } from "@/ui/crewData";
+import { CollapseButton, startsCollapsed, useCollapsed } from "@/ui/Collapse";
 
 // Экипаж пока декоративный: настроение и полоска берутся из общего здоровья.
 // TODO @Regie: у каждого астронавта свои здоровье, усталость и задача

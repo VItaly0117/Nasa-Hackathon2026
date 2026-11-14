@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { t } from "../i18n";
-import { sound } from "../audio/audio";
+import { t } from "@/i18n";
+import { sound } from "@/audio/audio";
 import "./Prologue.css";
 
 // Сколько показывается каждый субтитр, мс. Последний ждёт нажатия кнопки

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { MISSION_DAYS } from "../../engine";
-import { t } from "../../i18n";
-import { useGame } from "../../session/react";
-import { shallowEqual } from "../../session/store";
+import { MISSION_DAYS } from "@/engine";
+import { t } from "@/i18n";
+import { useGame } from "@/session/react";
+import { shallowEqual } from "@/session/store";
 
 // Баннер «День N» на несколько секунд при смене дня
 export function DayBanner() {

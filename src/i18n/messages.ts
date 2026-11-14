@@ -1,4 +1,4 @@
-import type { Flare, Msg } from "../types";
+import type { Flare, Msg } from "@/types";
 import { days as daysText, getLang, moduleName, t } from "./index";
 
 // Перевод сообщений ядра игры (журнал, причины отложенных эффектов). Ядро отдаёт ключ и параметры-id,

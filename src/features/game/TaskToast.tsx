@@ -1,8 +1,8 @@
-import type { Task } from "../types";
-import { t } from "../i18n";
+import type { Task } from "@/types";
+import { t } from "@/i18n";
 import { Avatar } from "./CrewPanel";
-import { CREW } from "./crewData";
-import { sound } from "../audio/audio";
+import { CREW } from "@/ui/crewData";
+import { sound } from "@/audio/audio";
 import "./TaskToast.css";
 
 type Props = { tasks: Task[]; onClose: () => void };

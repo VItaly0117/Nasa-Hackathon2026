@@ -1,12 +1,12 @@
-import eventsData from "../../data/events.json";
-import type { EventDef } from "../../types";
-import { t } from "../../i18n";
-import { describeFlare } from "../../i18n/messages";
-import { sound } from "../../audio/audio";
-import { useGame, useSend } from "../../session/react";
-import { shallowEqual } from "../../session/store";
-import { Avatar } from "../../ui/CrewPanel";
-import { CREW } from "../../ui/crewData";
+import eventsData from "@/data/events.json";
+import type { EventDef } from "@/types";
+import { t } from "@/i18n";
+import { describeFlare } from "@/i18n/messages";
+import { sound } from "@/audio/audio";
+import { useGame, useSend } from "@/session/react";
+import { shallowEqual } from "@/session/store";
+import { Avatar } from "./CrewPanel";
+import { CREW } from "@/ui/crewData";
 
 const EVENTS = eventsData as EventDef[];
 

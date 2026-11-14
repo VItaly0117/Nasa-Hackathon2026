@@ -1,6 +1,6 @@
-import type { GameState, ModuleType, Role, Task } from "../../types";
-import { msg } from "../msg";
-import { NIGHT_START } from "../constants";
+import type { GameState, ModuleType, Role, Task } from "@/types";
+import { msg } from "@/engine/msg";
+import { NIGHT_START } from "@/engine/constants";
 import { dayOfEvent } from "./events";
 
 // Задания от экипажа. Это цели и подсказки: строить можно и то, о чём не просили.

@@ -1,4 +1,4 @@
-import { t } from "../i18n";
+import { t } from "@/i18n";
 
 // На телефоне в вертикальном положении CSS показывает эту подсказку поверх игры
 export function RotateHint() {

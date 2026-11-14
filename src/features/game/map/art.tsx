@@ -1,4 +1,4 @@
-import type { ModuleType } from "../../types";
+import type { ModuleType } from "@/types";
 
 // Рисунки объектов в мультяшной изометрии. Точка (0, 0) — центр клетки на земле,
 // клетка 96×48. TODO @Zakhar: при желании заменить на PNG из assets/

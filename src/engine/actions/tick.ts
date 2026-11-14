@@ -1,8 +1,8 @@
-import type { GameState } from "../../types";
-import { DAY_MS } from "../constants";
-import { assignWaiting, restCrew } from "../systems/crew";
-import { nextDay } from "../systems/day";
-import { msUntilSick } from "../systems/illness";
+import type { GameState } from "@/types";
+import { DAY_MS } from "@/engine/constants";
+import { assignWaiting, restCrew } from "@/engine/systems/crew";
+import { nextDay } from "@/engine/systems/day";
+import { msUntilSick } from "@/engine/systems/illness";
 import { advanceBuilds } from "./build";
 
 // Прошло ms мс игрового времени. Время дня и стройка идут от одних часов: пауза и ускорение работают сразу для всего.

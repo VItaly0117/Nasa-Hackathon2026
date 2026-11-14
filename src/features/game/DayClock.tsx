@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { t } from "../i18n";
-import { DAY_MS } from "../engine";
+import { t } from "@/i18n";
+import { DAY_MS } from "@/engine";
 
 // Как часто часы отправляют движку tick (в мс). Реже нельзя: полоска будет дёргаться,
 // чаще не нужно: игра перерисовывается на каждый tick

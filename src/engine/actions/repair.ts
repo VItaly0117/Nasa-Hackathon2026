@@ -1,7 +1,7 @@
-import type { GameState, Resources } from "../../types";
-import { msg } from "../msg";
-import { RESOURCE_KEYS } from "../selectors";
-import { choiceCost } from "../systems/events";
+import type { GameState, Resources } from "@/types";
+import { msg } from "@/engine/msg";
+import { RESOURCE_KEYS } from "@/engine/selectors";
+import { choiceCost } from "@/engine/systems/events";
 
 // Починка кликом по модулю стоит столько же, сколько выбор «починить» в окне поломки (цена в events.json)
 export const REPAIR_COST: Partial<Resources> = choiceCost("breakdown", "repair");

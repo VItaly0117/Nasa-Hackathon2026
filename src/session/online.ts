@@ -1,6 +1,6 @@
-import { initialState, reduce } from "../engine";
-import { openStream, sendAction } from "../net/online";
-import type { Session as RoomSession } from "../net/online";
+import { initialState, reduce } from "@/engine";
+import { openStream, sendAction } from "@/net/online";
+import type { Session as RoomSession } from "@/net/online";
 import { createStore, createValueStore } from "./store";
 import type { GameSession, SessionMeta } from "./types";
 

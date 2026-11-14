@@ -41,13 +41,13 @@ for (const file of walk(SRC).filter((f) => /\.(ts|tsx)$/.test(f))) {
       if (layer === "engine") problems.push(`${rel}: ядро не должно импортировать React (${spec})`);
       continue;
     }
-    if (!spec.startsWith(".")) continue;
-    const resolved = resolve(dirname(file), spec);
+    if (!spec.startsWith(".") && !spec.startsWith("@/")) continue;
+    const resolved = spec.startsWith("@/") ? join(SRC, spec.slice(2)) : resolve(dirname(file), spec);
     const target = layerOf(resolved);
     // снаружи ядро импортируется только через публичный API (engine/index.ts), а не по внутренним файлам
     const insideEngine = relative(join(SRC, "engine"), resolved);
     if (layer !== "engine" && target === "engine" && insideEngine && !insideEngine.startsWith("..") && insideEngine !== "index") {
-      problems.push(`${rel}: ядро импортируется по внутреннему пути (${spec}), нужно из "../engine"`);
+      problems.push(`${rel}: ядро импортируется по внутреннему пути (${spec}), нужно из "@/engine"`);
     }
     if ((FORBIDDEN[layer] ?? []).includes(target)) problems.push(`${rel}: слой «${layer}» не должен импортировать слой «${target}» (${spec})`);
   }

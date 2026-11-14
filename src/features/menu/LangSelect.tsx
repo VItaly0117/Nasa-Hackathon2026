@@ -1,7 +1,7 @@
-import { LANGS, langName } from "../i18n";
-import type { Lang } from "../i18n";
-import { MoonLogo } from "./icons";
-import "./Intro.css";
+import { LANGS, langName } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { MoonLogo } from "@/ui/icons";
+import "@/features/story/Intro.css";
 
 // Первый экран игры: заголовок сразу на всех языках, потому что язык ещё не выбран
 export function LangSelect({ onPick }: { onPick: (lang: Lang) => void }) {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { ModuleType } from "../../types";
+import type { ModuleType } from "@/types";
 
 // Что игрок сейчас делает с интерфейсом. Это не состояние игры, оно живёт только на экране
 export type GameUi = {

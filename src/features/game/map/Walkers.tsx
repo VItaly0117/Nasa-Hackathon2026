@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { CREW } from "../crewData";
-import { t } from "../../i18n";
+import { CREW } from "@/ui/crewData";
+import { t } from "@/i18n";
 
 // Место у модуля, куда астронавт идёт работать (координаты карты)
 export type WalkTarget = { type: string; x: number; y: number };
