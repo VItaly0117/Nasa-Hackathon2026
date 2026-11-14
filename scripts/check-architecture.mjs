@@ -22,6 +22,8 @@ const layerOf = (file) => relative(SRC, file).split("/")[0];
 // какие слои запрещено импортировать из данного слоя
 const FORBIDDEN = {
   engine: ["i18n", "ui", "audio", "net", "session", "features", "app"],
+  // сессия (хранилище, сеть) знает про ядро и данные, но не про интерфейс и звук
+  session: ["ui", "audio", "features", "app"],
 };
 const EXEMPT = new Set(["engine/checks.ts"]);
 
@@ -40,7 +42,13 @@ for (const file of walk(SRC).filter((f) => /\.(ts|tsx)$/.test(f))) {
       continue;
     }
     if (!spec.startsWith(".")) continue;
-    const target = layerOf(resolve(dirname(file), spec));
+    const resolved = resolve(dirname(file), spec);
+    const target = layerOf(resolved);
+    // снаружи ядро импортируется только через публичный API (engine/index.ts), а не по внутренним файлам
+    const insideEngine = relative(join(SRC, "engine"), resolved);
+    if (layer !== "engine" && target === "engine" && insideEngine && !insideEngine.startsWith("..") && insideEngine !== "index") {
+      problems.push(`${rel}: ядро импортируется по внутреннему пути (${spec}), нужно из "../engine"`);
+    }
     if ((FORBIDDEN[layer] ?? []).includes(target)) problems.push(`${rel}: слой «${layer}» не должен импортировать слой «${target}» (${spec})`);
   }
 }
@@ -49,4 +57,4 @@ if (problems.length) {
   console.error(`✗ Нарушены границы слоёв (${problems.length}):\n  ${problems.join("\n  ")}`);
   process.exit(1);
 }
-console.log("✓ Границы слоёв соблюдены: ядро (engine) не зависит от i18n, интерфейса, звука, сети и сессий");
+console.log("✓ Границы слоёв соблюдены: ядро чистое, сессия не знает про интерфейс, ядро импортируется через engine/index.ts");

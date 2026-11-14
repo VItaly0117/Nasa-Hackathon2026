@@ -11,3 +11,6 @@ export const BUILD_MS = 60000;
 export const MAX_ILLNESS = 3;
 export const ILLNESS_GAP = 5;
 export const ILLNESS_CHANCE = 0.4;
+
+// Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
+export const SHORTAGE_DAMAGE = 25;

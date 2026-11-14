@@ -1,9 +1,9 @@
-import eventsData from "../data/events.json";
-import flaresData from "../data/nasa/flares.json";
-import { msg } from "./msg";
-import { DAY_MS } from "./constants";
+import eventsData from "../../data/events.json";
+import flaresData from "../../data/nasa/flares.json";
+import { msg } from "../msg";
+import { DAY_MS } from "../constants";
 import { restPatient } from "./crew";
-import type { EventDef, Flare, GameState, ModuleType, ResourceKey, Resources } from "../types";
+import type { EventDef, Flare, GameState, ModuleType, ResourceKey, Resources } from "../../types";
 
 const FLARES = flaresData as Flare[];
 const EVENTS = eventsData as EventDef[];

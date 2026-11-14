@@ -1,6 +1,5 @@
 import type { GameState } from "../types";
-import { MISSION_DAYS, NIGHT_START } from "../engine/engine";
-import { nextScheduledEvent } from "../engine/events";
+import { MISSION_DAYS, nextScheduledEvent, NIGHT_START } from "../engine";
 import { days, t } from "../i18n";
 import { formatMsg } from "../i18n/messages";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";

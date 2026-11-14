@@ -1,6 +1,5 @@
-import { MISSION_DAYS } from "../engine/constants";
-import { analyzeMission } from "../engine/debrief";
-import type { ReportLine } from "../engine/debrief";
+import { analyzeMission, MISSION_DAYS } from "../engine";
+import type { ReportLine } from "../engine";
 import { days as daysText, t } from "../i18n";
 import { describeFlare } from "../i18n/messages";
 import type { GameState } from "../types";

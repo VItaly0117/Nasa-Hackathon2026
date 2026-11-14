@@ -80,7 +80,7 @@ export type HistoryEntry =
   | { day: number; kind: "shortage"; resource: ResourceKey }                             // ресурс упал до нуля
   | { day: number; kind: "blackout"; night: boolean };                                   // база осталась без энергии
 
-// Задание, которое дал член экипажа. Что оно значит и когда выполнено, описано в engine/tasks.ts
+// Задание, которое дал член экипажа. Что оно значит и когда выполнено, описано в engine/systems/tasks.ts
 export type Task = {
   id: string;
   giver: number; // id члена экипажа

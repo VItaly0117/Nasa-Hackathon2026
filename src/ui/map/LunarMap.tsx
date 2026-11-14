@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, PlacedModule } from "../../types";
-import {
-  MAP_LAYOUT,
-  BUILD_RADIUS,
-  getTileInfo,
-  isNearBase,
-  slotOf,
-  cellOf,
-} from "../../engine/placement";
-import type { Terrain, TileInfo } from "../../engine/placement";
+import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } from "../../engine";
+import type { Terrain, TileInfo } from "../../engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "../../data/map";
 import { moduleName, t } from "../../i18n";
 import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";

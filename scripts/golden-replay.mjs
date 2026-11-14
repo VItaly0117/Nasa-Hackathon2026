@@ -36,10 +36,8 @@ const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 const server = await createServer({ root, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
 try {
-  const engine = await server.ssrLoadModule("/src/engine/engine.ts");
-  const placement = await server.ssrLoadModule("/src/engine/placement.ts");
-  const { initialState, reduce, MISSION_DAYS } = engine;
-  const { canPlace, slotOf, MAP_ROWS, MAP_COLS } = placement;
+  const engine = await server.ssrLoadModule("/src/engine/index.ts");
+  const { initialState, reduce, MISSION_DAYS, canPlace, slotOf, MAP_ROWS, MAP_COLS } = engine;
 
   function tryBuild(state, type) {
     for (let row = 0; row < MAP_ROWS; row++)
