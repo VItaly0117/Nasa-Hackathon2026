@@ -1,6 +1,9 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
+import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
+import type { Terrain } from "../data/map";
 
-export type Terrain = "ground" | "rock" | "crater" | "ice" | "landing";
+export type { Terrain };
+export { MAP_LAYOUT, MAP_ROWS, MAP_COLS };
 
 export interface TileInfo {
   row: number;
@@ -10,26 +13,8 @@ export interface TileInfo {
   canMine: boolean;
 }
 
-// G — грунт, R — камни, C — кратер, I — лёд, P — посадочная площадка.
-// Карта в «шахматной» изометрии: нечётные ряды сдвинуты на полклетки вправо,
-// поэтому на экране она прямоугольная и тянется вправо
-export const MAP_LAYOUT: string[] = [
-  "GGGGGGGGGGGGGGGGGGGGGCGGGGGGGG",
-  "GGGGGGIGGGGGGGGGGGGGGGGGGRGGGG",
-  "GRGGGGGGGGGGGRGGGGGGGGGGGGGGGG",
-  "GGGGGGGGGGGGGGGGGGCGGGGGGGGGCG",
-  "GGGGGGGGGGGGGGGGGGGGGGRGGGGGGG",
-  "GGGGGGGGGGRGPGGGGGGGGGGGGIGGGG",
-  "GGGGGGGGGGGGGGIGCGGGGGGGGGGGGG",
-  "GGRGGGGGGGGGGGGGGGGGGGGGGGGRGG",
-  "GGGGGGGGGGGGGGGGGGGGIGGGGGGGGG",
-  "GGGGGGGGCGGGGGGRGGGGGGGGGCGGGG",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "GRGGGGGGGGGGGGGGGGGGGCGGGGGGGG",
-];
-
-export const MAP_ROWS = MAP_LAYOUT.length;
-export const MAP_COLS = MAP_LAYOUT[0].length;
+// Карта (G — грунт, R — камни, C — кратер, I — лёд, P — площадка) считается
+// по фоновой картинке в data/map.ts
 
 // Строить можно не дальше стольких клеток от любого построенного модуля
 export const BUILD_RADIUS = 3;
@@ -56,6 +41,24 @@ export function getTileInfo(row: number, col: number): TileInfo {
 // Клетка карты ↔ номер слота в GameState (slot = row * MAP_COLS + col)
 export const slotOf = (row: number, col: number) => row * MAP_COLS + col;
 export const cellOf = (slot: number) => ({ row: Math.floor(slot / MAP_COLS), col: slot % MAP_COLS });
+
+// Ближайшая клетка с обычным грунтом к точке на фоновой картинке (x, y — в её пикселях)
+export function nearestGroundSlot(x: number, y: number): number {
+  let best = 0;
+  let bestDist = Infinity;
+  for (let row = 0; row < MAP_ROWS; row++) {
+    for (let col = 0; col < MAP_COLS; col++) {
+      if (!getTileInfo(row, col).canBuild) continue;
+      const c = tileCenter(row, col);
+      const dist = (c.x / IMAGE_SCALE - x) ** 2 + (c.y / IMAGE_SCALE - y) ** 2;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = slotOf(row, col);
+      }
+    }
+  }
+  return best;
+}
 
 // Перевод из «шахматных» координат в диагональные, где соседние клетки отличаются на 1
 function toDiamond(row: number, col: number) {

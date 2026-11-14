@@ -1,5 +1,4 @@
 import type { ModuleType } from "../../types";
-import type { Terrain } from "../../engine/placement";
 
 // Рисунки объектов в мультяшной изометрии. Точка (0, 0) — центр клетки на земле,
 // клетка 96×48. TODO @Zakhar: при желании заменить на PNG из assets/
@@ -283,17 +282,6 @@ function Rocks({ variant }: { variant: number }) {
   );
 }
 
-function Crater() {
-  return (
-    <g>
-      <ellipse cx="0" cy="0" rx="46" ry="22" fill="#b0a8c0" />
-      <ellipse cx="0" cy="2" rx="38" ry="17" fill="#6c6482" />
-      <path d="M -38 2 A 38 17 0 0 0 38 2 A 38 13 0 0 1 -38 2 Z" fill="#8c84a1" />
-      <ellipse cx="-8" cy="-2" rx="20" ry="8" fill="#5c5574" />
-    </g>
-  );
-}
-
 function Ice() {
   return (
     <g>
@@ -305,47 +293,6 @@ function Ice() {
       <path d="M 6 -18 L 8 -4" stroke="#ffffff" strokeWidth="1.5" opacity="0.8" />
     </g>
   );
-}
-
-function Rocket() {
-  return (
-    <g>
-      <path d="M -10 -6 L -10 -66 Q 0 -94 10 -66 L 10 -6 Z" fill="#f3f3f8" />
-      <path d="M 0 -88 Q 5 -80 10 -66 L 10 -6 L 0 -6 Z" fill="#d6d4e2" />
-      <circle cx="0" cy="-54" r="5" fill="#5aa9e6" stroke="#9a96ae" strokeWidth="2" />
-      <path d="M -10 -22 L -22 -2 L -10 -8 Z M 10 -22 L 22 -2 L 10 -8 Z" fill="#3d6fd6" />
-      <rect x="-2" y="-26" width="4" height="22" fill="#3d6fd6" />
-      <path d="M -7 -6 L -9 0 L 9 0 L 7 -6 Z" fill="#6c6787" />
-      <path d="M -6 -80 L 6 -80" stroke="#e5484d" strokeWidth="3" />
-    </g>
-  );
-}
-
-function LandingPad() {
-  const lights = Array.from({ length: 10 }, (_, k) => {
-    const a = (k / 10) * Math.PI * 2;
-    return { x: Math.cos(a) * 40, y: Math.sin(a) * 19 };
-  });
-  return (
-    <g>
-      <ellipse cx="0" cy="2" rx="46" ry="22" fill="#2e2842" opacity="0.3" />
-      <ellipse cx="0" cy="0" rx="44" ry="21" fill="#4a4562" stroke="#6d6788" strokeWidth="2" />
-      <ellipse cx="0" cy="0" rx="28" ry="13" fill="none" stroke="#f5b83d" strokeWidth="2" strokeDasharray="6 5" />
-      <path d="M -12 -6 L 12 6 M 12 -6 L -12 6" stroke="#f5b83d" strokeWidth="3" strokeLinecap="round" />
-      {lights.map((l, k) => <Light key={k} x={l.x} y={l.y} />)}
-      <Rocket />
-    </g>
-  );
-}
-
-export function TerrainArt({ terrain, variant }: { terrain: Terrain; variant: number }) {
-  switch (terrain) {
-    case "rock": return <Rocks variant={variant} />;
-    case "crater": return <Crater />;
-    case "ice": return <Ice />;
-    case "landing": return <LandingPad />;
-    default: return null;
-  }
 }
 
 // Общие определения для карты и превью: фильтр «сломан»

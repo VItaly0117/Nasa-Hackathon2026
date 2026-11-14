@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, PlacedModule } from "../../types";
 import {
   MAP_LAYOUT,
-  MAP_ROWS,
-  MAP_COLS,
   BUILD_RADIUS,
   getTileInfo,
   isNearBase,
@@ -11,8 +9,10 @@ import {
   cellOf,
 } from "../../engine/placement";
 import type { Terrain, TileInfo } from "../../engine/placement";
+import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "../../data/map";
 import { moduleName, t } from "../../i18n";
-import { ART_HEIGHT, ArtDefs, ModuleArt, TerrainArt } from "./art";
+import { ART_HEIGHT, ArtDefs, ModuleArt } from "./art";
+import moonBg from "../../assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
 import { BuildProgress } from "./BuildProgress";
 import type { WalkTarget } from "./Walkers";
@@ -33,6 +33,8 @@ interface LunarMapProps {
 const OK_COLOR = "#4ADE80";
 const BAD_COLOR = "#FF6B6B";
 
+// Рисунки модулей по размеру подобраны под ракету на фоновой картинке
+const ART_SCALE = 1.7;
 // Клетки крупные, а рисунки модулей маленькие относительно клетки: между зданиями остаётся воздух
 const TILE_W = 150;
 const TILE_H = 75;
@@ -47,6 +49,8 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.6;
 const START_ZOOM = 0.85;
 
+// Карта — фоновая картинка, клетки размечены поверх неё в data/map.ts
+const getPosition = tileCenter;
 // Размер карты в единицах SVG. 1 единица = 1 пиксель при масштабе 1
 const MAP_W = MAP_COLS * TILE_W + TILE_W / 2;
 const MAP_H = TOP + MAP_ROWS * (TILE_H / 2) + TILE_H / 2 + BOTTOM;
@@ -168,9 +172,10 @@ type Size = { w: number; h: number };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-// Карта не должна уезжать за край: меньше экрана — по центру внизу, больше — упирается в края
+// Карта не должна уезжать за край. Отдалять можно, пока картинка закрывает весь экран:
+// на ней же нарисовано небо, и за её краем ничего нет
 function clampView(v: View, size: Size): View {
-  const k = clamp(v.k, Math.max(MIN_ZOOM, size.w / MAP_W), MAX_ZOOM);
+  const k = clamp(v.k, Math.max(MIN_ZOOM, size.w / MAP_W, size.h / MAP_H), MAX_ZOOM);
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);
@@ -398,7 +403,8 @@ export default function LunarMap({
         : near
           ? t("map.canBuild")
           : t("map.tooFar", { n: BUILD_RADIUS });
-    const lift = selected.terrain === "landing" ? 100 : selected.terrain === "rock" ? 24 : 0;
+    // над ракетой и скалами облачко поднимаем, чтобы оно их не закрывало
+    const lift = selected.terrain === "landing" ? 170 : selected.terrain === "rock" ? 30 : 0;
 
     return { x, y: y - TILE_H / 2 - lift, title: getTerrainName(selected.terrain), text };
   })();
@@ -442,6 +448,14 @@ export default function LunarMap({
             aria-label={t("map.aria")}
           >
             <ArtDefs />
+
+            {/* Слой 1: фоновая картинка — небо, Земля, горы, кратеры, лёд, площадка с ракетой */}
+            <image
+              href={moonBg}
+              width={IMAGE_SIZE.width}
+              height={IMAGE_SIZE.height}
+              preserveAspectRatio="none"
+            />
             <defs>
               <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor="#6f6788" />
@@ -529,7 +543,7 @@ export default function LunarMap({
               );
             })()}
 
-            {/* Слой 5: камни, кратеры, площадка и здания, от дальних к ближним */}
+            {/* Слой 5: здания и «призрак» строящегося модуля, от дальних к ближним */}
             {TILES.map((tile) => {
               const module = moduleAt(tile.row, tile.col);
               const isGhost =
@@ -538,7 +552,7 @@ export default function LunarMap({
                 hovered?.row === tile.row &&
                 hovered?.col === tile.col &&
                 canPlaceAt(tile.row, tile.col);
-              if (!module && tile.terrain === "ground" && !isGhost) return null;
+              if (!module && !isGhost) return null;
 
               const { x, y } = getPosition(tile.row, tile.col);
 
@@ -559,17 +573,9 @@ export default function LunarMap({
                 );
               }
 
-              if (isGhost && buildType) {
-                return (
-                  <g key={`o-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} opacity="0.6" pointerEvents="none">
-                    <ModuleArt type={buildType} />
-                  </g>
-                );
-              }
-
               return (
-                <g key={`o-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} pointerEvents="none">
-                  <TerrainArt terrain={tile.terrain} variant={tile.row + tile.col} />
+                <g key={`o-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} opacity="0.6" pointerEvents="none">
+                  <ModuleArt type={buildType!} />
                 </g>
               );
             })}
