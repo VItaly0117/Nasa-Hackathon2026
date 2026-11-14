@@ -1,0 +1,490 @@
+{
+ "seeds": 20,
+ "strategies": [
+  "idle",
+  "careless",
+  "prepared"
+ ],
+ "runs": [
+  {
+   "strategy": "idle",
+   "seed": 1,
+   "hash": "9de14cdf33bcc3be",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 2,
+   "hash": "f86a2884b5c5390b",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 3,
+   "hash": "1c4a5838df7b05f8",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 4,
+   "hash": "068d71c7a5900c27",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 5,
+   "hash": "0fd8be4218faf297",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 6,
+   "hash": "62a008df42378027",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 7,
+   "hash": "c01ed5bebb79fe60",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 8,
+   "hash": "f5b4cdb06665b2cb",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 9,
+   "hash": "a6eeb583fe77fd47",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 10,
+   "hash": "3c73682d6cfc4e23",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 11,
+   "hash": "4fb49883a868a8cc",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 12,
+   "hash": "a4611a7481b64ba5",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 13,
+   "hash": "c244cecd3b5919ec",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 14,
+   "hash": "95ced0936302356f",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 15,
+   "hash": "abb67dd91158d1bb",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 16,
+   "hash": "4446f9129ac946a7",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 17,
+   "hash": "01e1bd62cf7cce7b",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 18,
+   "hash": "29a64c0cc0cf3e56",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 19,
+   "hash": "a58a63d5007417cf",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "idle",
+   "seed": 20,
+   "hash": "0a39c94e5f05d808",
+   "status": "lost",
+   "day": 19,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 1,
+   "hash": "3ca9b9e45832af02",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 2,
+   "hash": "993cef6391364582",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 3,
+   "hash": "837fac2fde5353c0",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 4,
+   "hash": "deb9dee2234aabde",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 5,
+   "hash": "5c5b8f2962eb1db4",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 6,
+   "hash": "f80bf39fb7d20d92",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 7,
+   "hash": "db4ab14613c1bf4f",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 8,
+   "hash": "55e6a771ff408c31",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 9,
+   "hash": "2261d30d81f4387c",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 10,
+   "hash": "134154b24681ff38",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 11,
+   "hash": "89fd56ab1ccf1cc1",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 12,
+   "hash": "83a6705fc4154386",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 13,
+   "hash": "e8766ea82c68d70b",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 14,
+   "hash": "5566dac0df59da22",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 15,
+   "hash": "884cec8a0e15ffa3",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 16,
+   "hash": "2e60673aa0cf482e",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 17,
+   "hash": "9e3756f4d44c5842",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 18,
+   "hash": "4c8a7327faaff1dc",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 19,
+   "hash": "7726131afc4de1bc",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "careless",
+   "seed": 20,
+   "hash": "e4927c96f91ab533",
+   "status": "lost",
+   "day": 17,
+   "health": 0
+  },
+  {
+   "strategy": "prepared",
+   "seed": 1,
+   "hash": "6e9206f2c22f548d",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 2,
+   "hash": "4600caeeb3ee91b9",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 3,
+   "hash": "83d6133e7c5f0744",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 4,
+   "hash": "8d5d4e9afb6258a0",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 5,
+   "hash": "71964c9259ff42d3",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 6,
+   "hash": "0dad81d27b617391",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 7,
+   "hash": "771a20898fd34e92",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 8,
+   "hash": "f7f91f4193e60323",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 9,
+   "hash": "acbf8863cf8c6f9c",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 10,
+   "hash": "02b210325e5b4668",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 11,
+   "hash": "f9b037436095f3aa",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 12,
+   "hash": "7e11d93b88345fcf",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 13,
+   "hash": "d91326f3b60ce057",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 14,
+   "hash": "4b1c7014555c4350",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 15,
+   "hash": "cbc7b971f55d357f",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 16,
+   "hash": "b6c1e5fd097113df",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 17,
+   "hash": "64052feb6fc94670",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 18,
+   "hash": "aa6d7f118398119b",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 19,
+   "hash": "6236da159956b039",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  },
+  {
+   "strategy": "prepared",
+   "seed": 20,
+   "hash": "f977413a77ad7bc2",
+   "status": "won",
+   "day": 20,
+   "health": 100
+  }
+ ]
+}
