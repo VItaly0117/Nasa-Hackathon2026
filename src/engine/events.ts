@@ -1,4 +1,5 @@
 import type { GameState } from "../types";
+import { t } from "../i18n";
 
 // День миссии → событие. Потом можно сделать случайными
 const SCHEDULE: Record<number, string> = {
@@ -42,20 +43,20 @@ export function resolveEvent(state: GameState, choice: string): GameState {
       resources.water = clamp(resources.water - 10);
       resources.energy = clamp(resources.energy - 10);
       modules = modules.map((m) => (m.type === "lifeSupport" ? { ...m, broken: false } : m));
-      text = "Жизнеобеспечение починили";
+      text = t("log.repaired");
       break;
     case "breakdown:ignore":
-      text = "Ремонт отложен: жизнеобеспечение не работает";
+      text = t("log.repairIgnored");
       break;
     case "flare:hide": {
       const hasShelter = modules.some((m) => m.type === "shelter");
       if (!hasShelter) resources.health = clamp(resources.health - 10);
-      text = hasShelter ? "Экипаж переждал вспышку в убежище" : "Убежища нет: укрылись за баками с водой, здоровье −10";
+      text = hasShelter ? t("log.flareShelter") : t("log.flareNoShelter");
       break;
     }
     case "flare:work":
       resources.health = clamp(resources.health - 30);
-      text = "Работа продолжалась во время вспышки: здоровье −30";
+      text = t("log.flareWork");
       break;
     default:
       return state;
