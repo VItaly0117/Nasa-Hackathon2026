@@ -1,7 +1,7 @@
 import modulesData from "../data/modules.json";
 import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
 import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
-import { canPlace, cellOf, slotOf } from "./placement";
+import { canPlace, cellOf, nearestGroundSlot } from "./placement";
 import { moduleName, t } from "../i18n";
 import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START } from "./constants";
 import { assignWaiting, hasFreeCrew, pickBuilder, restCrew } from "./crew";
@@ -86,10 +86,10 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
     // материалов 10, а убежище стоит 25: сначала нужен карьер
     resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 10 },
     modules: [
-      // На Луне есть только жилой модуль рядом с посадочной площадкой (ряд 5, колонка 12).
-      // Энергию, воду, еду и укрытие игрок строит сам
-      { slot: slotOf(3, 11), type: "habitat", broken: false },
-      { slot: slotOf(7, 11), type: "lifeSupport", broken: false },
+      // На Луне есть только жилой модуль и жизнеобеспечение рядом с ракетой на фоновой картинке
+      // (координаты в её пикселях). Энергию, воду, еду и укрытие игрок строит сам
+      { slot: nearestGroundSlot(650, 300), type: "habitat", broken: false },
+      { slot: nearestGroundSlot(560, 440), type: "lifeSupport", broken: false },
     ],
     pending: [],
     activeEvent: null,
