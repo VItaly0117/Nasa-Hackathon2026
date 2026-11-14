@@ -30,6 +30,13 @@ export function ResourceIcon({ type, size = 28 }: { type: ResourceKey; size?: nu
       {type === "health" && (
         <path d="M16 28 C 6 21 3 15 3 10 a 6.5 6.5 0 0 1 13 -1 a 6.5 6.5 0 0 1 13 1 c 0 5 -3 11 -13 18 Z" fill="#f2557a" />
       )}
+      {type === "materials" && (
+        <>
+          <path d="M6 11 L16 6 L26 11 L16 16 Z" fill="#c9a26b" />
+          <path d="M6 11 V22 L16 27 V16 Z" fill="#9c7443" />
+          <path d="M26 11 V22 L16 27 V16 Z" fill="#b48a55" />
+        </>
+      )}
     </svg>
   );
 }

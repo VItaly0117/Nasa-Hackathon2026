@@ -166,6 +166,14 @@ button { font-family: inherit; }
 .goal__bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .goal__bar > div { height: 100%; background: var(--accent); transition: width 0.4s; }
 
+.tasks { padding: 14px 16px; }
+.tasks ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.35; }
+.task { display: flex; gap: 8px; align-items: flex-start; }
+.task strong { display: block; }
+.task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
+.task__why { opacity: 0.75; font-size: 14px; }
+.task--late .task__mark, .task--late strong { color: #ff9b9b; }
+
 .journal { padding: 14px 16px; }
 .journal ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.4; }
 

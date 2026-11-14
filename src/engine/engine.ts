@@ -8,7 +8,7 @@ export const MISSION_DAYS = 20;
 export const NIGHT_START = 14;
 
 const MODULES = modulesData as ModuleDef[];
-const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health"];
+const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
 const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
 // Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
 export const SHORTAGE_DAMAGE = 25;
@@ -37,6 +37,7 @@ export function initialState(): GameState {
   return {
     day: 1,
     isNight: false,
+    resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100, materials: 10 },
     // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
     resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100 },
     modules: [
@@ -57,7 +58,7 @@ export function initialState(): GameState {
 
 // Сколько каждого ресурса прибавится или убавится за следующий день
 export function dailyDelta(state: GameState): Partial<Resources> {
-  const total: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0 };
+  const total: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
   addTo(total, CREW_PER_DAY);
   for (const module of state.modules) addTo(total, moduleOutput(module, state.isNight));
   return total;

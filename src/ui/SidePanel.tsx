@@ -1,6 +1,7 @@
 import type { GameState } from "../types";
 import { MISSION_DAYS, NIGHT_START } from "../engine/engine";
 import { nextScheduledEvent } from "../engine/events";
+import { taskList } from "../engine/tasks";
 import { days, t } from "../i18n";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
@@ -73,7 +74,10 @@ export function SidePanel({ state }: { state: GameState }) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
   const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
+  const [tasksClosed, toggleTasks] = useCollapsed(startsCollapsed());
   const [journalClosed, toggleJournal] = useCollapsed(startsCollapsed());
+  const tasks = taskList(state);
+  const openTasks = tasks.filter((task) => !task.isDone);
 
   return (
     <aside className="side">
@@ -105,6 +109,33 @@ export function SidePanel({ state }: { state: GameState }) {
               <span>{state.day} / {MISSION_DAYS}</span>
             </div>
           </>
+        )}
+      </section>
+
+      {/* Три ближайшие невыполненные задачи: больше сразу ребёнку не нужно */}
+      <section className="hud-panel tasks">
+        <div className="panel-head">
+          <h2 className="hud-title">
+            {t("tasks.title", { done: tasks.length - openTasks.length, total: tasks.length })}
+          </h2>
+          <CollapseButton collapsed={tasksClosed} onClick={toggleTasks} />
+        </div>
+        {!tasksClosed && (
+          <ul>
+            {openTasks.slice(0, 3).map((task) => (
+              <li key={task.id} className={`task ${task.late ? "task--late" : ""}`}>
+                <span className="task__mark" aria-hidden="true">{task.late ? "!" : "○"}</span>
+                <span>
+                  <strong>
+                    {t(`task.${task.id}`)}
+                    {task.deadline ? ` ${t("tasks.until", { n: task.deadline })}` : ""}
+                  </strong>
+                  <span className="task__why">{t(`task.${task.id}.why`)}</span>
+                </span>
+              </li>
+            ))}
+            {openTasks.length === 0 && <li className="task">{t("tasks.allDone")}</li>}
+          </ul>
         )}
       </section>
 

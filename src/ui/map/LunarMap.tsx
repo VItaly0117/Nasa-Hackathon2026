@@ -323,9 +323,11 @@ export default function LunarMap({
     }
 
     const near = isNearBase(modules, selected.row, selected.col);
-    const text = selected.canMine
-      ? t("map.mine")
-      : !selected.canBuild
+    const text = selected.terrain === "ice"
+      ? t("map.ice")
+      : selected.terrain === "rock"
+        ? t("map.rock")
+        : !selected.canBuild
         ? t("map.noBuild")
         : near
           ? t("map.canBuild")

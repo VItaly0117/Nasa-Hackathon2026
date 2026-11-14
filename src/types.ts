@@ -1,7 +1,9 @@
-export type ResourceKey = "oxygen" | "water" | "food" | "energy" | "health";
+export type ResourceKey = "oxygen" | "water" | "food" | "energy" | "health" | "materials";
 export type Resources = Record<ResourceKey, number>;
 
-export type ModuleType = "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter";
+export type ModuleType =
+  | "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter"
+  | "iceMine" | "rockMine";
 
 export type ModuleDef = {
   type: ModuleType;   // название и описание лежат в словарях i18n: module.<type>.name / .desc
