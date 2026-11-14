@@ -1,0 +1,38 @@
+/* Итоги миссии: оценка, что помогло и помешало, факты NASA */
+.results { width: min(720px, calc(100vw - 32px)); }
+.results__rating {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(245, 184, 61, 0.18);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-weight: 800;
+}
+.results__stats { margin: 4px 0 0; }
+.results__record { margin: 8px 0 0; font-size: 15px; }
+.results__record strong { color: var(--accent); }
+
+.results__section { margin-top: 18px; text-align: left; }
+.results__section h3 { margin: 0 0 8px; font-size: 18px; }
+.results__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.results__list li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; }
+.results__list li::before { flex: 0 0 22px; text-align: center; font-weight: 800; }
+.results__list--helped li::before { content: "✓"; color: #4ade80; }
+.results__list--hurt li::before { content: "!"; color: #ff9b9b; }
+.results__list--facts li::before { content: "★"; color: var(--accent); }
+
+.results__cards { display: grid; gap: 10px; }
+.results__card {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(110, 140, 230, 0.12);
+  border: 1.5px solid var(--panel-border);
+  line-height: 1.45;
+}
+.results__card p { margin: 0 0 6px; }
+.results__card small { opacity: 0.75; }
+
+.results__links { margin-top: 14px; font-size: 15px; }

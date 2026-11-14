@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { randomInt } from "node:crypto";
 
@@ -56,10 +57,10 @@ async function action(player, type) {
 try {
   await waitForServer();
   const players = await Promise.all([join("SMOKE"), join("SMOKE"), join("SMOKE"), join("SMOKE")]);
-  const validRoles = new Set(["engineer", "scientist", "technician"]);
+  const validRoles = new Set(["engineer", "scientist", "doctor", "technician"]);
 
   assert(players.every((player) => validRoles.has(player.role)), `В комнату выдана неподдерживаемая роль: ${players.map((p) => p.role).join(", ")}`);
-  assert(new Set(players.slice(0, 3).map((player) => player.role)).size === 3, "Первые три игрока должны получить разные роли");
+  assert(new Set(players.map((player) => player.role)).size === 4, `Четыре игрока должны получить четыре разные роли: ${players.map((p) => p.role).join(", ")}`);
   assert(players.every((player) => player.seed === players[0].seed), "Игроки одной комнаты получили разные seed");
   assert(players[0].hostId === players[0].playerId, "Первый игрок должен быть ведущим комнаты");
 
@@ -69,10 +70,28 @@ try {
   assert(guestTick.response.status === 409 && guestTick.body.error === "not host", "Обычный игрок не должен проматывать время");
   const guestRepair = await action(players[1].playerId, "repair");
   assert(guestRepair.response.status === 200, `Игрок не смог отправить разрешённое действие: ${guestRepair.response.status}`);
+  const research = await action(players[1].playerId, "research");
+  assert(research.response.status === 200, `Сервер не пропустил действие research: ${research.response.status}`);
   const badAction = await action(players[1].playerId, "inventModule");
   assert(badAction.response.status === 400, "Сервер должен отклонять неизвестное действие");
 
+  // Каждое действие движка должно быть разрешено на сервере, иначе в совместной игре кнопка молча не сработает.
+  // Исключение nextDay: пропускать день онлайн нельзя
+  const typesSource = readFileSync("src/types.ts", "utf8").split("\n");
+  const start = typesSource.findIndex((line) => line.startsWith("export type Action"));
+  const block = [];
+  for (let i = start + 1; i < typesSource.length && typesSource[i].startsWith(" "); i++) block.push(typesSource[i]);
+  const engineActions = new Set([...block.join("\n").matchAll(/type: "(\w+)"/g)].map((m) => m[1]));
+  engineActions.delete("nextDay");
+  const serverSource = readFileSync("server/index.mjs", "utf8");
+  const serverActions = new Set([...serverSource.match(/ACTION_TYPES = new Set\(\[(.*?)\]\)/)[1].matchAll(/"(\w+)"/g)].map((m) => m[1]));
+  const missing = [...engineActions].filter((a) => !serverActions.has(a));
+  const extra = [...serverActions].filter((a) => !engineActions.has(a));
+  assert(engineActions.size >= 5, `Не удалось прочитать список действий из types.ts: ${[...engineActions].join(", ")}`);
+  assert(missing.length === 0 && extra.length === 0, `Действия движка и сервера разошлись. Нет на сервере: ${missing.join(", ") || "—"}. Лишние на сервере: ${extra.join(", ") || "—"}`);
+
   console.log("✓ Онлайн-комната: роли, ведущий и валидация действий работают");
+  console.log(`✓ Сервер пропускает все действия движка: ${[...engineActions].join(", ")}`);
 } finally {
   if (server.exitCode === null) {
     server.kill();

@@ -7,8 +7,8 @@ const RECORDS_KEY = "moonbase:records";
 const SAVE_KEY = "moonbase:save";
 const LANG_KEY = "moonbase:lang";
 // Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру.
-// 5: из экипажа убрали Софию, в старых сохранениях она ещё есть
-const SAVE_VERSION = 5;
+// 5: из экипажа убрали Софию; 6: добавлен список завершённых исследований
+const SAVE_VERSION = 6;
 const MAX_RECORDS = 10;
 
 export type GameRecord = { days: number; health: number; won: boolean; at: string };
@@ -50,20 +50,22 @@ export function saveGame(state: GameState) {
 export function loadGame(): GameState | null {
   const saved = read<{ version?: number; state?: GameState } | null>(SAVE_KEY, null);
   const s = saved?.state;
-  if (!saved || saved.version !== SAVE_VERSION || !s) return null;
+  if (!saved || !s || (saved.version !== 5 && saved.version !== SAVE_VERSION)) return null;
+  const migrated = saved.version === 5 ? { ...s, research: [] } : s;
   const looksValid =
-    typeof s.day === "number" &&
-    s.status === "playing" &&
-    typeof s.resources?.health === "number" &&
-    Array.isArray(s.modules) &&
-    Array.isArray(s.pending) &&
-    Array.isArray(s.log) &&
-    Array.isArray(s.history) &&
-    Array.isArray(s.crew) &&
-    Array.isArray(s.tasks) &&
-    typeof s.seed === "number" &&
-    typeof s.clockMs === "number";
-  return looksValid ? s : null;
+    typeof migrated.day === "number" &&
+    migrated.status === "playing" &&
+    typeof migrated.resources?.health === "number" &&
+    Array.isArray(migrated.modules) &&
+    Array.isArray(migrated.pending) &&
+    Array.isArray(migrated.log) &&
+    Array.isArray(migrated.history) &&
+    Array.isArray(migrated.crew) &&
+    Array.isArray(migrated.tasks) &&
+    Array.isArray(migrated.research) &&
+    typeof migrated.seed === "number" &&
+    typeof migrated.clockMs === "number";
+  return looksValid ? migrated : null;
 }
 
 export function clearSave() {

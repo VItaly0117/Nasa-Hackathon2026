@@ -15,10 +15,11 @@ type Props = {
   onNewGame: () => void;
   onContinue: () => void;
   onJoined: (session: Session) => void;
+  onSources: () => void; // открыть экран «Данные NASA»
 };
 
 // Начальный экран: название игры и кнопки. Выбор языка и вход на сервер открываются здесь же
-export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: Props) {
+export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, onSources }: Props) {
   const [view, setView] = useState<"main" | "lang" | "server">("main");
   const [room, setRoom] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +125,9 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: 
           </button>
           <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); setView("server"); }}>
             {t("menu.server")}
+          </button>
+          <button className="btn btn--ghost menu__btn" onClick={() => { sound.playClick(); onSources(); }}>
+            {t("menu.sources")}
           </button>
         </div>
       </div>
