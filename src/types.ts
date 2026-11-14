@@ -4,9 +4,7 @@ export type Resources = Record<ResourceKey, number>;
 export type ModuleType = "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter";
 
 export type ModuleDef = {
-  type: ModuleType;
-  name: string;
-  description?: string;
+  type: ModuleType;   // название и описание лежат в словарях i18n: module.<type>.name / .desc
   cost: Partial<Resources>;         // разово при постройке
   perDay: Partial<Resources>;       // каждый день: + даёт, − берёт
   nightPerDay?: Partial<Resources>; // ночью, если отличается (панели, батарея)
@@ -14,24 +12,19 @@ export type ModuleDef = {
 
 export type PlacedModule = { slot: number; type: ModuleType; broken: boolean };
 
-// Выбор в событии. Цена в том же формате, что cost у модулей: положительное число = сколько ресурса забирает
+// Выбор в событии. Тексты лежат в словарях i18n: ev.<event>.<choice>.label / .hint, строки журнала по ключам result
+// Цена в том же формате, что cost у модулей: положительное число = сколько ресурса забирает
 export type EventChoice = {
   id: string;
-  label: string;
-  hint: string;                                                   // текст для игрока, должен совпадать с cost
   cost: Partial<Resources>;                                       // всегда
   costWithout?: { module: ModuleType; cost: Partial<Resources> }; // доплата, если такого модуля на базе нет
   repairs?: ModuleType;                                           // чинит все модули этого типа
-  result: string;                                                 // строка в журнал
-  resultWithout?: string;                                         // строка в журнал, если модуля нет
+  result: string;                                                 // ключ i18n строки для журнала
+  resultWithout?: string;                                         // ключ i18n, если модуля нет
 };
 
-export type EventDef = {
-  id: string;
-  title: string;
-  text: string;
-  choices: EventChoice[];
-};
+// Заголовок и описание события: ev.<id>.title / ev.<id>.text
+export type EventDef = { id: string; choices: EventChoice[] };
 
 // Реальная вспышка из NASA DONKI (src/data/nasa/flares.json)
 export type Flare = {

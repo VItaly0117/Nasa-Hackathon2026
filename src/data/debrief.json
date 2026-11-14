@@ -1,146 +1,27 @@
 {
   "verdicts": [
-    {
-      "id": "perfect",
-      "when": ["won", "healthHigh", "!anyShortage", "!blackoutAtNight", "!blackoutByDay"],
-      "title": "Миссия выполнена на отлично!",
-      "summary": "Экипаж прожил на Луне {days} дней и ни разу не остался без воздуха, воды, еды и энергии. Здоровье: {health}%.",
-      "rating": "Отлично"
-    },
-    {
-      "id": "won",
-      "when": ["won"],
-      "title": "Миссия выполнена!",
-      "summary": "Экипаж продержался все {days} дней. Было трудно, но все вернутся домой. Здоровье: {health}%.",
-      "rating": "Хорошо"
-    },
-    {
-      "id": "lost-late",
-      "when": ["lost", "reachedNight"],
-      "title": "Миссия прервана",
-      "summary": "База продержалась {days} дней из {total}. До конца оставалось совсем немного. Экипаж эвакуирован на Землю.",
-      "rating": "Почти получилось"
-    },
-    {
-      "id": "lost",
-      "when": ["lost"],
-      "title": "Миссия прервана",
-      "summary": "База продержалась {days} дней из {total}. Экипаж эвакуирован на Землю. Посмотри, что пошло не так, и попробуй ещё раз.",
-      "rating": "Попробуй ещё раз"
-    }
+    {"id": "perfect", "when": ["won", "healthHigh", "!anyShortage", "!blackoutAtNight", "!blackoutByDay"]},
+    {"id": "won", "when": ["won"]},
+    {"id": "lost-late", "when": ["lost", "reachedNight"]},
+    {"id": "lost", "when": ["lost"]}
   ],
   "rules": [
-    {
-      "id": "flare-worked",
-      "kind": "hurt",
-      "when": ["flareWorked"],
-      "text": "Во время вспышки экипаж остался работать снаружи и получил много радиации. Когда Солнце бросает в космос частицы, работу оставляют и идут в укрытие.",
-      "hint": "flare"
-    },
-    {
-      "id": "flare-no-shelter",
-      "kind": "hurt",
-      "when": ["flareHidNoShelter"],
-      "text": "Убежища не было, и экипаж прятался за баками с водой. Это лучше, чем ничего, но здоровье всё равно пострадало. Убежище надо строить до вспышки, а не во время.",
-      "hint": "flare"
-    },
-    {
-      "id": "breakdown-ignored",
-      "kind": "hurt",
-      "when": ["breakdownIgnored"],
-      "text": "Сломанное жизнеобеспечение не починили, и база перестала получать кислород и воду. Маленькая поломка без ремонта быстро становится большой бедой.",
-      "hint": "water"
-    },
-    {
-      "id": "no-builds",
-      "kind": "hurt",
-      "when": ["noBuilds"],
-      "text": "За всю миссию не построено ни одного модуля. Запасов с ракеты хватает ненадолго: база должна сама делать воздух, еду и энергию."
-    },
-    {
-      "id": "food-no-greenhouse",
-      "kind": "hurt",
-      "when": ["ranOutFood", "!builtGreenhouse"],
-      "text": "Еда закончилась, а теплицы не было. Ракета с Земли летит до Луны несколько дней, поэтому часть еды нужно растить прямо на базе."
-    },
-    {
-      "id": "food-late-greenhouse",
-      "kind": "hurt",
-      "when": ["ranOutFood", "builtGreenhouse"],
-      "text": "Теплица появилась слишком поздно: запасы еды успели закончиться. Еду нужно начинать растить заранее, пока полки ещё полные."
-    },
-    {
-      "id": "oxygen-out",
-      "kind": "hurt",
-      "when": ["ranOutOxygen"],
-      "text": "Закончился кислород. Экипаж тратит его каждый день, а дают его жизнеобеспечение и теплица. Следи за цифрой «в день»: если она с минусом, запас тает."
-    },
-    {
-      "id": "water-out",
-      "kind": "hurt",
-      "when": ["ranOutWater"],
-      "text": "Закончилась вода. Она нужна и людям, и теплице, и для ремонта. Воду на базе не выливают, а чистят и пьют снова.",
-      "hint": "water"
-    },
-    {
-      "id": "night-no-battery",
-      "kind": "hurt",
-      "when": ["blackoutAtNight", "!batteryBeforeNight"],
-      "text": "Ночью база осталась без энергии: к закату не было ни одной батареи. Солнечные панели в темноте не работают, энергию для ночи копят днём.",
-      "hint": "night"
-    },
-    {
-      "id": "night-weak-battery",
-      "kind": "hurt",
-      "when": ["blackoutAtNight", "batteryBeforeNight"],
-      "text": "Батареи были, но на всю лунную ночь энергии не хватило. Ночь на Луне очень длинная, запас нужен с лишком.",
-      "hint": "night"
-    },
-    {
-      "id": "day-blackout",
-      "kind": "hurt",
-      "when": ["blackoutByDay"],
-      "text": "Энергия закончилась ещё днём: модули тратили больше, чем давали панели. Сначала строй то, что даёт энергию, и только потом то, что её тратит."
-    },
-    {
-      "id": "flare-shelter",
-      "kind": "helped",
-      "when": ["flareHidInShelter"],
-      "text": "Экипаж переждал вспышку в убежище и не пострадал. Ты построил его заранее. Это и есть подготовка к опасности.",
-      "hint": "flare"
-    },
-    {
-      "id": "breakdown-repaired",
-      "kind": "helped",
-      "when": ["breakdownRepaired"],
-      "text": "Поломку починили сразу. Ремонт стоил воды и энергии, зато база снова получает кислород и чистую воду.",
-      "hint": "water"
-    },
-    {
-      "id": "night-survived",
-      "kind": "helped",
-      "when": ["reachedNight", "batteryBeforeNight", "!blackoutAtNight"],
-      "text": "Батареи накопили энергию днём, и база пережила лунную ночь без отключений.",
-      "hint": "night"
-    },
-    {
-      "id": "greenhouse-fed",
-      "kind": "helped",
-      "when": ["builtGreenhouse", "!ranOutFood"],
-      "text": "Теплица кормила экипаж, и еда ни разу не закончилась. Вдобавок растения дают кислород."
-    },
-    {
-      "id": "crew-healthy",
-      "kind": "helped",
-      "when": ["won", "healthHigh"],
-      "text": "Экипаж закончил миссию здоровым. Ты берёг людей, а не только запасы."
-    },
-    {
-      "id": "real-flare",
-      "kind": "fact",
-      "when": ["flareHappened"],
-      "text": "Вспышка в твоей миссии была настоящей: {flare}. Её записали приборы NASA.",
-      "source": "flare"
-    }
+    {"id": "flare-worked", "kind": "hurt", "when": ["flareWorked"], "hint": "flare"},
+    {"id": "flare-no-shelter", "kind": "hurt", "when": ["flareHidNoShelter"], "hint": "flare"},
+    {"id": "breakdown-ignored", "kind": "hurt", "when": ["breakdownIgnored"], "hint": "water"},
+    {"id": "no-builds", "kind": "hurt", "when": ["noBuilds"]},
+    {"id": "food-no-greenhouse", "kind": "hurt", "when": ["ranOutFood", "!builtGreenhouse"]},
+    {"id": "food-late-greenhouse", "kind": "hurt", "when": ["ranOutFood", "builtGreenhouse"]},
+    {"id": "oxygen-out", "kind": "hurt", "when": ["ranOutOxygen"]},
+    {"id": "water-out", "kind": "hurt", "when": ["ranOutWater"], "hint": "water"},
+    {"id": "night-no-battery", "kind": "hurt", "when": ["blackoutAtNight", "!batteryBeforeNight"], "hint": "night"},
+    {"id": "night-weak-battery", "kind": "hurt", "when": ["blackoutAtNight", "batteryBeforeNight"], "hint": "night"},
+    {"id": "day-blackout", "kind": "hurt", "when": ["blackoutByDay"]},
+    {"id": "flare-shelter", "kind": "helped", "when": ["flareHidInShelter"], "hint": "flare"},
+    {"id": "breakdown-repaired", "kind": "helped", "when": ["breakdownRepaired"], "hint": "water"},
+    {"id": "night-survived", "kind": "helped", "when": ["reachedNight", "batteryBeforeNight", "!blackoutAtNight"], "hint": "night"},
+    {"id": "greenhouse-fed", "kind": "helped", "when": ["builtGreenhouse", "!ranOutFood"]},
+    {"id": "crew-healthy", "kind": "helped", "when": ["won", "healthHigh"]},
+    {"id": "real-flare", "kind": "fact", "when": ["flareHappened"], "source": "flare"}
   ]
 }

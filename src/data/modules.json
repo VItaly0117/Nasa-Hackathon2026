@@ -1,45 +1,33 @@
 [
   {
     "type": "habitat",
-    "name": "Жилой модуль",
-    "description": "Здесь живёт и отдыхает экипаж.",
     "cost": { "energy": 10 },
     "perDay": { "energy": -3 }
   },
   {
     "type": "lifeSupport",
-    "name": "Жизнеобеспечение",
-    "description": "Делает кислород и очищает воду.",
     "cost": { "water": 10, "energy": 15 },
     "perDay": { "oxygen": 5, "water": 2, "energy": -4 }
   },
   {
     "type": "solar",
-    "name": "Солнечные панели",
-    "description": "Дешёвая энергия, но только пока светит солнце.",
     "cost": { "energy": 5 },
     "perDay": { "energy": 10 },
     "nightPerDay": {}
   },
   {
     "type": "battery",
-    "name": "Батарея",
-    "description": "Копит энергию днём и отдаёт её ночью.",
     "cost": { "energy": 10 },
     "perDay": { "energy": -1 },
     "nightPerDay": { "energy": 6 }
   },
   {
     "type": "greenhouse",
-    "name": "Теплица",
-    "description": "Производит еду и кислород.",
     "cost": { "water": 15, "energy": 10 },
     "perDay": { "food": 6, "oxygen": 2, "water": -3, "energy": -5 }
   },
   {
     "type": "shelter",
-    "name": "Радиоубежище",
-    "description": "Защищает экипаж во время солнечных вспышек.",
     "cost": { "energy": 20 },
     "perDay": { "energy": -1 }
   }

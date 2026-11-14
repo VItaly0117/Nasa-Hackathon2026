@@ -1,47 +1,16 @@
 [
   {
     "id": "breakdown",
-    "title": "Поломка жизнеобеспечения",
-    "text": "Фильтр системы переработки забился пылью. Пока его не починят, модуль не даёт кислород и воду.",
     "choices": [
-      {
-        "id": "repair",
-        "label": "Срочно чинить",
-        "hint": "−10 воды, −10 энергии, модуль снова работает",
-        "cost": { "water": 10, "energy": 10 },
-        "repairs": "lifeSupport",
-        "result": "Жизнеобеспечение починили"
-      },
-      {
-        "id": "ignore",
-        "label": "Отложить ремонт",
-        "hint": "Ресурсы целы, но модуль остаётся сломанным",
-        "cost": {},
-        "result": "Ремонт отложен: жизнеобеспечение не работает"
-      }
+      {"id": "repair", "cost": {"water": 10, "energy": 10}, "repairs": "lifeSupport", "result": "log.repaired"},
+      {"id": "ignore", "cost": {}, "result": "log.repairIgnored"}
     ]
   },
   {
     "id": "flare",
-    "title": "Солнечная вспышка!",
-    "text": "К Луне летят заряженные частицы. У Луны нет атмосферы и магнитного поля, поэтому они достигнут поверхности почти без помех.",
     "choices": [
-      {
-        "id": "hide",
-        "label": "Укрыться",
-        "hint": "В убежище экипаж в безопасности. Без убежища — за баками с водой, здоровье −10",
-        "cost": {},
-        "costWithout": { "module": "shelter", "cost": { "health": 10 } },
-        "result": "Экипаж переждал вспышку в убежище",
-        "resultWithout": "Убежища нет: укрылись за баками с водой, здоровье −10"
-      },
-      {
-        "id": "work",
-        "label": "Продолжить работу снаружи",
-        "hint": "Здоровье −30",
-        "cost": { "health": 30 },
-        "result": "Работа продолжалась во время вспышки: здоровье −30"
-      }
+      {"id": "hide", "cost": {}, "costWithout": {"module": "shelter", "cost": {"health": 10}}, "result": "log.flareShelter", "resultWithout": "log.flareNoShelter"},
+      {"id": "work", "cost": {"health": 30}, "result": "log.flareWork"}
     ]
   }
 ]

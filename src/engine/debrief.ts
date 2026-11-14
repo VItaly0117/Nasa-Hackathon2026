@@ -1,5 +1,7 @@
 import debriefData from "../data/debrief.json";
 import hintsData from "../data/hints.json";
+import { days as daysText, t } from "../i18n";
+import { ru } from "../i18n/ru";
 import type { GameState, HistoryEntry, ModuleType, ResourceKey } from "../types";
 import { MISSION_DAYS, NIGHT_START } from "./engine";
 import { describeFlare } from "./events";
@@ -7,7 +9,8 @@ import { describeFlare } from "./events";
 // Итоговый разбор. Работает в два шага:
 //   1) collectFacts: из истории миссии получаем простые факты «да/нет» (что реально случилось);
 //   2) правила из data/debrief.json: если все факты из when верны, показываем текст.
-// Чтобы добавить новый текст, достаточно дописать правило в debrief.json. Код менять не нужно,
+// Сами тексты лежат в словарях i18n: debrief.rule.<id> и debrief.verdict.<id>.title / .summary / .rating
+// Чтобы добавить новый текст: правило в debrief.json + строка в ru.ts, uk.ts, en.ts. Код менять не нужно,
 // пока хватает фактов из списка FACT_NAMES.
 
 export const FACT_NAMES = [
@@ -28,23 +31,22 @@ export type Facts = Record<FactName, boolean>;
 
 // Условие правила: имя факта или "!имя" (факт должен быть ложным)
 type Condition = FactName | `!${FactName}`;
-type Verdict = { id: string; when: Condition[]; title: string; summary: string; rating: string };
+type Verdict = { id: string; when: Condition[] };
 type Rule = {
   id: string;
   kind: "helped" | "hurt" | "fact";
   when: Condition[];
-  text: string;
   hint?: string;      // id из hints.json: подсказка «как это у NASA»
   source?: "flare";   // приложить ссылку на вспышку в DONKI
 };
 
 const DATA = debriefData as { verdicts: Verdict[]; rules: Rule[] };
-const HINTS = hintsData as { id: string; text: string }[];
+const HINT_IDS = (hintsData as { id: string }[]).map((h) => h.id);
 
 export type DebriefLine = {
   id: string;
   text: string;
-  hint?: string;                              // текст подсказки NASA
+  hintId?: string;                            // id подсказки NASA из hints.json
   source?: { label: string; url: string };    // подпись источника
 };
 
@@ -110,20 +112,21 @@ export function buildReport(state: GameState): DebriefReport {
   const days = state.day;
   const health = Math.round(state.resources.health);
 
-  const fill = (text: string) =>
-    text
-      .replaceAll("{days}", String(days))
-      .replaceAll("{total}", String(MISSION_DAYS))
-      .replaceAll("{health}", String(health))
-      .replaceAll("{flare}", state.flare ? describeFlare(state.flare) : "данные NASA DONKI");
+  // {days} подставляется уже со словом: «19 дней», «19 днів», «19 days»
+  const params = {
+    days: daysText(days),
+    total: MISSION_DAYS,
+    health,
+    flare: state.flare ? describeFlare(state.flare) : "NASA DONKI",
+  };
 
   const verdict = DATA.verdicts.find((v) => matches(facts, v.when)) ?? DATA.verdicts[DATA.verdicts.length - 1];
 
   const report: DebriefReport = {
     won: facts.won,
-    title: fill(verdict.title),
-    summary: fill(verdict.summary),
-    rating: verdict.rating,
+    title: t(`debrief.verdict.${verdict.id}.title`, params),
+    summary: t(`debrief.verdict.${verdict.id}.summary`, params),
+    rating: t(`debrief.verdict.${verdict.id}.rating`),
     days,
     health,
     helped: [],
@@ -133,9 +136,8 @@ export function buildReport(state: GameState): DebriefReport {
 
   for (const rule of DATA.rules) {
     if (!matches(facts, rule.when)) continue;
-    const line: DebriefLine = { id: rule.id, text: fill(rule.text) };
-    const hint = rule.hint && HINTS.find((x) => x.id === rule.hint)?.text;
-    if (hint) line.hint = hint;
+    const line: DebriefLine = { id: rule.id, text: t(`debrief.rule.${rule.id}`, params) };
+    if (rule.hint) line.hintId = rule.hint;
     if (rule.source === "flare" && state.flare) line.source = { label: state.flare.source, url: state.flare.link };
     (rule.kind === "helped" ? report.helped : rule.kind === "hurt" ? report.hurt : report.facts).push(line);
   }
@@ -159,8 +161,14 @@ export function validateDebriefData(): string[] {
     }
   }
   for (const rule of DATA.rules) {
-    if (rule.hint && !HINTS.some((x) => x.id === rule.hint)) problems.push(`${rule.id}: нет подсказки "${rule.hint}" в hints.json`);
+    if (rule.hint && !HINT_IDS.includes(rule.hint)) problems.push(`${rule.id}: нет подсказки "${rule.hint}" в hints.json`);
   }
+  // У каждого правила и вердикта должен быть текст. ru.ts базовый: uk.ts и en.ts сверяет с ним TypeScript
+  const keys = [
+    ...DATA.rules.map((r) => `debrief.rule.${r.id}`),
+    ...DATA.verdicts.flatMap((v) => ["title", "summary", "rating"].map((f) => `debrief.verdict.${v.id}.${f}`)),
+  ];
+  for (const key of keys) if (!(key in ru)) problems.push(`нет текста "${key}" в словарях i18n`);
   const ids = [...DATA.verdicts, ...DATA.rules].map((x) => x.id);
   for (const id of new Set(ids)) if (ids.filter((x) => x === id).length > 1) problems.push(`повтор id "${id}"`);
   return problems;
