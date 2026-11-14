@@ -1,4 +1,5 @@
-import { t } from "../i18n";
+import type { CrewMember } from "../types";
+import { moduleName, t } from "../i18n";
 import { CREW } from "./crewData";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
@@ -36,7 +37,7 @@ function Mood({ mood }: { mood: number }) {
   );
 }
 
-export function CrewPanel({ health }: { health: number }) {
+export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
   const mood = health >= 70 ? 1 : health >= 40 ? 0 : -1;
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
@@ -54,7 +55,13 @@ export function CrewPanel({ health }: { health: number }) {
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
             <div className="crew__info">
               <strong>{t(`crew.n${p.id}`)}</strong>
-              <span className="crew__role">{t(`crew.r${p.id}`)}</span>
+              <span className="crew__role">
+                {t(`crew.r${p.id}`)} ·{" "}
+                {(() => {
+                  const status = crew.find((c) => c.id === p.id)?.status;
+                  return status?.kind === "building" ? t("crew.building", { name: moduleName(status.module) }) : t("crew.free");
+                })()}
+              </span>
               <div className="crew__bar">
                 <div style={{ width: `${health}%`, background: barColor }} />
               </div>

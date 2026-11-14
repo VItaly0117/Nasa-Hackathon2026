@@ -263,5 +263,13 @@ export const ru = {
   "res.unit.energy": "кВт·ч",
   "res.unit.materials": "кг",
   "res.unit.health": "%",
+
+  // Экипаж строит
+  "log.buildStarted": "{who} начинает строительство: «{name}»",
+  "crew.free": "свободен",
+  "crew.building": "строит: {name}",
+  "build.crewBusy": "Все заняты",
+  "build.crewBusyHint": "Подожди, пока кто-нибудь освободится",
+  "map.building": "Строится: {n}%",
 } as const;
 

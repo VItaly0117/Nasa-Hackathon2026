@@ -1,10 +1,15 @@
 import modulesData from "../data/modules.json";
-import type { Action, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "../types";
+import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
 import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
 import { moduleName, t } from "../i18n";
 
 export const MISSION_DAYS = 20;
+// Сколько длится игровой день. Короче нельзя: дети 7-12 должны успеть прочитать и подумать
+export const DAY_MS = 25000;
+// Сколько строится любой модуль: одна игровая минута, около 2,4 дня. Пауза стройку останавливает, ×2 ускоряет
+export const BUILD_MS = 60000;
+const CREW_ROLES: Role[] = ["engineer", "scientist", "doctor", "technician"];
 export const NIGHT_START = 14;
 
 const MODULES = modulesData as ModuleDef[];
@@ -27,7 +32,7 @@ export function capacityOf(modules: PlacedModule[]): Resources {
   const cap: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
   for (const key of KEYS) cap[key] = BASE_CAPACITY;
   for (const module of modules) {
-    if (module.broken) continue;
+    if (module.broken || module.build) continue;
     const extra = getDef(module.type).capacity;
     if (extra) for (const key of KEYS) cap[key] += extra[key] ?? 0;
   }
@@ -42,14 +47,19 @@ function addTo(target: Resources, delta: Partial<Resources>) {
   for (const key of KEYS) target[key] += delta[key] ?? 0;
 }
 
+// Модуль в стройке занимает клетку, но ещё не работает
+export const isWorking = (m: PlacedModule) => !m.build;
+
 function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources> {
-  if (module.broken) return {};
+  if (module.broken || module.build) return {};
   const def = getDef(module.type);
   return isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
 }
 
 export function initialState(): GameState {
   return {
+    crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, status: { kind: "free" } })),
+    clockMs: 0,
     day: 1,
     isNight: false,
     // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
@@ -144,9 +154,19 @@ function nextDay(state: GameState): GameState {
   return next;
 }
 
+// Кого поставить строить: свободного с подходящей ролью, иначе любого свободного
+export function pickBuilder(state: GameState, type: ModuleType): CrewMember | null {
+  const free = state.crew.filter((c) => c.status.kind === "free");
+  return free.find((c) => c.role === getDef(type).builder) ?? free[0] ?? null;
+}
+
+export const hasFreeCrew = (state: GameState) => state.crew.some((c) => c.status.kind === "free");
+
 function build(state: GameState, slot: number, type: ModuleType): GameState {
   const { row, col } = cellOf(slot);
   if (!canPlace(state, type, row, col)) return state;
+  const builder = pickBuilder(state, type);
+  if (!builder) return state; // все заняты: модуль не ставится
   const def = getDef(type);
   const resources = { ...state.resources };
   for (const key of KEYS) {
@@ -157,16 +177,53 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
   return {
     ...state,
     resources,
-    modules: [...state.modules, { slot, type, broken: false }],
-    history: [...state.history, { day: state.day, kind: "built", module: type }],
-    log: [...state.log, { day: state.day, text: t("log.built", { name: moduleName(type) }) }],
+    modules: [...state.modules, { slot, type, broken: false, build: { leftMs: BUILD_MS, totalMs: BUILD_MS, crewId: builder.id } }],
+    crew: state.crew.map((c) => (c.id === builder.id ? { ...c, status: { kind: "building", slot, module: type } } : c)),
+    log: [...state.log, { day: state.day, text: t("log.buildStarted", { who: t(`crew.n${builder.id}`), name: moduleName(type) }) }],
   };
+}
+
+// Стройка идёт, пока идёт время. Готовый модуль начинает работать, строитель освобождается
+function advanceBuilds(state: GameState, ms: number): GameState {
+  if (!state.modules.some((m) => m.build)) return state;
+  const log = [...state.log];
+  const history = [...state.history];
+  const freed = new Set<number>();
+  const modules = state.modules.map((m) => {
+    if (!m.build) return m;
+    const leftMs = m.build.leftMs - ms;
+    if (leftMs > 0) return { ...m, build: { ...m.build, leftMs } };
+    freed.add(m.build.crewId);
+    log.push({ day: state.day, text: t("log.built", { name: moduleName(m.type) }) });
+    history.push({ day: state.day, kind: "built", module: m.type });
+    const { build: _done, ...ready } = m;
+    return ready;
+  });
+  const crew = state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c));
+  return { ...state, modules, crew, log, history };
+}
+
+// Прошло ms мс игрового времени. Время дня и стройка идут от одних часов: пауза и ускорение работают сразу для всего.
+// Если за это время наступает событие или миссия кончается, оставшееся время отбрасываем
+function tick(state: GameState, ms: number): GameState {
+  let s = state;
+  let left = ms;
+  while (left > 0 && s.status === "playing" && !s.activeEvent) {
+    const step = Math.min(left, DAY_MS - s.clockMs);
+    left -= step;
+    s = advanceBuilds(s, step);
+    const clockMs = s.clockMs + step;
+    s = clockMs >= DAY_MS ? nextDay({ ...s, clockMs: 0 }) : { ...s, clockMs };
+  }
+  return s;
 }
 
 export function reduce(state: GameState, action: Action): GameState {
   switch (action.type) {
+    case "tick":
+      return tick(state, action.ms);
     case "nextDay":
-      return state.status === "playing" && !state.activeEvent ? nextDay(state) : state;
+      return tick(state, DAY_MS - state.clockMs);
     case "build":
       return build(state, action.slot, action.module);
     case "resolveEvent": {

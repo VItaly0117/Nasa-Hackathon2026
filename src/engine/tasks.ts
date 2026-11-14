@@ -9,7 +9,7 @@ export type Task = {
   done: (s: GameState) => boolean;
 };
 
-const has = (s: GameState, type: ModuleType) => s.modules.some((m) => m.type === type);
+const has = (s: GameState, type: ModuleType) => s.modules.some((m) => m.type === type && !m.build);
 
 // Порядок = порядок, в котором игроку стоит их делать.
 // TODO @Regie: день вспышки взять из events.ts, когда вспышки станут случайными

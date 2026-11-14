@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
-import { reduce, initialState, dailyDelta, capacityOf, MISSION_DAYS, NIGHT_START } from "./engine/engine";
+import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
@@ -82,7 +82,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
   }, []);
 
   function handleSelectTile(tile: TileInfo) {
-    if (!buildType || !canPlace(state, buildType, tile.row, tile.col)) return;
+    if (!buildType || !hasFreeCrew(state) || !canPlace(state, buildType, tile.row, tile.col)) return;
     dispatch({ type: "build", slot: slotOf(tile.row, tile.col), module: buildType });
     setBuildType(null);
   }
@@ -127,8 +127,8 @@ function Game({ onRestart }: { onRestart: () => void }) {
           </button>
           <DayClock
             running={clockRunning}
-            dayKey={state.day}
-            onDayEnd={() => dispatch({ type: "nextDay" })}
+            progress={state.clockMs / DAY_MS}
+            onTick={(ms) => dispatch({ type: "tick", ms })}
           >
             <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
               ? {t("app.rules")}
@@ -138,7 +138,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
         <ResourceBar resources={state.resources} delta={delta} capacity={capacityOf(state.modules)} />
       </header>
 
-      <CrewPanel health={state.resources.health} />
+      <CrewPanel health={state.resources.health} crew={state.crew} />
       <SidePanel state={state} />
 
       <BuildMenu
@@ -146,6 +146,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
         selected={selectedType}
         placing={buildType !== null}
         disabled={!isPlaying}
+        crewBusy={!hasFreeCrew(state)}
         isAffordable={(def) => canAfford(state.resources, def.cost)}
         onSelect={(type) => {
           setSelectedType(type);

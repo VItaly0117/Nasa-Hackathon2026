@@ -76,7 +76,7 @@ export function resolveEvent(state: GameState, choiceId: string): GameState {
   let textKey = choice.result;
   let unprotected = false;
   if (choice.costWithout) {
-    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module);
+    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module && !m.build);
     if (!hasModule) {
       unprotected = true;
       pay(choice.costWithout.cost);

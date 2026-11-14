@@ -253,4 +253,12 @@ export const en: Record<keyof typeof ru, string> = {
   "res.unit.energy": "kWh",
   "res.unit.materials": "kg",
   "res.unit.health": "%",
+
+  // Экипаж строит
+  "log.buildStarted": "{who} starts building “{name}”",
+  "crew.free": "free",
+  "crew.building": "building: {name}",
+  "build.crewBusy": "Everyone is busy",
+  "build.crewBusyHint": "Wait until someone is free",
+  "map.building": "Building: {n}%",
 };

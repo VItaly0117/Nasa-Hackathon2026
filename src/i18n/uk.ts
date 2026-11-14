@@ -252,4 +252,12 @@ export const uk: Record<keyof typeof ru, string> = {
   "res.unit.energy": "кВт·год",
   "res.unit.materials": "кг",
   "res.unit.health": "%",
+
+  // Экипаж строит
+  "log.buildStarted": "{who} починає будівництво: «{name}»",
+  "crew.free": "вільний",
+  "crew.building": "будує: {name}",
+  "build.crewBusy": "Усі зайняті",
+  "build.crewBusyHint": "Зачекай, поки хтось звільниться",
+  "map.building": "Будується: {n}%",
 };

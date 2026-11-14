@@ -1,48 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "../i18n";
 
-// Сколько длится игровой день. Короче нельзя: дети 7–12 должны успеть прочитать и подумать
-export const DAY_MS = 25000;
+// Как часто часы отправляют движку tick (в мс игрового времени). Реже нельзя: полоска будет дёргаться,
+// чаще не нужно: игра перерисовывается на каждый tick
+const TICK_MS = 100;
 
 type Props = {
   running: boolean;       // false: идёт событие, правила, выбор места или игра окончена
-  dayKey: number;         // новый день сбрасывает полоску
-  onDayEnd: () => void;
+  progress: number;       // 0..1: сколько дня прошло (GameState.clockMs / DAY_MS)
+  onTick: (ms: number) => void;
   children?: React.ReactNode; // например, кнопка «Правила» в том же ряду
 };
 
-// Время дня: полоска, пауза и ускорение ×2. Когда полоска заполнится, день сменится сам
-export function DayClock({ running, dayKey, onDayEnd, children }: Props) {
+// Время дня: полоска, пауза и ускорение ×2. Само время считает движок (action tick):
+// от тех же часов идут день и стройка, поэтому пауза и ускорение действуют на всё сразу
+export function DayClock({ running, progress, onTick, children }: Props) {
   const [paused, setPaused] = useState(false);
   const [fast, setFast] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const elapsed = useRef(0);
-  const endRef = useRef(onDayEnd);
-  endRef.current = onDayEnd;
-
-  useEffect(() => {
-    elapsed.current = 0;
-    setProgress(0);
-  }, [dayKey]);
+  const tickRef = useRef(onTick);
+  tickRef.current = onTick;
 
   useEffect(() => {
     if (!running || paused) return;
     let last = performance.now();
+    let acc = 0;
     let raf = 0;
-    const tick = (now: number) => {
+    const loop = (now: number) => {
       // Если вкладка пряталась, не прибавляем сразу всё пропущенное время
-      elapsed.current += Math.min(now - last, 100) * (fast ? 2 : 1);
+      acc += Math.min(now - last, 100) * (fast ? 2 : 1);
       last = now;
-      if (elapsed.current >= DAY_MS) {
-        elapsed.current = 0;
-        setProgress(0);
-        endRef.current();
-      } else {
-        setProgress(Math.round((elapsed.current / DAY_MS) * 200) / 200);
+      if (acc >= TICK_MS) {
+        tickRef.current(acc);
+        acc = 0;
       }
-      raf = requestAnimationFrame(tick);
+      raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [running, paused, fast]);
 

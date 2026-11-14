@@ -1,6 +1,6 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
-import { capacityOf, initialState, MISSION_DAYS, reduce } from "./engine";
+import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
@@ -26,15 +26,29 @@ function tryBuild(state: GameState, type: ModuleType): GameState {
   return state;
 }
 
+// Робот строит в порядке очереди. Если не хватает ресурсов или все заняты, модуль ждёт и строится, как только можно
 export function playMission(strategy: Strategy): GameState {
   let s = initialState();
+  const queue: ModuleType[] = [];
+  let queuedDay = 0;
   // запас по числу шагов, чтобы ошибка в движке не подвесила проверку
   for (let step = 0; step < MISSION_DAYS * 3 && s.status === "playing"; step++) {
     if (s.activeEvent) {
       s = reduce(s, { type: "resolveEvent", choice: strategy.choices[s.activeEvent] });
       continue;
     }
-    for (const type of strategy.builds[s.day] ?? []) s = tryBuild(s, type);
+    if (queuedDay !== s.day) {
+      queuedDay = s.day;
+      queue.push(...(strategy.builds[s.day] ?? []));
+    }
+    for (let i = 0; i < queue.length; ) {
+      const next = tryBuild(s, queue[i]);
+      if (next === s) i++;
+      else {
+        s = next;
+        queue.splice(i, 1);
+      }
+    }
     s = reduce(s, { type: "nextDay" });
   }
   return s;
@@ -52,17 +66,16 @@ const CARELESS: Strategy = { builds: {}, choices: RECKLESS };
 // Готовимся ко всему: еда, энергия, убежище до вспышки, батареи до ночи
 const PREPARED: Strategy = {
   builds: {
-    // карьер первым: убежище стоит 25 материалов, а с ракеты их только 20
-    1: ["rockMine", "greenhouse", "lifeSupport", "solar"],
-    2: ["solar"],
-    3: ["solar"],
-    4: ["lifeSupport"],
-    5: ["shelter"],
-    7: ["battery"],
+    // день 1: все четверо заняты почти на 2,4 дня, поэтому берём только самое нужное: две панели
+    // (теплица и карьер много тратят), еду и карьер (убежище стоит 25 материалов, а с ракеты их 20)
+    1: ["solar", "greenhouse", "rockMine", "solar"],
+    // убежище должно успеть к вспышке на 9-й день
+    3: ["shelter", "iceMine", "lifeSupport"],
+    // батареи до ночи (14-й день)
+    6: ["battery"],
     8: ["battery"],
     10: ["battery"],
     11: ["battery"],
-    12: ["battery"],
   },
   choices: CAREFUL,
 };
@@ -74,7 +87,10 @@ const NO_BATTERY: Strategy = {
 };
 
 // Строим всё нужное, но без убежища: вспышку пережидаем за баками
-const NO_SHELTER: Strategy = { builds: { ...PREPARED.builds, 5: [] }, choices: CAREFUL };
+const NO_SHELTER: Strategy = {
+  builds: Object.fromEntries(Object.entries(PREPARED.builds).map(([day, list]) => [day, list.filter((t) => t !== "shelter")])),
+  choices: CAREFUL,
+};
 
 function describe(state: GameState): string {
   const r = state.resources;
@@ -111,6 +127,31 @@ export function runChecks(): CheckResult[] {
     noBattery.history.some((e) => e.kind === "blackout" && e.night),
     describe(noBattery),
   );
+
+  // Стройка руками экипажа
+  const fresh = initialState();
+  let busy = fresh;
+  for (let i = 0; i < fresh.crew.length; i++) busy = tryBuild(busy, "solar");
+  const allBusy = busy.crew.every((c) => c.status.kind === "building");
+  check("Каждую стройку ведёт отдельный член экипажа, и все четверо заняты", allBusy, busy.crew.map((c) => c.status.kind).join(", "));
+  check("Когда все заняты, пятый модуль не ставится", tryBuild(busy, "solar") === busy, `модулей ${busy.modules.length}`);
+  check(
+    "Стройка не списывает ресурсы повторно и модуль в стройке ничего не даёт",
+    dailyDelta(busy).energy === dailyDelta(fresh).energy,
+    `энергия в день ${dailyDelta(busy).energy} (было ${dailyDelta(fresh).energy})`,
+  );
+  const almost = reduce(busy, { type: "tick", ms: BUILD_MS - 100 });
+  check("За минуту без 0,1 с стройка ещё идёт", almost.crew.every((c) => c.status.kind === "building"), `занято ${almost.crew.filter((c) => c.status.kind === "building").length}`);
+  const finished = reduce(almost, { type: "tick", ms: 100 });
+  check(
+    "Ровно за 60 с игрового времени модуль готов, а строитель свободен",
+    finished.modules.every((m) => !m.build) && finished.crew.every((c) => c.status.kind === "free"),
+    `свободных ${finished.crew.filter((c) => c.status.kind === "free").length}, строек ${finished.modules.filter((m) => m.build).length}`,
+  );
+  const oneDay = reduce(initialState(), { type: "tick", ms: DAY_MS });
+  check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
+  const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
+  check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
 
   // Лимит хранения: без склада лишнее пропадает, со складом копится
   const fullWater = (extra: PlacedModule[]): GameState => {
