@@ -35,12 +35,6 @@ const BAD_COLOR = "#FF6B6B";
 
 // Рисунки модулей по размеру подобраны под ракету на фоновой картинке
 const ART_SCALE = 1.7;
-// Клетки крупные, а рисунки модулей маленькие относительно клетки: между зданиями остаётся воздух
-const TILE_W = 150;
-const TILE_H = 75;
-const TOP = 240;      // горы на горизонте и место для высоких зданий верхнего ряда
-const BOTTOM = 350;   // грунт под панелью строительства
-const ART_SCALE = 1.45;
 const BUBBLE_W = 300;
 const BUBBLE_H = 140;
 const DRAG_THRESHOLD = 6;
@@ -49,28 +43,9 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.6;
 const START_ZOOM = 0.85;
 
-// Карта — фоновая картинка, клетки размечены поверх неё в data/map.ts
+// Карта — фоновая картинка, клетки размечены поверх неё в data/map.ts.
+// Горизонт и горы нарисованы на картинке, поэтому своей кривизны горизонта здесь нет
 const getPosition = tileCenter;
-// Размер карты в единицах SVG. 1 единица = 1 пиксель при масштабе 1
-const MAP_W = MAP_COLS * TILE_W + TILE_W / 2;
-const MAP_H = TOP + MAP_ROWS * (TILE_H / 2) + TILE_H / 2 + BOTTOM;
-
-// «Шахматная» изометрия с естественной кривизной лунного горизонта:
-// центр карты припіднятий, а краї виразно закруглюються вниз (дуга планетарного купола Місяця)
-const CURVE_AMOUNT = 220; // виразний вигин місячного диска/горизонту
-const curveOffset = (x: number) => {
-  const norm = (x - MAP_W / 2) / (MAP_W / 2); // -1 .. +1
-  return (norm * norm) * CURVE_AMOUNT;
-};
-
-const getPosition = (row: number, col: number) => {
-  const x = col * TILE_W + (row & 1) * (TILE_W / 2) + TILE_W / 2;
-  const baseY = TOP + row * (TILE_H / 2) + TILE_H / 2;
-  return {
-    x,
-    y: baseY + curveOffset(x),
-  };
-};
 
 const diamond = (x: number, y: number) =>
   [
@@ -79,30 +54,6 @@ const diamond = (x: number, y: number) =>
     `${x},${y + TILE_H / 2}`,
     `${x - TILE_W / 2},${y}`,
   ].join(" ");
-
-// Силуэт гор на горизонте с естественной дугой кривизны Луны
-function hillsPath(base: number, amp: number, k: number) {
-  const points: string[] = [];
-  for (let x = 0; x <= MAP_W; x += 30) {
-    const cY = curveOffset(x);
-    const y = base + cY - amp * (0.55 + 0.3 * Math.sin(x * 0.004 * k + k) + 0.15 * Math.sin(x * 0.013 * k));
-    points.push(`${x},${y.toFixed(1)}`);
-  }
-  return `M 0 ${MAP_H + 200} L ${points.join(" L ")} L ${MAP_W} ${MAP_H + 200} Z`;
-}
-
-function groundCurvedPath() {
-  const points: string[] = [];
-  for (let x = 0; x <= MAP_W; x += 30) {
-    const y = TOP + curveOffset(x);
-    points.push(`${x},${y.toFixed(1)}`);
-  }
-  return `M 0 ${MAP_H + 200} L ${points.join(" L ")} L ${MAP_W} ${MAP_H + 200} Z`;
-}
-
-const FAR_HILLS = hillsPath(TOP - 10, 110, 1.3);
-const NEAR_HILLS = hillsPath(TOP + 6, 48, 2.1);
-const GROUND_PATH = groundCurvedPath();
 
 const getTerrainName = (terrain: Terrain) => t(`terrain.${terrain}`);
 
@@ -179,8 +130,7 @@ function clampView(v: View, size: Size): View {
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);
-  const minTopSky = size.h * 0.18; // залишаємо мінімум 18% неба зверху, щоб гори не зрізались
-  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, minTopSky);
+  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, 0);
   return { x, y, k };
 }
 
@@ -456,29 +406,6 @@ export default function LunarMap({
               height={IMAGE_SIZE.height}
               preserveAspectRatio="none"
             />
-            <defs>
-              <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#6f6788" />
-                <stop offset="0.5" stopColor="#8a82a0" />
-                <stop offset="1" stopColor="#9d95b2" />
-              </linearGradient>
-              <pattern id="regolith" width="200" height="100" patternUnits="userSpaceOnUse">
-                <ellipse cx="32" cy="26" rx="13" ry="6" fill="#b2abc2" opacity="0.5" />
-                <ellipse cx="32" cy="27" rx="9" ry="3.6" fill="#6a6382" opacity="0.6" />
-                <ellipse cx="137" cy="69" rx="18" ry="8" fill="#b2abc2" opacity="0.45" />
-                <ellipse cx="137" cy="70" rx="13" ry="5" fill="#6a6382" opacity="0.55" />
-                <circle cx="91" cy="17" r="2.3" fill="#5a5372" opacity="0.6" />
-                <circle cx="171" cy="31" r="1.9" fill="#c3bdd1" opacity="0.6" />
-                <circle cx="57" cy="83" r="2.6" fill="#5a5372" opacity="0.5" />
-                <circle cx="11" cy="63" r="1.7" fill="#c3bdd1" opacity="0.6" />
-              </pattern>
-            </defs>
-
-            {/* Слой 1: горизонт и грунт с округлой планетарной дугой */}
-            <path d={FAR_HILLS} fill="#4a4362" />
-            <path d={NEAR_HILLS} fill="#5f5779" />
-            <path d={GROUND_PATH} fill="url(#ground)" />
-            <path d={GROUND_PATH} fill="url(#regolith)" />
 
             {/* Слой 2: невидимые клетки, по которым кликают. В режиме стройки видна сетка */}
             {TILES.map((tile) => {
@@ -499,7 +426,7 @@ export default function LunarMap({
 
             {/* Слой 3: лунная ночь затемняет поверхность, огни зданий остаются яркими */}
             {isNight && (
-              <path d={FAR_HILLS} fill="#050a1a" opacity="0.5" pointerEvents="none" />
+              <rect width={MAP_W} height={MAP_H} fill="#050a1a" opacity="0.5" pointerEvents="none" />
             )}
 
             {/* Слой 4: зелёные клетки, где можно строить выбранный модуль */}
