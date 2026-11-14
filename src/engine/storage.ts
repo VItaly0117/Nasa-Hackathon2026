@@ -6,7 +6,7 @@ import type { GameState } from "../types";
 const RECORDS_KEY = "moonbase:records";
 const SAVE_KEY = "moonbase:save";
 // Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 const MAX_RECORDS = 10;
 
 export type GameRecord = { days: number; health: number; won: boolean; at: string };
@@ -49,6 +49,7 @@ export function loadGame(): GameState | null {
     Array.isArray(s.history) &&
     Array.isArray(s.crew) &&
     Array.isArray(s.tasks) &&
+    typeof s.seed === "number" &&
     typeof s.clockMs === "number";
   return looksValid ? s : null;
 }

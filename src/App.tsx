@@ -20,6 +20,8 @@ import { Intro } from "./ui/Intro";
 import { Prologue, Rocket } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
 import { TaskToast } from "./ui/TaskToast";
+import { Avatar } from "./ui/CrewPanel";
+import { CREW } from "./ui/crewData";
 import { MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
@@ -161,8 +163,17 @@ function Game({ onRestart }: { onRestart: () => void }) {
       {event && (
         <div className="overlay">
           <div className="modal" role="dialog" aria-labelledby="event-title">
+            {event.id === "illness" && state.illness && (() => {
+              // Кто заболел: портрет и имя, как при просьбе о задании
+              const person = CREW.find((c) => c.id === state.illness!.crewId)!;
+              return (
+                <div className="modal__portrait">
+                  <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
+                </div>
+              );
+            })()}
             <h2 id="event-title">{t(`ev.${event.id}.title`)}</h2>
-            <p>{t(`ev.${event.id}.text`)}</p>
+            <p>{t(`ev.${event.id}.text`, { name: state.illness ? t(`crew.n${state.illness.crewId}`) : "" })}</p>
             {event.id === "flare" && state.flare && (
               <p className="muted source">
                 {t("ev.flare.source", { flare: describeFlare(state.flare) })}{" "}

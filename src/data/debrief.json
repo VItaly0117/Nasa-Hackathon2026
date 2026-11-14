@@ -22,6 +22,9 @@
     {"id": "night-survived", "kind": "helped", "when": ["reachedNight", "batteryBeforeNight", "!blackoutAtNight"], "hint": "night"},
     {"id": "greenhouse-fed", "kind": "helped", "when": ["builtGreenhouse", "!ranOutFood"]},
     {"id": "crew-healthy", "kind": "helped", "when": ["won", "healthHigh"]},
+    {"id": "illness-treated", "kind": "helped", "when": ["illnessTreated"]},
+    {"id": "illness-ignored", "kind": "hurt", "when": ["illnessIgnored"]},
+    {"id": "medbay-helped", "kind": "helped", "when": ["medbayBuilt", "illnessHappened"]},
     {"id": "tasks-done", "kind": "helped", "when": ["tasksMostlyDone"]},
     {"id": "tasks-missed", "kind": "hurt", "when": ["tasksMostlyMissed"]},
     {"id": "real-flare", "kind": "fact", "when": ["flareHappened"], "source": "flare"}

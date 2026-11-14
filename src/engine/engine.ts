@@ -3,10 +3,20 @@ import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule
 import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
 import { moduleName, t } from "../i18n";
-import { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START } from "./constants";
+import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START } from "./constants";
+import { assignWaiting, hasFreeCrew, pickBuilder, restCrew } from "./crew";
 import { issueTasks, MORALE_START, reviewTasks } from "./tasks";
 
 export { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START };
+export { hasFreeCrew, pickBuilder };
+
+// Случайное число от 0 до 1 из seed и следующий seed (mulberry32). Состояние хранит seed, поэтому игра воспроизводима
+export function nextRandom(seed: number): [number, number] {
+  const s = (seed + 0x6d2b79f5) | 0;
+  let x = Math.imul(s ^ (s >>> 15), 1 | s);
+  x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+  return [((x ^ (x >>> 14)) >>> 0) / 4294967296, s];
+}
 const CREW_ROLES: Role[] = ["engineer", "scientist", "doctor", "technician"];
 
 const MODULES = modulesData as ModuleDef[];
@@ -53,8 +63,14 @@ function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources
   return isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
 }
 
-export function initialState(): GameState {
+export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0): GameState {
+  // Вспышка тоже выбирается по seed: одна и та же игра повторяется целиком
+  const [flareRoll, seed] = nextRandom(startSeed);
   const state: GameState = {
+    seed,
+    illness: null,
+    sickCount: 0,
+    lastIllnessDay: 0,
     crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, morale: MORALE_START, status: { kind: "free" } })),
     tasks: [],
     clockMs: 0,
@@ -71,7 +87,7 @@ export function initialState(): GameState {
     ],
     pending: [],
     activeEvent: null,
-    flare: pickFlare(),
+    flare: pickFlare(() => flareRoll),
     history: [],
     log: [{ day: 1, text: t("log.landed") }],
     status: "playing",
@@ -155,14 +171,6 @@ function nextDay(state: GameState): GameState {
   return next;
 }
 
-// Кого поставить строить: свободного с подходящей ролью, иначе любого свободного
-export function pickBuilder(state: GameState, type: ModuleType): CrewMember | null {
-  const free = state.crew.filter((c) => c.status.kind === "free");
-  return free.find((c) => c.role === getDef(type).builder) ?? free[0] ?? null;
-}
-
-export const hasFreeCrew = (state: GameState) => state.crew.some((c) => c.status.kind === "free");
-
 function build(state: GameState, slot: number, type: ModuleType): GameState {
   const { row, col } = cellOf(slot);
   if (!canPlace(state, type, row, col)) return state;
@@ -175,25 +183,45 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
     if (resources[key] < cost) return state;
     resources[key] -= cost;
   }
+  // Заболеет ли строитель, решаем сейчас по seed: так игра воспроизводима, а проверки не прыгают
+  const [roll, seed1] = nextRandom(state.seed);
+  const [when, seed2] = nextRandom(seed1);
+  const canFall =
+    state.day >= 2 &&
+    state.sickCount < MAX_ILLNESS &&
+    (state.sickCount === 0 || state.day - state.lastIllnessDay >= ILLNESS_GAP) &&
+    !state.illness &&
+    !state.modules.some((m) => m.build?.sickAt !== undefined);
+  const sickAt = canFall && roll < ILLNESS_CHANCE ? Math.round(BUILD_MS * (0.3 + 0.4 * when)) : undefined;
   return {
     ...state,
+    seed: seed2,
     resources,
-    modules: [...state.modules, { slot, type, broken: false, build: { leftMs: BUILD_MS, totalMs: BUILD_MS, crewId: builder.id } }],
+    modules: [...state.modules, { slot, type, broken: false, build: { leftMs: BUILD_MS, totalMs: BUILD_MS, crewId: builder.id, sickAt } }],
     crew: state.crew.map((c) => (c.id === builder.id ? { ...c, status: { kind: "building", slot, module: type } } : c)),
     log: [...state.log, { day: state.day, text: t("log.buildStarted", { who: t(`crew.n${builder.id}`), name: moduleName(type) }) }],
   };
 }
 
-// Стройка идёт, пока идёт время. Готовый модуль начинает работать, строитель освобождается
+// Стройка идёт, пока идёт время. Готовый модуль начинает работать, строитель освобождается.
+// Если пришло время болезни, открывается событие
 function advanceBuilds(state: GameState, ms: number): GameState {
   if (!state.modules.some((m) => m.build)) return state;
   const log = [...state.log];
   const history = [...state.history];
   const freed = new Set<number>();
+  const sick: { crewId: number; slot: number }[] = [];
   const modules = state.modules.map((m) => {
-    if (!m.build) return m;
+    if (!m.build || m.build.crewId === null) return m; // строителя нет: время стройки не идёт
     const leftMs = m.build.leftMs - ms;
-    if (leftMs > 0) return { ...m, build: { ...m.build, leftMs } };
+    if (leftMs > 0) {
+      if (m.build.sickAt !== undefined && leftMs <= m.build.sickAt && sick.length === 0 && !state.illness && !state.activeEvent) {
+        sick.push({ crewId: m.build.crewId, slot: m.slot });
+        const { sickAt: _fired, ...rest } = m.build;
+        return { ...m, build: { ...rest, leftMs } };
+      }
+      return { ...m, build: { ...m.build, leftMs } };
+    }
     freed.add(m.build.crewId);
     log.push({ day: state.day, text: t("log.built", { name: moduleName(m.type) }) });
     history.push({ day: state.day, kind: "built", module: m.type });
@@ -202,19 +230,44 @@ function advanceBuilds(state: GameState, ms: number): GameState {
   });
   const crew = state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c));
   // Достроили модуль: задание могло выполниться, это видно сразу, а не на следующий день
-  return reviewTasks({ ...state, modules, crew, log, history });
+  const next = reviewTasks({ ...state, modules, crew, log, history });
+  if (sick.length === 0) return next;
+  return {
+    ...next,
+    activeEvent: "illness",
+    illness: sick[0],
+    sickCount: next.sickCount + 1,
+    lastIllnessDay: next.day,
+    log: [...next.log, { day: next.day, text: t("log.illness", { name: t(`crew.n${sick[0].crewId}`) }) }],
+  };
 }
 
 // Прошло ms мс игрового времени. Время дня и стройка идут от одних часов: пауза и ускорение работают сразу для всего.
 // Если за это время наступает событие или миссия кончается, оставшееся время отбрасываем
+// Через сколько мс начнётся ближайшая болезнь. Шаг времени не должен перепрыгнуть этот момент,
+// даже если кто-то передал большой tick (например, «пропустить день»)
+function msUntilSick(state: GameState): number {
+  let soonest = Infinity;
+  for (const m of state.modules) {
+    if (m.build?.sickAt !== undefined && m.build.crewId !== null) soonest = Math.min(soonest, m.build.leftMs - m.build.sickAt);
+  }
+  return Math.max(1, soonest);
+}
+
 function tick(state: GameState, ms: number): GameState {
   let s = state;
   let left = ms;
   while (left > 0 && s.status === "playing" && !s.activeEvent) {
-    const step = Math.min(left, DAY_MS - s.clockMs);
+    const step = Math.min(left, DAY_MS - s.clockMs, msUntilSick(s));
     left -= step;
+    s = assignWaiting(restCrew(s, step)); // больные отдыхают, свободные подхватывают брошенные стройки
     s = advanceBuilds(s, step);
     const clockMs = s.clockMs + step;
+    if (s.activeEvent) {
+      // Началась болезнь: день не меняем, пока игрок не выберет. Остаток времени отбрасываем
+      s = { ...s, clockMs: Math.min(clockMs, DAY_MS - 1) };
+      break;
+    }
     s = clockMs >= DAY_MS ? nextDay({ ...s, clockMs: 0 }) : { ...s, clockMs };
   }
   return s;

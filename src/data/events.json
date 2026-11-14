@@ -12,5 +12,12 @@
       {"id": "hide", "cost": {}, "costWithout": {"module": "shelter", "cost": {"health": 10}}, "result": "log.flareShelter", "resultWithout": "log.flareNoShelter"},
       {"id": "work", "cost": {"health": 30}, "result": "log.flareWork"}
     ]
+  },
+  {
+    "id": "illness",
+    "choices": [
+      {"id": "treat", "cost": {"water": 10, "food": 8}, "costWith": {"module": "medbay", "cost": {"water": 5, "food": 4}}, "result": "log.treated"},
+      {"id": "ignore", "cost": {"health": 5}, "rest": {"days": 2, "daysWith": 1, "module": "medbay"}, "result": "log.ignored"}
+    ]
   }
 ]

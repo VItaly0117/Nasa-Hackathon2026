@@ -370,6 +370,9 @@ button { font-family: inherit; }
 }
 .modal h2 { margin-top: 0; font-size: 28px; }
 .modal a { color: var(--accent); }
+/* Портрет заболевшего в окне события */
+.modal__portrait { display: flex; justify-content: center; margin-bottom: 8px; }
+.modal__portrait svg { width: 88px; height: 88px; }
 .modal__choices { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
 .debrief { padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
 

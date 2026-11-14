@@ -3,7 +3,7 @@ export type Resources = Record<ResourceKey, number>;
 
 export type ModuleType =
   | "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter"
-  | "iceMine" | "rockMine" | "storage";
+  | "iceMine" | "rockMine" | "storage" | "medbay";
 
 // Роль определяет, кого игра ставит строить в первую очередь: у каждого модуля есть builder в modules.json
 export type Role = "engineer" | "scientist" | "doctor" | "technician";
@@ -12,7 +12,10 @@ export type CrewMember = {
   id: number; // 1..4, совпадает с crew.n<id> / crew.r<id> в словарях и с crewData.ts
   role: Role;
   morale: number; // 0..100: растёт, когда задания выполнены, падает, когда просрочены
-  status: { kind: "free" } | { kind: "building"; slot: number; module: ModuleType };
+  status:
+    | { kind: "free" }
+    | { kind: "building"; slot: number; module: ModuleType }
+    | { kind: "sick"; leftMs: number }; // болеет и отдыхает, строить не может
 };
 
 export type ModuleDef = {
@@ -29,7 +32,9 @@ export type PlacedModule = {
   slot: number;
   type: ModuleType;
   broken: boolean;
-  build?: { leftMs: number; totalMs: number; crewId: number };
+  // crewId null: строитель заболел, стройка стоит, пока её не подхватит другой свободный
+  // sickAt: когда leftMs дойдёт до этого числа, строитель заболеет (решено при старте стройки по seed)
+  build?: { leftMs: number; totalMs: number; crewId: number | null; sickAt?: number };
 };
 
 // Выбор в событии. Тексты лежат в словарях i18n: ev.<event>.<choice>.label / .hint, строки журнала по ключам result
@@ -38,6 +43,8 @@ export type EventChoice = {
   id: string;
   cost: Partial<Resources>;                                       // всегда
   costWithout?: { module: ModuleType; cost: Partial<Resources> }; // доплата, если такого модуля на базе нет
+  costWith?: { module: ModuleType; cost: Partial<Resources> };    // вместо cost, если такой модуль есть (медпункт делает лечение дешевле)
+  rest?: { days: number; daysWith: number; module: ModuleType };  // на сколько дней больной выбывает (с модулем меньше)
   repairs?: ModuleType;                                           // чинит все модули этого типа
   result: string;                                                 // ключ i18n строки для журнала
   resultWithout?: string;                                         // ключ i18n, если модуля нет
@@ -75,6 +82,10 @@ export type Task = {
 };
 
 export type GameState = {
+  seed: number; // для детерминированных случайностей (болезни): одна и та же игра повторяется
+  illness: { crewId: number; slot: number } | null; // кто заболел, пока открыто событие
+  sickCount: number;
+  lastIllnessDay: number;
   tasks: Task[];
   crew: CrewMember[];
   clockMs: number; // сколько миллисекунд игрового времени прошло в текущем дне
