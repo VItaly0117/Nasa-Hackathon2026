@@ -7,11 +7,19 @@ type MuteListener = (muted: boolean) => void;
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private compressor: DynamicsCompressorNode | null = null;
   private ambientGain: GainNode | null = null;
   private ambientOsc: OscillatorNode | null = null;
   private ambientNoise: AudioBufferSourceNode | null = null;
+  private ambientHarmonicGain: GainNode | null = null;
+  private ambientNoiseGain: GainNode | null = null;
+  private ambientMusicGain: GainNode | null = null;
+  private ambientMusicTimer: number | null = null;
+  private ambientMusicStep = 0;
+  private ambientNight = false;
   private ambientRunning = false;
   private ambientPending = false;
+  private ambientStopTimer: number | null = null;
   private muted = false;
   private listeners = new Set<MuteListener>();
   private masterVolume = 0.85; // Оптимальная слышимая громкость
@@ -45,7 +53,14 @@ class SoundEngine {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
         this.masterGain.gain.setValueAtTime(this.muted ? 0 : this.masterVolume, this.ctx.currentTime);
-        this.masterGain.connect(this.ctx.destination);
+        this.compressor = this.ctx.createDynamicsCompressor();
+        this.compressor.threshold.setValueAtTime(-18, this.ctx.currentTime);
+        this.compressor.knee.setValueAtTime(12, this.ctx.currentTime);
+        this.compressor.ratio.setValueAtTime(4, this.ctx.currentTime);
+        this.compressor.attack.setValueAtTime(0.004, this.ctx.currentTime);
+        this.compressor.release.setValueAtTime(0.18, this.ctx.currentTime);
+        this.masterGain.connect(this.compressor);
+        this.compressor.connect(this.ctx.destination);
       } catch {
         return null;
       }
@@ -100,7 +115,7 @@ class SoundEngine {
       }
     }
     if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setTargetAtTime(mute ? 0 : this.masterVolume, this.ctx.currentTime, 0.015);
+      this.masterGain.gain.setTargetAtTime(mute ? 0 : this.masterVolume, this.ctx.currentTime, 0.045);
     }
     if (mute) {
       this.stopAmbient();
@@ -112,10 +127,11 @@ class SoundEngine {
 
   public toggleMute(): boolean {
     const next = !this.muted;
+    // Разбудить Web Audio синхронно с кликом: это важно для autoplay-политик Safari.
+    if (!next) this.unlock();
     this.setMuted(next);
     if (!next) {
-      // Подтверждающий чистый перезвон при включении звука
-      this.playToggleSound();
+      this.runWithContext((ctx, master) => this.scheduleToggleSound(ctx, master));
     }
     return this.muted;
   }
@@ -134,8 +150,35 @@ class SoundEngine {
     const bufferSize = Math.floor(ctx.sampleRate * seconds);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
+    // Генерируем розовый шум: он ближе к мягкому потоку воздуха, чем яркий белый шум.
+    let b0 = 0;
+    let b1 = 0;
+    let b2 = 0;
+    let b3 = 0;
+    let b4 = 0;
+    let b5 = 0;
+    let b6 = 0;
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.969 * b2 + white * 0.153852;
+      b3 = 0.8665 * b3 + white * 0.3104856;
+      b4 = 0.55 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.016898;
+      data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
+    }
+    // Crossfade the loop endpoints to avoid an audible click every few seconds.
+    const fade = Math.min(Math.floor(ctx.sampleRate * 0.08), Math.floor(bufferSize / 4));
+    for (let i = 0; i < fade; i++) {
+      const mix = i / fade;
+      const head = data[i];
+      const tailIndex = bufferSize - fade + i;
+      const tail = data[tailIndex];
+      const blended = tail * (1 - mix) + head * mix;
+      data[i] = blended;
+      data[tailIndex] = blended;
     }
     return buffer;
   }
@@ -165,8 +208,13 @@ class SoundEngine {
   // Тестовый подтверждающий двухнотный перезвон (при включении звука)
   public playToggleSound() {
     this.runWithContext((ctx, master) => {
+      this.scheduleToggleSound(ctx, master);
+    });
+  }
+
+  private scheduleToggleSound(ctx: AudioContext, master: GainNode) {
       const now = ctx.currentTime;
-      [523.25, 783.99].forEach((freq, idx) => {
+      [659.25, 987.77].forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         const start = now + idx * 0.08;
@@ -175,16 +223,15 @@ class SoundEngine {
         osc.frequency.setValueAtTime(freq, start);
 
         gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.4, start + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.2);
+        gain.gain.linearRampToValueAtTime(0.24, start + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.24);
 
         osc.connect(gain);
         gain.connect(master);
 
         osc.start(start);
-        osc.stop(start + 0.22);
+        osc.stop(start + 0.26);
       });
-    });
   }
 
   // Мягкий радио-чирп телеметрии (для пролога и субтитров)
@@ -207,6 +254,36 @@ class SoundEngine {
 
       osc.start(now);
       osc.stop(now + 0.055);
+    });
+  }
+
+  // Короткий низкий радиоквиток для подтверждения критического решения экипажа.
+  public playDecisionConfirm() {
+    this.runWithContext((ctx, master) => {
+      const now = ctx.currentTime;
+      const carrier = ctx.createOscillator();
+      const tone = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      carrier.type = "sine";
+      carrier.frequency.setValueAtTime(1180, now);
+      carrier.frequency.exponentialRampToValueAtTime(920, now + 0.11);
+      tone.type = "sine";
+      tone.frequency.setValueAtTime(440, now);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2100, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.16, now + 0.012);
+      gain.gain.setValueAtTime(0.12, now + 0.055);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+      carrier.connect(filter);
+      tone.connect(filter);
+      filter.connect(gain);
+      gain.connect(master);
+      carrier.start(now);
+      tone.start(now);
+      carrier.stop(now + 0.17);
+      tone.stop(now + 0.17);
     });
   }
 
@@ -453,6 +530,50 @@ class SoundEngine {
     });
   }
 
+  // Переводит фон станции в более холодный ночной профиль без перезапуска аудио.
+  public setNightMode(night: boolean) {
+    this.ambientNight = night;
+    const ctx = this.ctx;
+    if (!ctx || !this.ambientOsc || !this.ambientHarmonicGain || !this.ambientNoiseGain) return;
+    const now = ctx.currentTime;
+    this.ambientOsc.frequency.setTargetAtTime(night ? 41.2 : 55, now, 2.8);
+    this.ambientHarmonicGain.gain.setTargetAtTime(night ? 0.006 : 0.012, now, 2.4);
+    this.ambientNoiseGain.gain.setTargetAtTime(night ? 0.018 : 0.028, now, 2.8);
+  }
+
+  private scheduleAmbientMusic(ctx: AudioContext) {
+    if (!this.ambientRunning || this.muted || !this.ambientMusicGain) return;
+    const notes = this.ambientNight
+      ? [55, 0, 65.41, 0, 73.42, 0, 65.41, 0]
+      : [82.41, 0, 98, 0, 110, 0, 98, 0];
+    const step = this.ambientMusicStep++ % notes.length;
+    const frequency = notes[step];
+    const now = ctx.currentTime;
+    if (frequency > 0) {
+      const osc = ctx.createOscillator();
+      const noteGain = ctx.createGain();
+      const toneFilter = ctx.createBiquadFilter();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(frequency, now);
+      toneFilter.type = "lowpass";
+      toneFilter.frequency.setValueAtTime(this.ambientNight ? 220 : 320, now);
+      noteGain.gain.setValueAtTime(0.0001, now);
+      noteGain.gain.linearRampToValueAtTime(this.ambientNight ? 0.035 : 0.028, now + 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
+      osc.connect(toneFilter);
+      toneFilter.connect(noteGain);
+      noteGain.connect(this.ambientMusicGain);
+      osc.start(now);
+      osc.stop(now + 0.75);
+      osc.onended = () => {
+        osc.disconnect();
+        toneFilter.disconnect();
+        noteGain.disconnect();
+      };
+    }
+    this.ambientMusicTimer = window.setTimeout(() => this.scheduleAmbientMusic(ctx), 900);
+  }
+
   // 9. Победа: победный 5-нотный ретро-синт арпеджио
   public playVictory() {
     this.runWithContext((ctx, master) => {
@@ -523,6 +644,10 @@ class SoundEngine {
   // 11. Фоновый атмосферный гул жилого отсека (Ambient Cabin Hum)
   public startAmbient() {
     if (this.ambientRunning || typeof window === "undefined" || this.muted) return;
+    if (this.ambientStopTimer !== null) {
+      window.clearTimeout(this.ambientStopTimer);
+      this.ambientStopTimer = null;
+    }
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) {
       this.ambientPending = true;
@@ -541,26 +666,46 @@ class SoundEngine {
     }
 
     try {
+      const now = ctx.currentTime;
       this.ambientGain = ctx.createGain();
-      this.ambientGain.gain.setValueAtTime(0.08, ctx.currentTime);
+      this.ambientGain.gain.setValueAtTime(0.0001, now);
+      this.ambientGain.gain.exponentialRampToValueAtTime(0.08, now + 1.8);
+
+      this.ambientMusicGain = ctx.createGain();
+      this.ambientMusicGain.gain.setValueAtTime(0.0001, now);
+      this.ambientMusicGain.gain.exponentialRampToValueAtTime(0.42, now + 2.8);
+      this.ambientMusicGain.connect(this.ambientGain);
 
       // Низкочастотный ровный тон 55 Гц (генератор станции)
       this.ambientOsc = ctx.createOscillator();
       this.ambientOsc.type = "sine";
-      this.ambientOsc.frequency.setValueAtTime(55, ctx.currentTime);
+      this.ambientOsc.frequency.setValueAtTime(this.ambientNight ? 41.2 : 55, ctx.currentTime);
+
+      // Тихий второй обертон добавляет ощущение работающего оборудования, не превращая гул в музыку.
+      const harmonic = ctx.createOscillator();
+      const harmonicGain = ctx.createGain();
+      harmonic.type = "sine";
+      harmonic.frequency.setValueAtTime(82.4, now);
+      harmonicGain.gain.setValueAtTime(0.0001, now);
+      harmonicGain.gain.exponentialRampToValueAtTime(this.ambientNight ? 0.006 : 0.012, now + 2.2);
+      harmonic.connect(harmonicGain);
+      harmonicGain.connect(this.ambientGain);
+      this.ambientHarmonicGain = harmonicGain;
 
       // Фильтрованный шелест вентиляции
-      const noiseBuffer = this.createNoiseBuffer(ctx, 3);
+      const noiseBuffer = this.createNoiseBuffer(ctx, 18);
       this.ambientNoise = ctx.createBufferSource();
       this.ambientNoise.buffer = noiseBuffer;
       this.ambientNoise.loop = true;
 
       const noiseFilter = ctx.createBiquadFilter();
       noiseFilter.type = "lowpass";
-      noiseFilter.frequency.setValueAtTime(140, ctx.currentTime);
+      noiseFilter.frequency.setValueAtTime(170, now);
 
       const noiseGain = ctx.createGain();
-      noiseGain.gain.setValueAtTime(0.05, ctx.currentTime);
+      noiseGain.gain.setValueAtTime(0.0001, now);
+      noiseGain.gain.exponentialRampToValueAtTime(this.ambientNight ? 0.018 : 0.028, now + 1.6);
+      this.ambientNoiseGain = noiseGain;
 
       this.ambientNoise.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
@@ -570,9 +715,21 @@ class SoundEngine {
       this.ambientGain.connect(this.masterGain);
 
       this.ambientOsc.start();
+      harmonic.start();
       this.ambientNoise.start();
+      // Медленная модуляция только воздуха: низкочастотный корпус остаётся стабильным.
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = "sine";
+      lfo.frequency.setValueAtTime(0.09, now);
+      lfoGain.gain.setValueAtTime(0.0025, now);
+      lfo.connect(lfoGain);
+      lfoGain.connect(noiseGain.gain);
+      lfo.start();
+      this.ambientOsc.onended = () => { try { harmonic.stop(); lfo.stop(); } catch { /* already stopped */ } };
       this.ambientRunning = true;
       this.ambientPending = false;
+      this.scheduleAmbientMusic(ctx);
     } catch {
       this.ambientRunning = false;
     }
@@ -581,19 +738,47 @@ class SoundEngine {
   public stopAmbient() {
     this.ambientPending = false;
     if (!this.ambientRunning) return;
-    try {
-      this.ambientOsc?.stop();
-      this.ambientNoise?.stop();
-      this.ambientOsc?.disconnect();
-      this.ambientNoise?.disconnect();
-      this.ambientGain?.disconnect();
-    } catch {
-      // игнорируем ошибки остановки
-    }
+    const osc = this.ambientOsc;
+    const noise = this.ambientNoise;
+    const gain = this.ambientGain;
+    const harmonicGain = this.ambientHarmonicGain;
+    const noiseGain = this.ambientNoiseGain;
+    const musicGain = this.ambientMusicGain;
+    const ctx = this.ctx;
     this.ambientOsc = null;
     this.ambientNoise = null;
     this.ambientGain = null;
+    this.ambientHarmonicGain = null;
+    this.ambientNoiseGain = null;
+    this.ambientMusicGain = null;
     this.ambientRunning = false;
+    this.ambientMusicStep = 0;
+    if (this.ambientMusicTimer !== null) {
+      window.clearTimeout(this.ambientMusicTimer);
+      this.ambientMusicTimer = null;
+    }
+    try {
+      if (ctx && gain) {
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), ctx.currentTime);
+        gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
+        this.ambientStopTimer = window.setTimeout(() => {
+          try {
+            osc?.stop();
+            noise?.stop();
+            osc?.disconnect();
+            noise?.disconnect();
+            gain.disconnect();
+            harmonicGain?.disconnect();
+            noiseGain?.disconnect();
+            musicGain?.disconnect();
+          } catch { /* already stopped */ }
+          this.ambientStopTimer = null;
+        }, 450);
+      }
+    } catch {
+      // игнорируем ошибки остановки
+    }
   }
 }
 
