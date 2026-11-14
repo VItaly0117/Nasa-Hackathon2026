@@ -1,4 +1,16 @@
 [
-  { "id": "breakdown", "choices": ["repair", "ignore"] },
-  { "id": "flare", "choices": ["hide", "work"] }
+  {
+    "id": "breakdown",
+    "choices": [
+      {"id": "repair", "cost": {"water": 10, "energy": 10}, "repairs": "lifeSupport", "result": "log.repaired"},
+      {"id": "ignore", "cost": {}, "result": "log.repairIgnored"}
+    ]
+  },
+  {
+    "id": "flare",
+    "choices": [
+      {"id": "hide", "cost": {}, "costWithout": {"module": "shelter", "cost": {"health": 10}}, "result": "log.flareShelter", "resultWithout": "log.flareNoShelter"},
+      {"id": "work", "cost": {"health": 30}, "result": "log.flareWork"}
+    ]
+  }
 ]

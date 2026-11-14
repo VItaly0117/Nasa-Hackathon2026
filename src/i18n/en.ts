@@ -71,7 +71,7 @@ export const en: Record<keyof typeof ru, string> = {
   "log.landed": "The crew landed at the Moon's south pole",
   "log.noPower": "No energy: systems that need power are switched off",
   "log.vitalOut": "Out of {what}",
-  "log.vitalHealth": "Without {what} the crew weakens: health −20",
+  "log.vitalHealth": "Without {what} the crew weakens: health −{n}",
   "vital.oxygen": "oxygen",
   "vital.water": "water",
   "vital.food": "food",
@@ -84,10 +84,6 @@ export const en: Record<keyof typeof ru, string> = {
   "log.flareNoShelter": "No shelter: hid behind water tanks, health −10",
   "log.flareWork": "Work continued during the flare: health −30",
 
-  "debrief.greenhouse": "Without a greenhouse, food only went down. On a real base, part of the food has to be grown on site.",
-  "debrief.battery": "Without a battery, the lunar night left the base with no power. You have to survive 14 days of darkness on stored energy.",
-  "debrief.shelter": "There was no radiation shelter, so the flare hurt the crew's health.",
-  "debrief.ok": "You prepared the base for the night, the flare and a food shortage. That is how a safety margin works.",
 
   "alert.flare.title": "Solar flare!",
   "alert.flare.text": "In {days} a higher radiation level is expected. A shelter will protect the crew.",

@@ -1,5 +1,10 @@
-import type { GameState } from "../types";
-import { t } from "../i18n";
+import eventsData from "../data/events.json";
+import flaresData from "../data/nasa/flares.json";
+import { getLang, t } from "../i18n";
+import type { EventDef, Flare, GameState, ResourceKey, Resources } from "../types";
+
+const FLARES = flaresData as Flare[];
+const EVENTS = eventsData as EventDef[];
 
 // День миссии → событие. Потом можно сделать случайными
 const SCHEDULE: Record<number, string> = {
@@ -8,6 +13,22 @@ const SCHEDULE: Record<number, string> = {
 };
 
 const clamp = (value: number) => Math.max(0, Math.min(100, value));
+
+// Случайная РЕАЛЬНАЯ вспышка NASA DONKI. Зовётся один раз при старте миссии (initialState),
+// чтобы reduce оставался чистой функцией.
+export function pickFlare(random: () => number = Math.random): Flare | null {
+  return FLARES.length ? FLARES[Math.floor(random() * FLARES.length)] : null;
+}
+
+const LOCALES = { ru: "ru-RU", uk: "uk-UA", en: "en-US" } as const;
+
+// «класс X1.2, 14 мая 2024» на текущем языке игры
+export function describeFlare(flare: Flare): string {
+  const date = new Intl.DateTimeFormat(LOCALES[getLang()], { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+    .format(new Date(flare.date))
+    .replace(/\s*[гр]\.$/, ""); // Intl добавляет «г.» / «р.»: убираем, чтобы фраза не кончалась двумя точками
+  return t("flare.desc", { cls: flare.class, date });
+}
 
 export function eventForDay(day: number): string | null {
   return SCHEDULE[day] ?? null;
@@ -30,43 +51,48 @@ export function applyEventStart(state: GameState, eventId: string): GameState {
       modules: state.modules.map((m) => (m.type === "lifeSupport" ? { ...m, broken: true } : m)),
     };
   }
+  if (eventId === "flare" && state.flare) {
+    return {
+      ...state,
+      log: [...state.log, { day: state.day, text: t("log.flareReal", { flare: describeFlare(state.flare) }) }],
+    };
+  }
   return state;
 }
 
-export function resolveEvent(state: GameState, choice: string): GameState {
-  const resources = { ...state.resources };
-  let modules = state.modules;
-  let text = "";
+// Применяет выбор игрока. Цены берутся из events.json, тексты из словарей i18n
+export function resolveEvent(state: GameState, choiceId: string): GameState {
+  const choice = EVENTS.find((e) => e.id === state.activeEvent)?.choices.find((c) => c.id === choiceId);
+  if (!choice) return state;
 
-  switch (`${state.activeEvent}:${choice}`) {
-    case "breakdown:repair":
-      resources.water = clamp(resources.water - 10);
-      resources.energy = clamp(resources.energy - 10);
-      modules = modules.map((m) => (m.type === "lifeSupport" ? { ...m, broken: false } : m));
-      text = t("log.repaired");
-      break;
-    case "breakdown:ignore":
-      text = t("log.repairIgnored");
-      break;
-    case "flare:hide": {
-      const hasShelter = modules.some((m) => m.type === "shelter");
-      if (!hasShelter) resources.health = clamp(resources.health - 10);
-      text = hasShelter ? t("log.flareShelter") : t("log.flareNoShelter");
-      break;
+  const resources = { ...state.resources };
+  const pay = (cost: Partial<Resources>) => {
+    for (const key of Object.keys(cost) as ResourceKey[]) resources[key] = clamp(resources[key] - (cost[key] ?? 0));
+  };
+
+  pay(choice.cost);
+
+  let textKey = choice.result;
+  let unprotected = false;
+  if (choice.costWithout) {
+    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module);
+    if (!hasModule) {
+      unprotected = true;
+      pay(choice.costWithout.cost);
+      textKey = choice.resultWithout ?? textKey;
     }
-    case "flare:work":
-      resources.health = clamp(resources.health - 30);
-      text = t("log.flareWork");
-      break;
-    default:
-      return state;
   }
+
+  const modules = choice.repairs
+    ? state.modules.map((m) => (m.type === choice.repairs ? { ...m, broken: false } : m))
+    : state.modules;
 
   return {
     ...state,
     resources,
     modules,
     activeEvent: null,
-    log: [...state.log, { day: state.day, text }],
+    log: [...state.log, { day: state.day, text: t(textKey) }],
+    history: [...state.history, { day: state.day, kind: "choice", event: state.activeEvent!, choice: choice.id, unprotected }],
   };
 }

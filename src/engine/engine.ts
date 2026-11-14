@@ -1,6 +1,6 @@
 import modulesData from "../data/modules.json";
 import type { Action, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "../types";
-import { applyEventStart, eventForDay, resolveEvent } from "./events";
+import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
 import { moduleName, t } from "../i18n";
 
@@ -10,6 +10,8 @@ export const NIGHT_START = 14;
 const MODULES = modulesData as ModuleDef[];
 const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
 const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
+// Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
+export const SHORTAGE_DAMAGE = 25;
 const VITAL: ResourceKey[] = ["oxygen", "water", "food"];
 const vitalName = (key: ResourceKey) => t(`vital.${key}`);
 
@@ -36,6 +38,8 @@ export function initialState(): GameState {
     day: 1,
     isNight: false,
     resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100, materials: 10 },
+    // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
+    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100 },
     modules: [
       // стартовая база вокруг посадочной площадки (ряд 5, колонка 12): каждый модуль в двух клетках
       // от неё в своей стороне, чтобы между зданиями оставалось место
@@ -45,6 +49,8 @@ export function initialState(): GameState {
     ],
     pending: [],
     activeEvent: null,
+    flare: pickFlare(),
+    history: [],
     log: [{ day: 1, text: t("log.landed") }],
     status: "playing",
   };
@@ -61,7 +67,10 @@ export function dailyDelta(state: GameState): Partial<Resources> {
 function nextDay(state: GameState): GameState {
   const resources = { ...state.resources };
   const log = [...state.log];
+  const history = [...state.history];
   const day = state.day + 1;
+  // Номер дня для журнала и истории. Последний шаг миссии относится к её последнему дню, а не к «дню 21»
+  const stamp = Math.min(day, MISSION_DAYS);
 
   // Без энергии всё, что её потребляет, отключается
   const noPower = resources.energy <= 0;
@@ -70,7 +79,10 @@ function nextDay(state: GameState): GameState {
     if (noPower && (output.energy ?? 0) < 0) continue;
     addTo(resources, output);
   }
-  if (noPower) log.push({ day, text: t("log.noPower") });
+  if (noPower) {
+    log.push({ day: stamp, text: t("log.noPower") });
+    history.push({ day: stamp, kind: "blackout", night: state.isNight });
+  }
   addTo(resources, CREW_PER_DAY);
   for (const key of KEYS) resources[key] = clamp(resources[key]);
 
@@ -79,7 +91,7 @@ function nextDay(state: GameState): GameState {
   for (const effect of state.pending) {
     if (effect.inDays <= 1) {
       resources[effect.key] = clamp(resources[effect.key] + effect.amount);
-      log.push({ day, text: effect.reason });
+      log.push({ day: stamp, text: effect.reason });
     } else {
       pending.push({ ...effect, inDays: effect.inDays - 1 });
     }
@@ -88,14 +100,15 @@ function nextDay(state: GameState): GameState {
   // Закончился жизненно важный ресурс — последствие наступит через 2 дня
   for (const key of VITAL) {
     if (resources[key] > 0) continue;
-    const reason = t("log.vitalHealth", { what: vitalName(key) });
+    const reason = t("log.vitalHealth", { what: vitalName(key), n: SHORTAGE_DAMAGE });
     if (pending.some((p) => p.reason === reason)) continue;
-    pending.push({ inDays: 2, key: "health", amount: -20, reason });
-    log.push({ day, text: t("log.vitalOut", { what: vitalName(key) }) });
+    pending.push({ inDays: 2, key: "health", amount: -SHORTAGE_DAMAGE, reason });
+    log.push({ day: stamp, text: t("log.vitalOut", { what: vitalName(key) }) });
+    history.push({ day: stamp, kind: "shortage", resource: key });
   }
 
-  if (day === NIGHT_START - 2) log.push({ day, text: t("log.night2") });
-  if (day === NIGHT_START) log.push({ day, text: t("log.nightStart") });
+  if (day === NIGHT_START - 2) log.push({ day: stamp, text: t("log.night2") });
+  if (day === NIGHT_START) log.push({ day: stamp, text: t("log.nightStart") });
 
   let next: GameState = {
     ...state,
@@ -104,6 +117,7 @@ function nextDay(state: GameState): GameState {
     resources,
     pending,
     log,
+    history,
   };
 
   if (resources.health <= 0) return { ...next, status: "lost" };
@@ -128,6 +142,7 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
     ...state,
     resources,
     modules: [...state.modules, { slot, type, broken: false }],
+    history: [...state.history, { day: state.day, kind: "built", module: type }],
     log: [...state.log, { day: state.day, text: t("log.built", { name: moduleName(type) }) }],
   };
 }
