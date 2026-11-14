@@ -274,7 +274,7 @@ export const ru = {
   // Разбор миссии, настоящая вспышка, источники (движок: engine/debrief.ts, engine/events.ts)
   "ev.flare.source": "Настоящая вспышка: {flare}. Источник:",
   "flare.desc": "класс {cls}, {date}",
-  "log.flareReal": "Вспышка на Солнце: {flare} (по данным NASA DONKI)",
+  "log.flareReal": "Вспышка на Солнце: класс {cls}, {date} (по данным NASA DONKI)",
   "debrief.hurt": "Что помешало",
   "debrief.helped": "Что помогло",
   "debrief.facts": "Данные NASA",
@@ -417,4 +417,7 @@ export const ru = {
   "sources.inGame": "Используется в игре",
   "sources.notYet": "Пока не подключено",
   "sources.open": "Открыть источник",
+
+  // Записи старых сохранений (до перехода журнала на ключи): текст хранится как есть
+  "log.legacy": "{text}",
 } as const;

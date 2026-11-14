@@ -7,7 +7,7 @@ import type { Player, Session } from "./net/online";
 import { MainMenu } from "./ui/MainMenu";
 import { ResultsScreen } from "./ui/ResultsScreen";
 import { SourcesPanel } from "./ui/SourcesPanel";
-import { describeFlare } from "./engine/events";
+import { describeFlare } from "./i18n/messages";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";

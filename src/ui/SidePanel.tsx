@@ -2,6 +2,7 @@ import type { GameState } from "../types";
 import { MISSION_DAYS, NIGHT_START } from "../engine/engine";
 import { nextScheduledEvent } from "../engine/events";
 import { days, t } from "../i18n";
+import { formatMsg } from "../i18n/messages";
 import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 
 type Alert = { title: string; text: string; kind: "flare" | "night" | "warn" };
@@ -26,7 +27,7 @@ function pickAlert(state: GameState): Alert | null {
     return {
       kind: "warn",
       title: t("alert.pending.title"),
-      text: t("alert.pending.text", { days: days(pending.inDays), reason: pending.reason }),
+      text: t("alert.pending.text", { days: days(pending.inDays), reason: formatMsg(pending.reason) }),
     };
   }
 
@@ -207,7 +208,7 @@ export function SidePanel({ state, onResearch, surveyingIce, onStartIceSurvey, o
           <ul>
             {state.log.slice(-4).reverse().map((entry, i) => (
               <li key={i}>
-                <span className="muted">{t("journal.day", { n: entry.day })}</span> {entry.text}
+                <span className="muted">{t("journal.day", { n: entry.day })}</span> {formatMsg(entry)}
               </li>
             ))}
           </ul>

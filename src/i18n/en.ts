@@ -263,7 +263,7 @@ export const en: Record<keyof typeof ru, string> = {
 
   "ev.flare.source": "Real solar flare: {flare}. Source:",
   "flare.desc": "class {cls}, {date}",
-  "log.flareReal": "Solar flare: {flare} (from NASA DONKI)",
+  "log.flareReal": "Solar flare: class {cls}, {date} (from NASA DONKI)",
   "debrief.hurt": "What hurt the mission",
   "debrief.helped": "What helped",
   "debrief.facts": "NASA data",
@@ -402,4 +402,7 @@ export const en: Record<keyof typeof ru, string> = {
   "sources.inGame": "Used in the game",
   "sources.notYet": "Not connected yet",
   "sources.open": "Open the source",
+
+  // Записи старых сохранений (до перехода журнала на ключи): текст хранится как есть
+  "log.legacy": "{text}",
 };

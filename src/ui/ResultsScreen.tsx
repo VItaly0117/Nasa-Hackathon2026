@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import hintsData from "../data/hints.json";
-import { buildReport, missionFact } from "../engine/debrief";
-import type { DebriefLine } from "../engine/debrief";
+import { missionFact } from "../engine/debrief";
 import type { GameRecord } from "../engine/storage";
 import { days as daysText, t } from "../i18n";
 import type { GameState } from "../types";
 import { Rocket } from "./Prologue";
+import { buildReport } from "./report";
+import type { DebriefLine } from "./report";
 import "./ResultsScreen.css";
 
 const HINTS = hintsData as { id: string; source?: string }[];

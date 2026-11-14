@@ -1,3 +1,11 @@
+// Сообщение без языка: ключ словаря и параметры. Ядро игры выдаёт только такие сообщения,
+// а переводит их слой интерфейса (src/i18n/messages.ts). Значения параметров это id, числа и ключи,
+// а не готовые слова: так состояние не зависит от языка игрока и одинаково у всех в совместной игре
+export type Msg = { key: string; params?: Record<string, string | number> };
+
+// Запись бортового журнала
+export type LogEntry = Msg & { day: number };
+
 export type ResourceKey = "oxygen" | "water" | "food" | "energy" | "health" | "materials";
 export type Resources = Record<ResourceKey, number>;
 
@@ -96,9 +104,9 @@ export type GameState = {
   isNight: boolean;
   resources: Resources;
   modules: PlacedModule[];
-  pending: { inDays: number; key: ResourceKey; amount: number; reason: string }[];
+  pending: { inDays: number; key: ResourceKey; amount: number; reason: Msg }[];
   activeEvent: string | null;
-  log: { day: number; text: string }[];
+  log: LogEntry[];
   status: "playing" | "won" | "lost";
 };
 

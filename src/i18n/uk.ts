@@ -263,7 +263,7 @@ export const uk: Record<keyof typeof ru, string> = {
   // Розбір місії, справжній спалах, джерела
   "ev.flare.source": "Справжній спалах: {flare}. Джерело:",
   "flare.desc": "клас {cls}, {date}",
-  "log.flareReal": "Спалах на Сонці: {flare} (за даними NASA DONKI)",
+  "log.flareReal": "Спалах на Сонці: клас {cls}, {date} (за даними NASA DONKI)",
   "debrief.hurt": "Що завадило",
   "debrief.helped": "Що допомогло",
   "debrief.facts": "Дані NASA",
@@ -406,4 +406,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "sources.inGame": "Використовується в грі",
   "sources.notYet": "Поки не підключено",
   "sources.open": "Відкрити джерело",
+
+  // Записи старых сохранений (до перехода журнала на ключи): текст хранится как есть
+  "log.legacy": "{text}",
 };

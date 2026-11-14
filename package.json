@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "server": "node server/index.mjs",
-    "check": "node scripts/run-checks.mjs && node scripts/run-online-checks.mjs",
+    "check": "node scripts/run-checks.mjs && node scripts/run-online-checks.mjs && node scripts/check-architecture.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "golden": "node scripts/golden-replay.mjs --check"
   },
   "dependencies": {
     "react": "^19.3.1",

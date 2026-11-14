@@ -1,6 +1,6 @@
 import eventsData from "../data/events.json";
 import flaresData from "../data/nasa/flares.json";
-import { days as daysText, getLang, t } from "../i18n";
+import { msg } from "./msg";
 import { DAY_MS } from "./constants";
 import { restPatient } from "./crew";
 import type { EventDef, Flare, GameState, ModuleType, ResourceKey, Resources } from "../types";
@@ -27,16 +27,6 @@ const clamp = (value: number) => Math.max(0, value);
 // чтобы reduce оставался чистой функцией.
 export function pickFlare(random: () => number = Math.random): Flare | null {
   return FLARES.length ? FLARES[Math.floor(random() * FLARES.length)] : null;
-}
-
-const LOCALES = { ru: "ru-RU", uk: "uk-UA", en: "en-US" } as const;
-
-// «класс X1.2, 14 мая 2024» на текущем языке игры
-export function describeFlare(flare: Flare): string {
-  const date = new Intl.DateTimeFormat(LOCALES[getLang()], { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
-    .format(new Date(flare.date))
-    .replace(/\s*[гр]\.$/, ""); // Intl добавляет «г.» / «р.»: убираем, чтобы фраза не кончалась двумя точками
-  return t("flare.desc", { cls: flare.class, date });
 }
 
 // День, на который запланировано событие (например, вспышка): задания берут срок отсюда
@@ -68,7 +58,7 @@ export function applyEventStart(state: GameState, eventId: string): GameState {
   if (eventId === "flare" && state.flare) {
     return {
       ...state,
-      log: [...state.log, { day: state.day, text: t("log.flareReal", { flare: describeFlare(state.flare) }) }],
+      log: [...state.log, { day: state.day, ...msg("log.flareReal", { cls: state.flare.class, date: state.flare.date }) }],
     };
   }
   return state;
@@ -103,14 +93,13 @@ export function resolveEvent(state: GameState, choiceId: string): GameState {
     ? state.modules.map((m) => (m.type === choice.repairs ? { ...m, broken: false } : m))
     : state.modules;
 
-  const name = patient ? t(`crew.n${patient.crewId}`) : "";
   const next: GameState = {
     ...state,
     resources,
     modules,
     activeEvent: null,
     illness: null,
-    log: [...state.log, { day: state.day, text: t(textKey, { name, days: daysText(restDays) }) }],
+    log: [...state.log, { day: state.day, ...(patient ? msg(textKey, { name: patient.crewId, days: restDays }) : msg(textKey)) }],
     history: [...state.history, { day: state.day, kind: "choice", event: state.activeEvent!, choice: choice.id, unprotected }],
   };
   return patient && restDays > 0 ? restPatient(next, patient.crewId, restDays * DAY_MS) : next;

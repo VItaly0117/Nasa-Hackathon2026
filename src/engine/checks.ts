@@ -1,6 +1,10 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
-import { buildReport, missionFact, validateDebriefData } from "./debrief";
-import { t } from "../i18n";
+import { DEBRIEF_DATA, FACT_NAMES, HINT_IDS, MISSION_FACTS, missionFact } from "./debrief";
+import { buildReport } from "../ui/report";
+import { getLang, setLang, t } from "../i18n";
+import type { Lang } from "../i18n";
+import { formatMsg } from "../i18n/messages";
+import { loadGame, saveGame } from "./storage";
 import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce, REPAIR_COST } from "./engine";
 import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
 import eventsData from "../data/events.json";
@@ -23,6 +27,34 @@ type Strategy = {
   // событие → выбор игрока
   choices: Record<string, string>;
 };
+
+// Проверка debrief.json: опечатка в имени факта или id подсказки не должна пройти молча (это про данные и словари, поэтому живёт в проверках, а не в ядре)
+export function validateDebriefData(): string[] {
+  const problems: string[] = [];
+  const DATA = DEBRIEF_DATA;
+  const FACTS = MISSION_FACTS;
+  const known = new Set<string>(FACT_NAMES);
+  for (const item of [...DATA.verdicts, ...DATA.rules]) {
+    for (const c of item.when) {
+      if (!known.has(c.replace(/^!/, ""))) problems.push(`${item.id}: неизвестный факт "${c}"`);
+    }
+  }
+  for (const rule of DATA.rules) {
+    if (rule.hint && !HINT_IDS.includes(rule.hint)) problems.push(`${rule.id}: нет подсказки "${rule.hint}" в hints.json`);
+  }
+  // У каждого правила и вердикта должен быть текст. ru.ts базовый: uk.ts и en.ts сверяет с ним TypeScript
+  const keys = [
+    ...DATA.rules.map((r) => `debrief.rule.${r.id}`),
+    ...DATA.verdicts.flatMap((v) => ["title", "summary", "rating"].map((f) => `debrief.verdict.${v.id}.${f}`)),
+  ];
+  for (const key of keys) if (!(key in ru)) problems.push(`нет текста "${key}" в словарях i18n`);
+  // Тексты подсказок и фактов лежат в словарях: hint.<id> и fact.<id>
+  for (const id of HINT_IDS) if (!(`hint.${id}` in ru)) problems.push(`нет текста "hint.${id}" в словарях i18n`);
+  for (const f of FACTS) if (!(`fact.${f.id}` in ru)) problems.push(`нет текста "fact.${f.id}" в словарях i18n`);
+  const ids = [...DATA.verdicts, ...DATA.rules].map((x) => x.id);
+  for (const id of new Set(ids)) if (ids.filter((x) => x === id).length > 1) problems.push(`повтор id "${id}"`);
+  return problems;
+}
 
 export type CheckResult = { name: string; ok: boolean; detail: string };
 
@@ -173,6 +205,48 @@ export function runChecks(): CheckResult[] {
   check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
   const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
   check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
+
+  // Ядро не зависит от языка: журнал и состояние одинаковы, на каком бы языке ни играл игрок
+  const savedLang = getLang();
+  const stateIn = (lang: Lang) => {
+    setLang(lang);
+    return JSON.stringify(playMission(PREPARED, 3));
+  };
+  const inRu = stateIn("ru");
+  const inEn = stateIn("en");
+  const inUk = stateIn("uk");
+  setLang(savedLang);
+  check("Состояние игры целиком (с журналом) не зависит от языка: ru, en и uk дают одно и то же", inRu === inEn && inEn === inUk, `совпало: ${inRu === inEn && inEn === inUk}, размер ${inRu.length}`);
+  const entries = [prepared, idle, noShelter].flatMap((s) => [...s.log, ...s.pending.map((p) => ({ day: 0, ...p.reason }))]);
+  const keys = [...new Set(entries.map((e) => e.key))];
+  const broken: string[] = [];
+  for (const lang of ["ru", "uk", "en"] as Lang[]) {
+    setLang(lang);
+    for (const e of entries) {
+      const text = formatMsg(e);
+      if (/[{}]/.test(text) || text === e.key) broken.push(`${lang}:${e.key}`);
+    }
+  }
+  setLang(savedLang);
+  check("Каждое сообщение журнала переводится на ru, uk и en без «дыр» в тексте", broken.length === 0, broken.length ? [...new Set(broken)].join(", ") : `${keys.length} видов сообщений`);
+
+  // Старые сохранения (до журнала на ключах) мигрируют и не теряют текст
+  const memory = new Map<string, string>();
+  (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => memory.get(k) ?? null, setItem: (k: string, v: string) => void memory.set(k, v), removeItem: (k: string) => void memory.delete(k) };
+  const modern = initialState(9);
+  saveGame(modern);
+  check("Сохранение текущей версии загружается без изменений", JSON.stringify(loadGame()) === JSON.stringify(modern), "совпало");
+  const old = { ...modern, log: [{ day: 1, text: "Старая запись" }], pending: [{ inDays: 1, key: "health", amount: -25, reason: "Старая причина" }] };
+  memory.set("moonbase:save", JSON.stringify({ version: 6, state: old }));
+  const migrated = loadGame();
+  check(
+    "Сохранение версии 6 мигрирует: текст журнала и причин остаётся как есть",
+    !!migrated && migrated.log[0].key === "log.legacy" && formatMsg(migrated.log[0]) === "Старая запись" && formatMsg(migrated.pending[0].reason) === "Старая причина",
+    migrated ? `${migrated.log[0].key}` : "не загрузилось",
+  );
+  memory.set("moonbase:save", JSON.stringify({ version: 99, state: modern }));
+  check("Сохранение из будущей версии не загружается", loadGame() === null, "null");
+  delete (globalThis as { localStorage?: unknown }).localStorage;
 
   // Поломка и починка
   const breakdownOpen = (): GameState => {
@@ -354,7 +428,7 @@ export function runChecks(): CheckResult[] {
   const recovered = reduce(ignored, { type: "tick", ms: 2 * DAY_MS });
   check(
     "Через 2 дня больной выздоравливает и снова свободен",
-    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.text.includes(t("crew.n" + patient))),
+    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.key === "log.recovered" && e.params?.name === patient),
     `статус ${recovered.crew.find((c) => c.id === patient)!.status.kind}`,
   );
 

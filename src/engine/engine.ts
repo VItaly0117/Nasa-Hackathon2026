@@ -2,7 +2,7 @@ import modulesData from "../data/modules.json";
 import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
 import { applyEventStart, choiceCost, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, nearestGroundSlot } from "./placement";
-import { moduleName, t } from "../i18n";
+import { msg } from "./msg";
 import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START } from "./constants";
 import { assignWaiting, hasFreeCrew, pickBuilder, restCrew } from "./crew";
 import { issueTasks, MORALE_START, reviewTasks } from "./tasks";
@@ -32,7 +32,6 @@ const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
 // Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
 export const SHORTAGE_DAMAGE = 25;
 const VITAL: ResourceKey[] = ["oxygen", "water", "food"];
-const vitalName = (key: ResourceKey) => t(`vital.${key}`);
 
 export function getDef(type: ModuleType): ModuleDef {
   return MODULES.find((m) => m.type === type)!;
@@ -97,7 +96,7 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
     activeEvent: null,
     flare: pickFlare(() => flareRoll),
     history: [],
-    log: [{ day: 1, text: t("log.landed") }],
+    log: [{ day: 1, ...msg("log.landed") }],
     status: "playing",
   };
   return issueTasks(state); // первые задания экипаж даёт сразу
@@ -127,7 +126,7 @@ function nextDay(state: GameState): GameState {
     addTo(resources, output);
   }
   if (noPower) {
-    log.push({ day: stamp, text: t("log.noPower") });
+    log.push({ day: stamp, ...msg("log.noPower") });
     history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
   addTo(resources, CREW_PER_DAY);
@@ -139,7 +138,7 @@ function nextDay(state: GameState): GameState {
   for (const effect of state.pending) {
     if (effect.inDays <= 1) {
       resources[effect.key] = clamp(resources[effect.key] + effect.amount, capacity[effect.key]);
-      log.push({ day: stamp, text: effect.reason });
+      log.push({ day: stamp, ...effect.reason });
     } else {
       pending.push({ ...effect, inDays: effect.inDays - 1 });
     }
@@ -148,15 +147,16 @@ function nextDay(state: GameState): GameState {
   // Закончился жизненно важный ресурс — последствие наступит через 2 дня
   for (const key of VITAL) {
     if (resources[key] > 0) continue;
-    const reason = t("log.vitalHealth", { what: vitalName(key), n: SHORTAGE_DAMAGE });
-    if (pending.some((p) => p.reason === reason)) continue;
+    const reason = msg("log.vitalHealth", { what: key, n: SHORTAGE_DAMAGE });
+    // тот же ресурс уже ждёт своего урона: второй раз не добавляем
+    if (pending.some((p) => p.reason.key === reason.key && p.reason.params?.what === key)) continue;
     pending.push({ inDays: 2, key: "health", amount: -SHORTAGE_DAMAGE, reason });
-    log.push({ day: stamp, text: t("log.vitalOut", { what: vitalName(key) }) });
+    log.push({ day: stamp, ...msg("log.vitalOut", { what: key }) });
     history.push({ day: stamp, kind: "shortage", resource: key });
   }
 
-  if (day === NIGHT_START - 2) log.push({ day: stamp, text: t("log.night2") });
-  if (day === NIGHT_START) log.push({ day: stamp, text: t("log.nightStart") });
+  if (day === NIGHT_START - 2) log.push({ day: stamp, ...msg("log.night2") });
+  if (day === NIGHT_START) log.push({ day: stamp, ...msg("log.nightStart") });
 
   let next: GameState = {
     ...state,
@@ -207,7 +207,7 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
     resources,
     modules: [...state.modules, { slot, type, broken: false, build: { leftMs: BUILD_MS, totalMs: BUILD_MS, crewId: builder.id, sickAt } }],
     crew: state.crew.map((c) => (c.id === builder.id ? { ...c, status: { kind: "building", slot, module: type } } : c)),
-    log: [...state.log, { day: state.day, text: t("log.buildStarted", { who: t(`crew.n${builder.id}`), name: moduleName(type) }) }],
+    log: [...state.log, { day: state.day, ...msg("log.buildStarted", { who: builder.id, name: type }) }],
   };
 }
 
@@ -231,7 +231,7 @@ function advanceBuilds(state: GameState, ms: number): GameState {
       return { ...m, build: { ...m.build, leftMs } };
     }
     freed.add(m.build.crewId);
-    log.push({ day: state.day, text: t("log.built", { name: moduleName(m.type) }) });
+    log.push({ day: state.day, ...msg("log.built", { name: m.type }) });
     history.push({ day: state.day, kind: "built", module: m.type });
     const { build: _done, ...ready } = m;
     return ready;
@@ -246,7 +246,7 @@ function advanceBuilds(state: GameState, ms: number): GameState {
     illness: sick[0],
     sickCount: next.sickCount + 1,
     lastIllnessDay: next.day,
-    log: [...next.log, { day: next.day, text: t("log.illness", { name: t(`crew.n${sick[0].crewId}`) }) }],
+    log: [...next.log, { day: next.day, ...msg("log.illness", { name: sick[0].crewId }) }],
   };
 }
 
@@ -309,7 +309,7 @@ function repairModule(state: GameState, slot: number): GameState {
     modules,
     activeEvent,
     history,
-    log: [...state.log, { day: state.day, text: t("log.repaired") }],
+    log: [...state.log, { day: state.day, ...msg("log.repaired") }],
   };
 }
 
@@ -333,12 +333,11 @@ function completeResearch(
   const resultKey = id === "moonDust"
     ? (correct ? "research.moonDust.resultShield" : "research.moonDust.resultBrush")
     : (correct ? "research.iceScout.resultIce" : "research.iceScout.resultRock");
-  const explanation = t(resultKey);
   return {
     ...state,
     research: [...(state.research ?? []), id, `${id}:${answer}`],
     resources,
-    log: [...state.log, { day: state.day, text: t("research.log", { result: explanation }) }],
+    log: [...state.log, { day: state.day, ...msg("research.log", { result: resultKey }) }],
   };
 }
 

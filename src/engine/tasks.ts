@@ -1,5 +1,5 @@
 import type { GameState, ModuleType, Role, Task } from "../types";
-import { t } from "../i18n";
+import { msg } from "./msg";
 import { NIGHT_START } from "./constants";
 import { dayOfEvent } from "./events";
 
@@ -91,16 +91,15 @@ export function reviewTasks(state: GameState): GameState {
   let morale = 0;
   const tasks = state.tasks.map((task): Task => {
     if (task.status !== "open") return task;
-    const who = t(`crew.from${task.giver}`); // «задание от Максима»
-    const title = t(`task.${task.id}`);
+    // who: id того, кто просил («задание от Максима»), task: id задания. Слова подставит слой перевода
     if (defOf(task.id).done(state)) {
       morale += MORALE_STEP;
-      log.push({ day: state.day, text: t("log.taskDone", { who, task: title }) });
+      log.push({ day: state.day, ...msg("log.taskDone", { who: task.giver, task: task.id }) });
       return { ...task, status: "done" };
     }
     if (state.day > task.deadline) {
       morale -= MORALE_STEP;
-      log.push({ day: state.day, text: t("log.taskMissed", { who, task: title }) });
+      log.push({ day: state.day, ...msg("log.taskMissed", { who: task.giver, task: task.id }) });
       return { ...task, status: "missed" };
     }
     return task;

@@ -1,5 +1,5 @@
 import modulesData from "../data/modules.json";
-import { t } from "../i18n";
+import { msg } from "./msg";
 import type { CrewMember, GameState, ModuleDef, ModuleType } from "../types";
 
 const MODULES = modulesData as ModuleDef[];
@@ -45,7 +45,7 @@ export function restCrew(state: GameState, ms: number): GameState {
     if (c.status.kind !== "sick") return c;
     const leftMs = c.status.leftMs - ms;
     if (leftMs > 0) return { ...c, status: { kind: "sick", leftMs } };
-    log.push({ day: state.day, text: t("log.recovered", { name: t(`crew.n${c.id}`) }) });
+    log.push({ day: state.day, ...msg("log.recovered", { name: c.id }) });
     return { ...c, status: { kind: "free" } };
   });
   return { ...state, crew, log };
