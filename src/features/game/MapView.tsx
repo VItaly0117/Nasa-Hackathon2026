@@ -1,4 +1,4 @@
-import modulesData from "@/data/modules.json";
+import modulesData from "@/content/modules.json";
 import { canPlace, hasFreeCrew, REPAIR_COST, slotOf } from "@/engine";
 import type { TileInfo } from "@/engine";
 import type { ModuleDef, ModuleType } from "@/types";

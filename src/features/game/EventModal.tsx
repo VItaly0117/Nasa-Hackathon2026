@@ -1,4 +1,4 @@
-import eventsData from "@/data/events.json";
+import eventsData from "@/content/events.json";
 import type { EventDef } from "@/types";
 import { t, tDynamic } from "@/i18n";
 import { describeFlare } from "@/i18n/messages";

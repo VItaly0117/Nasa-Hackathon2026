@@ -116,7 +116,7 @@ npm run lint
 - **NASA OSDR** (Open Science Data Repository) & **RadLab** — биологические исследования и радиационный мониторинг.
 - **CSA (Canadian Space Agency)** — материалы о космическом растениеводстве и технологиях закрытых экосистем.
 
-Подробные ссылки и манифест использования данных доступны в [`src/data/sources.json`](./src/data/sources.json).
+Подробные ссылки и манифест использования данных доступны в [`src/content/sources.json`](./src/content/sources.json).
 
 ---
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Качает РЕАЛЬНЫЕ солнечные вспышки из NASA DONKI и сохраняет в src/data/nasa/flares.json.
+// Качает РЕАЛЬНЫЕ солнечные вспышки из NASA DONKI и сохраняет в src/content/nasa/flares.json.
 // Запускается ОДИН раз (результат лежит в репозитории, игре интернет не нужен):
 //
 //   node scripts/fetch-donki.mjs
@@ -12,7 +12,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const OUT = resolve(dirname(fileURLToPath(import.meta.url)), "../src/data/nasa/flares.json");
+const OUT = resolve(dirname(fileURLToPath(import.meta.url)), "../src/content/nasa/flares.json");
 const CCMC = "https://ccmc.gsfc.nasa.gov/DONKI/WS/get/FLR";
 const API_NASA = "https://api.nasa.gov/DONKI/FLR";
 const API_KEY = process.env.NASA_API_KEY || "DEMO_KEY";

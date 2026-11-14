@@ -1,5 +1,5 @@
-import eventsData from "@/data/events.json";
-import flaresData from "@/data/nasa/flares.json";
+import eventsData from "@/content/events.json";
+import flaresData from "@/content/nasa/flares.json";
 import { msg } from "@/engine/msg";
 import { DAY_MS } from "@/engine/constants";
 import { restPatient } from "./crew";

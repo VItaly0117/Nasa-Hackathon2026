@@ -61,7 +61,7 @@ export type EventChoice = {
 // Заголовок и описание события: ev.<id>.title / ev.<id>.text
 export type EventDef = { id: string; choices: EventChoice[] };
 
-// Реальная вспышка из NASA DONKI (src/data/nasa/flares.json)
+// Реальная вспышка из NASA DONKI (src/content/nasa/flares.json)
 export type Flare = {
   id: string;
   date: string;        // день пика, YYYY-MM-DD

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import hintsData from "@/data/hints.json";
+import hintsData from "@/content/hints.json";
 import { missionFact } from "@/engine";
 import type { GameRecord } from "@/session/storage";
 import { days as daysText, t, tDynamic } from "@/i18n";

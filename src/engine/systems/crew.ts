@@ -1,4 +1,4 @@
-import modulesData from "@/data/modules.json";
+import modulesData from "@/content/modules.json";
 import { msg } from "@/engine/msg";
 import type { CrewMember, GameState, ModuleDef, ModuleType } from "@/types";
 

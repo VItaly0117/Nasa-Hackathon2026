@@ -28,6 +28,6 @@
 - `src/engine/placement.ts`: Isometric coordinate mapping and terrain checks.
 - `src/engine/tasks.ts`: 16 dynamic crew tasks with conditions and deadlines.
 - `src/engine/events.ts`: Scheduled events (breakdown day 6, solar flare day 9) and DONKI flare data.
-- `src/data/modules.json`: Costs, production, and storage capacities of 10 modules.
+- `src/content/modules.json`: Costs, production, and storage capacities of 10 modules.
 - `src/audio/audio.ts`: Real-time Web Audio API procedural sound synthesizer (retro SFX, alarms, ambient, quindar tones).
 - `server/index.mjs`: Zero-dependency Node HTTP + SSE multiplayer room server.

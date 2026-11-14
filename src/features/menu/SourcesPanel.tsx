@@ -1,4 +1,4 @@
-import sourcesData from "@/data/sources.json";
+import sourcesData from "@/content/sources.json";
 import { t, tDynamic } from "@/i18n";
 import "@/features/results/ResultsScreen.css";
 

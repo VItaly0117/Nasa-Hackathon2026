@@ -1,4 +1,4 @@
-import modulesData from "@/data/modules.json";
+import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
 import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
 import type { ModuleDef, Role } from "@/types";
