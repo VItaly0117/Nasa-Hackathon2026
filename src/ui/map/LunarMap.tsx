@@ -85,6 +85,7 @@ const SHORT: Record<string, string> = {
   food: "еды",
   energy: "кВт",
   health: "здоровья",
+  materials: "мат.",
 };
 
 // «+6 еды · −3 воды · −5 кВт в день»
@@ -198,9 +199,11 @@ export default function LunarMap({
     }
 
     const near = isNearBase(modules, selected.row, selected.col);
-    const text = selected.canMine
-      ? "Здесь можно добывать лёд"
-      : !selected.canBuild
+    const text = selected.terrain === "ice"
+      ? "Лёд: поставь сюда ледодобытчик"
+      : selected.terrain === "rock"
+        ? "Камни: поставь сюда карьер"
+        : !selected.canBuild
         ? "Строить здесь нельзя"
         : near
           ? "Можно строить"

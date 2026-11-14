@@ -28,7 +28,7 @@
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -88,6 +88,6 @@
 
 @media (max-width: 1100px) {
   .build { right: 14px; }
-  .build__list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .build__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .detail { bottom: auto; top: 90px; }
 }

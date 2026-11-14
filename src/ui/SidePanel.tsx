@@ -1,6 +1,7 @@
 import type { GameState } from "../types";
 import { MISSION_DAYS, NIGHT_START } from "../engine/engine";
 import { nextScheduledEvent } from "../engine/events";
+import { taskList } from "../engine/tasks";
 
 type Alert = { title: string; text: string; kind: "flare" | "night" | "warn" };
 
@@ -63,6 +64,31 @@ function AlertIcon({ kind }: { kind: Alert["kind"] }) {
   );
 }
 
+// Три ближайшие невыполненные задачи: больше сразу ребёнку не нужно
+function Tasks({ state }: { state: GameState }) {
+  const tasks = taskList(state);
+  const open = tasks.filter((t) => !t.isDone);
+  const doneCount = tasks.length - open.length;
+
+  return (
+    <section className="hud-panel tasks">
+      <h2 className="hud-title">Задачи · {doneCount} / {tasks.length}</h2>
+      <ul>
+        {open.slice(0, 3).map((t) => (
+          <li key={t.id} className={`task ${t.late ? "task--late" : ""}`}>
+            <span className="task__mark" aria-hidden="true">{t.late ? "!" : "○"}</span>
+            <span>
+              <strong>{t.text}{t.deadline ? ` до дня ${t.deadline}` : ""}</strong>
+              <span className="task__why">{t.why}</span>
+            </span>
+          </li>
+        ))}
+        {open.length === 0 && <li className="task">Все задачи выполнены. Продержись до конца миссии!</li>}
+      </ul>
+    </section>
+  );
+}
+
 export function SidePanel({ state }: { state: GameState }) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
@@ -92,6 +118,8 @@ export function SidePanel({ state }: { state: GameState }) {
           <span>{state.day} / {MISSION_DAYS}</span>
         </div>
       </section>
+
+      <Tasks state={state} />
 
       <section className="hud-panel journal">
         <h2 className="hud-title">Журнал</h2>

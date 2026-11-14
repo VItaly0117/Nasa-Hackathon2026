@@ -20,6 +20,7 @@ const SHORT: Record<ResourceKey, string> = {
   food: "еды",
   energy: "кВт",
   health: "здор.",
+  materials: "мат.",
 };
 
 function Cost({ cost }: { cost: Partial<Resources> }) {

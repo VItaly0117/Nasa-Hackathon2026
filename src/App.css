@@ -99,6 +99,14 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 .goal__bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .goal__bar > div { height: 100%; background: var(--accent); transition: width 0.4s; }
 
+.tasks { padding: 12px 14px; }
+.tasks ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.task { display: flex; gap: 8px; align-items: flex-start; }
+.task strong { display: block; }
+.task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
+.task__why { opacity: 0.75; }
+.task--late .task__mark, .task--late strong { color: #ff9b9b; }
+
 .journal { padding: 12px 14px; }
 .journal ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
 
