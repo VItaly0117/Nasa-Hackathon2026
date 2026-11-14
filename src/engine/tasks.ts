@@ -33,10 +33,10 @@ export const TASK_DEFS: TaskDef[] = [
   { id: "rocks", role: "scientist", done: (s) => count(s, "rockMine") >= 1 },
   { id: "solar2", role: "engineer", fromDay: 3, done: (s) => count(s, "solar") >= 2 },
   // врача в экипаже нет, поэтому про убежище и медпункт просит техник
-  { id: "shelter", role: "technician", deadline: () => dayOfEvent("flare"), done: (s) => count(s, "shelter") >= 1 },
+  { id: "shelter", role: "doctor", deadline: () => dayOfEvent("flare"), done: (s) => count(s, "shelter") >= 1 },
   { id: "ice", role: "scientist", done: (s) => count(s, "iceMine") >= 1 },
   { id: "storage", role: "engineer", fromDay: 3, done: (s) => count(s, "storage") >= 1 },
-  { id: "medbay", role: "technician", fromDay: 3, done: (s) => count(s, "medbay") >= 1 },
+  { id: "medbay", role: "doctor", fromDay: 3, done: (s) => count(s, "medbay") >= 1 },
   { id: "battery", role: "engineer", fromDay: 4, deadline: () => NIGHT_START, done: (s) => count(s, "battery") >= 1 },
   { id: "air2", role: "technician", fromDay: 4, done: (s) => count(s, "lifeSupport") >= 2 },
   { id: "stockMaterials", role: "scientist", fromDay: 5, done: (s) => s.resources.materials >= 50 },

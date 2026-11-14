@@ -141,13 +141,13 @@ export function runChecks(): CheckResult[] {
   // Стройка руками экипажа
   const fresh = initialState();
   check(
-    "В экипаже ровно инженер, учёный и техник",
-    new Set(fresh.crew.map((c) => c.role)).size === 3 && fresh.crew.every((c) => ["engineer", "scientist", "technician"].includes(c.role)),
+    "В экипаже ровно инженер, учёный, врач и техник",
+    new Set(fresh.crew.map((c) => c.role)).size === 4 && fresh.crew.every((c) => ["engineer", "scientist", "doctor", "technician"].includes(c.role)),
     fresh.crew.map((c) => c.role).join(", "),
   );
   check(
-    "Убежище и медпункт строит техник",
-    getDef("shelter").builder === "technician" && getDef("medbay").builder === "technician",
+    "Убежище и медпункт строит врач",
+    getDef("shelter").builder === "doctor" && getDef("medbay").builder === "doctor",
     `убежище: ${getDef("shelter").builder}, медпункт: ${getDef("medbay").builder}`,
   );
   let busy = fresh;

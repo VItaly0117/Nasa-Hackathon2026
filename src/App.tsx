@@ -13,7 +13,6 @@ import eventsData from "./data/events.json";
 import type { Action, EventDef, GameState, ModuleDef, ModuleType, Resources } from "./types";
 import { days, LANGS, setLang, t } from "./i18n";
 import type { Lang } from "./i18n";
-import { Sky } from "./ui/Sky";
 import LunarMap from "./ui/map/LunarMap";
 import { ResourceBar } from "./ui/ResourceBar";
 import { CrewPanel } from "./ui/CrewPanel";
@@ -243,8 +242,6 @@ function Game({ mode, onRestart, onMenu }: { mode: Mode; onRestart: () => void; 
 
   return (
     <div className={`game ${state.isNight ? "game--night" : ""}`}>
-      <Sky />
-
       <LunarMap
         modules={state.modules}
         defs={MODULES}
@@ -458,7 +455,7 @@ export default function App() {
   if (stage === "menu") {
     return (
       <div className="game">
-        <Sky />
+        <div className="backdrop" aria-hidden="true" />
         <MainMenu
           savedDay={saved?.day ?? null}
           onLang={pickLang}
@@ -501,7 +498,7 @@ export default function App() {
   // До начала новой игры показываем небо, а поверх него — правила
   return (
     <div className="game">
-      <Sky />
+      <div className="backdrop" aria-hidden="true" />
       <Intro onStart={() => setStage("game")} />
       <RotateHint />
     </div>

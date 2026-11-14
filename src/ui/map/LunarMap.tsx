@@ -131,8 +131,8 @@ function clampView(v: View, size: Size): View {
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);
-  const minTopGap = size.h * 0.18;
-  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, minTopGap);
+  // Верхній край картинки не опускаємо нижче верху екрана: інакше угорі видно порожній фон
+  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, 0);
   return { x, y, k };
 }
 

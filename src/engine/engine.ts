@@ -17,11 +17,12 @@ export function nextRandom(seed: number): [number, number] {
   x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
   return [((x ^ (x >>> 14)) >>> 0) / 4294967296, s];
 }
-// id совпадают с crew.n<id> в словарях и с crewData.ts. Номера 3 больше нет: Софию убрали из экипажа,
-// врача на базе нет, поэтому убежище и медпункт закреплены за техником.
+// id совпадают с crew.n<id> в словарях и с crewData.ts. Под номером 3 теперь врач Виталий:
+// убежище и медпункт закреплены за ним.
 const CREW_ROLES: { id: number; role: Role }[] = [
   { id: 1, role: "engineer" },
   { id: 2, role: "scientist" },
+  { id: 3, role: "doctor" },
   { id: 4, role: "technician" },
 ];
 

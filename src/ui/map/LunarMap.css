@@ -4,6 +4,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: #0a0d24;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
