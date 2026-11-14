@@ -15,9 +15,10 @@ import { createServer } from "node:http";
 import { randomBytes, randomInt } from "node:crypto";
 
 const PORT = Number(process.env.PORT) || 8787;
-const ROLES = ["engineer", "technician", "scientist"];
+const ROLES = ["engineer", "technician", "doctor", "scientist"];
 const NAME_RE = /^[A-Za-z]{1,20}$/;
-const ACTION_TYPES = new Set(["tick", "build", "resolveEvent", "repair"]);
+// Все действия движка, кроме nextDay (пропуск дня): онлайн время двигает только ведущий. Список сверяет scripts/run-online-checks.mjs
+const ACTION_TYPES = new Set(["tick", "build", "resolveEvent", "repair", "research"]);
 const EMPTY_ROOM_TTL_MS = 10 * 60 * 1000; // пустая комната живёт 10 минут: можно обновить страницу и вернуться
 const JOIN_TIMEOUT_MS = 30 * 1000;        // зашёл, но не подключился к потоку: место освобождается
 

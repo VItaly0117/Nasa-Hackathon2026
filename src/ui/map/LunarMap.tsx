@@ -23,6 +23,7 @@ interface LunarMapProps {
   defs: ModuleDef[];
   isNight: boolean;
   buildType: ModuleType | null;
+  surveyingIce?: boolean;
   crewActive: boolean;
   canPlaceAt: (row: number, col: number) => boolean;
   canAffordRepair?: boolean;
@@ -147,6 +148,7 @@ export default function LunarMap({
   defs,
   isNight,
   buildType,
+  surveyingIce = false,
   crewActive,
   canPlaceAt,
   canAffordRepair = true,
@@ -425,6 +427,15 @@ export default function LunarMap({
                 />
               );
             })}
+
+            {surveyingIce && (
+              <g pointerEvents="none" aria-hidden="true">
+                {TILES.filter((tile) => tile.terrain === "ice").map((tile) => {
+                  const { x, y } = getPosition(tile.row, tile.col);
+                  return <polygon key={`ice-survey-${tile.row}-${tile.col}`} className="tile-ice-survey" points={diamond(x, y)} />;
+                })}
+              </g>
+            )}
 
             {/* Слой 3: лунная ночь затемняет поверхность, огни зданий остаются яркими */}
             {isNight && (

@@ -87,6 +87,7 @@ export type GameState = {
   sickCount: number;
   lastIllnessDay: number;
   tasks: Task[];
+  research: string[]; // завершённые научные исследования этой миссии
   crew: CrewMember[];
   clockMs: number; // сколько миллисекунд игрового времени прошло в текущем дне
   history: HistoryEntry[];
@@ -106,4 +107,6 @@ export type Action =
   | { type: "nextDay" }      // пропустить остаток дня
   | { type: "build"; slot: number; module: ModuleType }
   | { type: "repair"; slot: number }
+  | { type: "research"; id: "moonDust"; answer: "shield" | "brush" }
+  | { type: "research"; id: "iceScout"; answer: "ice" | "rock" }
   | { type: "resolveEvent"; choice: string };

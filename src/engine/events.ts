@@ -8,6 +8,12 @@ import type { EventDef, Flare, GameState, ModuleType, ResourceKey, Resources } f
 const FLARES = flaresData as Flare[];
 const EVENTS = eventsData as EventDef[];
 
+// Цена выбора из events.json. Другие места (например, починка кликом по модулю) берут цену отсюда,
+// чтобы она не разошлась с подсказкой в окне события
+export function choiceCost(eventId: string, choiceId: string): Partial<Resources> {
+  return EVENTS.find((e) => e.id === eventId)?.choices.find((c) => c.id === choiceId)?.cost ?? {};
+}
+
 // День миссии → событие. Потом можно сделать случайными
 const SCHEDULE: Record<number, string> = {
   6: "breakdown",
