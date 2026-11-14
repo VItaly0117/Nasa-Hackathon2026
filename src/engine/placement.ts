@@ -75,6 +75,7 @@ export function isNearBase(modules: PlacedModule[], row: number, col: number): b
 }
 
 // TODO @Regie: размер модуля, лёд только для добычи
+// TODO @Regie: размер модуля
 export function canPlace(state: GameState, type: ModuleType, row: number, col: number): boolean {
   const tile = getTileInfo(row, col);
   // Добыча ставится прямо на месторождение, остальное — на ровный грунт

@@ -1,17 +1,49 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 17px; overflow: hidden; }
+button { font-family: inherit; }
 
 /* Вся игра — один экран: небо, карта и панели поверх неё */
-.game { position: relative; height: 100vh; overflow: hidden; }
+.game { position: relative; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ---------- Небо ---------- */
 .sky {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   background: linear-gradient(#060918 0%, #121838 30%, #2a2650 42%, #3a3462 52%);
 }
 .sky__stars { position: absolute; left: 0; top: 0; width: 100%; height: 40vh; }
+.star { animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+.meteor {
+  position: absolute;
+  width: 110px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff);
+  opacity: 0;
+  transform: rotate(28deg);
+  animation: meteor 12s linear infinite;
+}
+@keyframes meteor {
+  0% { opacity: 0; transform: translate(0, 0) rotate(28deg); }
+  2% { opacity: 1; }
+  8% { opacity: 0; transform: translate(-320px, 170px) rotate(28deg); }
+  100% { opacity: 0; transform: translate(-320px, 170px) rotate(28deg); }
+}
+
+.satellite { position: absolute; top: 15vh; left: -80px; opacity: 0.9; animation: orbit 55s linear infinite; }
+.satellite__light { animation: blink 1.4s steps(2, jump-none) infinite; }
+@keyframes orbit {
+  from { transform: translateX(0) rotate(-6deg); }
+  to { transform: translateX(calc(100vw + 160px)) rotate(-6deg); }
+}
+@keyframes blink { 50% { opacity: 0.15; } }
 
 .earth {
   position: absolute;
@@ -24,10 +56,21 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   overflow: hidden;
   background: radial-gradient(circle at 35% 30%, #5fb0ff, #1d5fc4 60%, #0b2f73);
   box-shadow: 0 0 40px 10px rgba(90, 160, 255, 0.35);
+  animation: glow 6s ease-in-out infinite;
 }
-.earth__land { position: absolute; background: #4f9a4a; border-radius: 45% 55% 50% 40%; opacity: 0.9; }
-.earth__land--1 { width: 42%; height: 30%; left: 18%; top: 28%; transform: rotate(-20deg); }
-.earth__land--2 { width: 30%; height: 38%; left: 58%; top: 48%; transform: rotate(25deg); }
+@keyframes glow {
+  50% { box-shadow: 0 0 56px 16px rgba(90, 160, 255, 0.5); }
+}
+/* Широкая полоса с материками едет влево по кругу: Земля вращается */
+.earth__spin { position: absolute; top: 0; left: 0; width: 200%; height: 100%; animation: spin 70s linear infinite; }
+@keyframes spin { to { transform: translateX(-50%); } }
+.earth__land { position: absolute; background: #4f9a4a; border-radius: 45% 55% 50% 40%; opacity: 0.92; }
+.earth__land--1 { width: 21%; height: 30%; left: 9%; top: 28%; transform: rotate(-20deg); }
+.earth__land--2 { width: 15%; height: 38%; left: 29%; top: 48%; transform: rotate(25deg); }
+.earth__land--3 { width: 9%; height: 20%; left: 43%; top: 14%; transform: rotate(10deg); }
+.earth__land--copy1 { left: 59%; }
+.earth__land--copy2 { left: 79%; }
+.earth__land--copy3 { left: 93%; }
 .earth__cloud {
   position: absolute;
   inset: 0;
@@ -35,7 +78,9 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
     radial-gradient(ellipse 30% 8% at 30% 20%, rgba(255,255,255,0.8), transparent),
     radial-gradient(ellipse 35% 7% at 65% 75%, rgba(255,255,255,0.7), transparent),
     radial-gradient(circle at 75% 75%, transparent 55%, rgba(0, 10, 40, 0.55));
+  animation: clouds 24s ease-in-out infinite alternate;
 }
+@keyframes clouds { to { transform: translateX(6%); } }
 
 /* ---------- Общий вид панелей ---------- */
 .hud-panel {
@@ -45,70 +90,101 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   box-shadow: var(--panel-shadow);
   backdrop-filter: blur(6px);
 }
-.hud-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 800; }
+.hud-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 19px; font-weight: 800; }
 .muted { opacity: 0.7; }
+
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.collapse-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1.5px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+}
+.collapse-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
 /* ---------- Верхняя полоса ---------- */
 .topbar {
   position: absolute;
-  top: 12px;
-  left: 14px;
-  right: 14px;
+  top: 14px;
+  left: 18px;
+  right: 18px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 16px;
   pointer-events: none;
+  z-index: 2;
 }
 .topbar > * { pointer-events: auto; }
 
-.base-badge { display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 8px; }
-.base-badge__text { display: flex; flex-direction: column; }
-.base-badge__text strong { font-size: 17px; font-weight: 800; }
-.base-badge__text span { font-size: 13px; opacity: 0.85; }
+.base-badge { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; padding: 12px 14px; max-width: 600px; }
+.base-badge__text { display: flex; flex-direction: column; min-width: 150px; flex: 1; }
+.base-badge__text strong { font-size: 20px; font-weight: 800; }
+.base-badge__text span { font-size: 15px; opacity: 0.9; }
+
+.dayclock { flex-basis: 100%; display: flex; align-items: center; gap: 10px; }
+.dayclock__bar { flex: 1; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.4); overflow: hidden; }
+.dayclock__bar > div { width: 100%; height: 100%; transform-origin: left center; background: linear-gradient(90deg, #7fb0ff, #ffd166); }
+.dayclock__bar--low > div { background: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
+@keyframes urgent { 50% { opacity: 0.55; } }
 
 /* ---------- Экипаж слева ---------- */
-.crew { position: absolute; left: 14px; top: 92px; width: 230px; padding: 12px; }
-.crew__list { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.crew { position: absolute; left: 18px; top: 176px; width: 280px; padding: 14px; z-index: 1; }
+.crew__list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
 .crew__item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
 }
-.crew__info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
-.crew__info strong { font-size: 15px; }
-.crew__role { font-size: 12px; opacity: 0.75; }
-.crew__bar { height: 5px; margin-top: 4px; border-radius: 3px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
-.crew__bar > div { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.crew__info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.crew__info strong { font-size: 18px; }
+.crew__role { font-size: 14px; opacity: 0.8; }
+.crew__bar { height: 8px; margin-top: 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+.crew__bar > div { height: 100%; border-radius: 4px; transition: width 0.4s; }
 
 /* ---------- Правая колонка ---------- */
-.side { position: absolute; right: 14px; top: 92px; width: 310px; display: flex; flex-direction: column; gap: 10px; }
-.alert { display: flex; gap: 10px; align-items: center; padding: 12px 14px; }
-.alert p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; }
+.side { position: absolute; right: 18px; top: 118px; width: 350px; display: flex; flex-direction: column; gap: 14px; z-index: 1; }
+.alert { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
+.alert p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; }
 .alert--flare { border-color: #ff8a3d; background: rgba(70, 30, 30, 0.9); }
 .alert--warn { border-color: var(--accent); }
 .alert--night { border-color: #8a96ff; }
 .alert__text { flex: 1; }
 
-.goal { padding: 12px 14px; }
-.goal p { margin: 6px 0 8px; font-size: 13px; }
-.goal__row { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--accent); }
-.goal__bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+.goal { padding: 14px 16px; }
+.goal p { margin: 10px 0 12px; font-size: 15px; line-height: 1.4; }
+.goal__row { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 800; color: var(--accent); }
+.goal__bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .goal__bar > div { height: 100%; background: var(--accent); transition: width 0.4s; }
 
-.journal { padding: 12px 14px; }
-.journal ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+.tasks { padding: 14px 16px; }
+.tasks ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.35; }
+.task { display: flex; gap: 8px; align-items: flex-start; }
+.task strong { display: block; }
+.task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
+.task__why { opacity: 0.75; font-size: 14px; }
+.task--late .task__mark, .task--late strong { color: #ff9b9b; }
+
+.journal { padding: 14px 16px; }
+.journal ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.4; }
 
 /* ---------- Кнопки ---------- */
 .btn {
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 14px;
   border: 0;
   font: inherit;
+  font-size: 18px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -116,23 +192,28 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 .btn--primary {
   background: linear-gradient(#ffd166, #f5a623);
   color: #3b2a00;
-  box-shadow: 0 3px 0 #b8741a;
+  box-shadow: 0 4px 0 #b8741a;
 }
-.btn--primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #b8741a; }
+.btn--primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #b8741a; }
 .btn--ghost { background: rgba(255, 255, 255, 0.1); color: var(--text); border: 1.5px solid var(--panel-border); }
-.btn--next { display: inline-flex; align-items: center; gap: 8px; margin-left: 6px; }
+.btn--ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); }
+.btn--small { min-height: 44px; padding: 0 14px; font-size: 16px; }
+.btn--on { background: var(--accent); color: #3b2a00; border-color: var(--accent); }
+.btn--next { display: inline-flex; align-items: center; gap: 8px; }
+.btn--help { padding: 0 16px; }
 .btn--choice {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  padding: 12px 16px;
+  gap: 6px;
+  padding: 16px 20px;
   text-align: left;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
   border: 1.5px solid var(--panel-border);
 }
+.btn--choice:hover { background: rgba(255, 255, 255, 0.12); }
 
 /* ---------- Окна событий и итогов ---------- */
 .overlay {
@@ -143,22 +224,100 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 12px;
 }
 .modal {
-  width: min(560px, 92vw);
-  padding: 24px;
+  width: min(600px, 94vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 30px;
   background: var(--panel);
   border: 1.5px solid var(--panel-border);
-  border-radius: 20px;
+  border-radius: 22px;
   box-shadow: var(--panel-shadow);
+  font-size: 18px;
+  line-height: 1.5;
 }
-.modal h2 { margin-top: 0; }
-.modal__choices { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-.debrief { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.modal h2 { margin-top: 0; font-size: 28px; }
+.modal a { color: var(--accent); }
+.modal__choices { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
+.debrief { padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
 
-/* ---------- Узкие экраны: панели уступают место карте ---------- */
+/* ---------- Баннер нового дня ---------- */
+.day-banner {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  padding: 14px 34px;
+  border-radius: 24px;
+  background: rgba(14, 20, 52, 0.82);
+  border: 2px solid var(--accent);
+  font-size: 40px;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: banner 1.8s ease-out forwards;
+}
+.day-banner--night { border-color: #8a96ff; color: #dfe4ff; }
+@keyframes banner {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(0.85); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  25% { transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -62%) scale(1); }
+}
+
+/* ---------- Подсказка «поверни телефон» ---------- */
+.rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #0b1026;
+  color: var(--text);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  padding: 24px;
+}
+.rotate-hint svg { animation: tilt 2s ease-in-out infinite; }
+@keyframes tilt { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-90deg); } }
+@media (orientation: portrait) and (max-width: 700px) { .rotate-hint { display: flex; } }
+
+/* ---------- Планшеты и узкие ноутбуки ---------- */
 @media (max-width: 1100px) {
-  .crew { display: none; }
-  .side { width: 260px; }
-  .journal { display: none; }
+  .crew { width: 240px; }
+  .side { width: 300px; }
+  .base-badge { max-width: 560px; }
+}
+
+/* ---------- Телефоны и низкие экраны в горизонтальном положении ---------- */
+@media (max-height: 620px), (max-width: 900px) {
+  body { font-size: 15px; }
+  .topbar { top: 8px; left: 10px; right: 10px; gap: 8px; }
+  .base-badge { padding: 8px 10px; gap: 6px 10px; }
+  .base-badge__text strong { font-size: 16px; }
+  .base-badge__text span { font-size: 13px; }
+  .hud-title { font-size: 16px; }
+  .btn { min-height: 46px; font-size: 16px; padding: 0 14px; }
+  .btn--small { min-height: 40px; padding: 0 10px; font-size: 14px; }
+  .crew { left: 10px; top: 112px; width: 220px; padding: 10px; }
+  .crew__list { gap: 8px; margin-top: 8px; }
+  .crew__item { padding: 6px; }
+  .side { right: 10px; top: 80px; width: 250px; gap: 8px; }
+  .alert, .goal, .journal { padding: 10px 12px; }
+  .alert p, .goal p, .journal ul { font-size: 13px; }
+  .modal { padding: 18px; font-size: 16px; }
+  .modal h2 { font-size: 22px; }
+  .day-banner { font-size: 26px; padding: 8px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star, .meteor, .satellite, .earth, .earth__spin, .earth__cloud, .dayclock__bar--low > div { animation: none; }
 }

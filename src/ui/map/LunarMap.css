@@ -1,24 +1,25 @@
-/* Карта занимает нижнюю часть экрана во всю ширину и прокручивается вбок */
+/* Карта занимает нижнюю часть экрана. Внутри неё сцена двигается и масштабируется через transform */
 .map-frame {
   position: absolute;
   left: 0;
   right: 0;
-  top: 34vh;
+  top: 30vh;
   bottom: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   cursor: grab;
   user-select: none;
-  scrollbar-width: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
-.map-frame::-webkit-scrollbar { display: none; }
 .map-frame:active { cursor: grabbing; }
 
-.map-svg {
-  display: block;
-  height: 100%;
-  width: auto;
-}
+.map-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.map-stage--smooth { transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.3, 1); }
+
+.map-svg { display: block; }
+
+.tile-ok { animation: tile-pulse 1.4s ease-in-out infinite; }
+@keyframes tile-pulse { 50% { fill-opacity: 0.5; } }
 
 .bubble {
   height: 100%;
@@ -31,20 +32,59 @@
 .bubble__body {
   background: #7FA6F5;
   color: #0E1A3A;
-  border-radius: 14px;
-  padding: 7px 14px;
+  border-radius: 16px;
+  padding: 10px 18px;
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.35;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-.bubble__title { font-weight: 800; font-size: 15px; }
+.bubble__title { font-weight: 800; font-size: 18px; }
 
 .bubble__tail {
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 8px solid #7FA6F5;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #7FA6F5;
+}
+
+/* Кнопки приближения слева внизу */
+.zoom {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.zoom__btn {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  border: 1.5px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--panel-shadow);
+}
+.zoom__btn:hover { background: rgba(60, 76, 150, 0.9); }
+.zoom__btn:active { transform: scale(0.94); }
+
+@media (max-height: 620px), (max-width: 900px) {
+  .map-frame { top: 22vh; }
+  .zoom { left: 10px; bottom: 10px; gap: 8px; }
+  .zoom__btn { width: 46px; height: 46px; font-size: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-ok { animation: none; }
+  .map-stage--smooth { transition: none; }
 }

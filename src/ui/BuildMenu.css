@@ -1,42 +1,45 @@
-/* слева от карточки модуля, которая стоит в правом нижнем углу */
+/* Зліва от карточки модуля (она стоит справа внизу) и справа от кнопок приближения */
 .build {
   position: absolute;
-  left: 14px;
-  right: 338px;
-  bottom: 14px;
-  max-width: 900px;
+  left: 92px;
+  right: 410px;
+  bottom: 18px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 10px 12px 12px;
+  padding: 14px 16px 16px;
+  z-index: 1;
 }
 
-.build__tabs { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.build__tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 12px; }
 .build__tab {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 10px;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 12px;
   background: var(--accent);
   color: #3b2a00;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 18px;
 }
-.build__hint { font-size: 13px; opacity: 0.8; }
+.build__hint { flex: 1; min-width: 120px; font-size: 16px; opacity: 0.9; }
+.build__tabs .collapse-btn { margin-left: auto; }
 
 .build__list {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .card {
   width: 100%;
   height: 100%;
-  padding: 8px 6px;
-  border-radius: 12px;
+  min-height: 150px;
+  padding: 10px 6px;
+  border-radius: 14px;
   border: 2px solid transparent;
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
@@ -44,7 +47,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
   transition: border-color 0.2s, transform 0.1s, background 0.2s;
 }
@@ -53,41 +56,57 @@
 .card:disabled { opacity: 0.45; cursor: not-allowed; }
 .card--selected { border-color: var(--accent); background: rgba(245, 184, 61, 0.14); }
 
-.card__name { font-size: 13px; font-weight: 700; text-align: center; line-height: 1.15; min-height: 30px; display: flex; align-items: center; }
+.card__name { font-size: 15px; font-weight: 700; text-align: center; line-height: 1.15; min-height: 36px; display: flex; align-items: center; }
 
-.cost { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-weight: 800; font-size: 14px; }
-.cost__item { display: inline-flex; align-items: center; gap: 3px; }
+.cost { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-weight: 800; font-size: 17px; }
+.cost__item { display: inline-flex; align-items: center; gap: 4px; }
 
 .detail {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 310px;
-  padding: 14px;
+  right: 18px;
+  bottom: 18px;
+  width: 380px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  z-index: 1;
 }
-.detail__top { display: flex; gap: 12px; }
+.detail__top { display: flex; gap: 16px; }
 .detail__preview {
   flex-shrink: 0;
-  width: 110px;
-  height: 100px;
-  border-radius: 12px;
+  width: 120px;
+  height: 110px;
+  border-radius: 14px;
   background: linear-gradient(#5f5779, #8a82a0);
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
-.detail__info p { margin: 4px 0 6px; font-size: 13px; opacity: 0.9; }
-.detail__lines { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
-.detail__lines li { display: flex; align-items: center; gap: 5px; }
+.detail__info p { margin: 6px 0 10px; font-size: 15px; line-height: 1.4; opacity: 0.92; }
+.detail__lines { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.detail__lines li { display: flex; align-items: center; gap: 8px; }
 .detail__night { color: #B9BEF0; }
-.detail__cost { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.detail__cost { display: flex; align-items: center; justify-content: space-between; font-size: 17px; }
 .detail .btn { width: 100%; }
 
 @media (max-width: 1100px) {
-  .build { right: 14px; }
-  .build__list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .detail { bottom: auto; top: 90px; }
+  .build { right: 18px; }
+  .build__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .detail { bottom: auto; top: 118px; right: 18px; }
+}
+
+/* Телефоны и низкие экраны: карточки в один ряд, подробности над картой */
+@media (max-height: 620px), (max-width: 900px) {
+  .build { left: 66px; right: 10px; bottom: 10px; padding: 8px 10px 10px; }
+  .build__tabs { margin-bottom: 8px; gap: 8px 10px; }
+  .build__tab { padding: 5px 12px; font-size: 15px; }
+  .build__hint { font-size: 13px; }
+  .build__list { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+  .card { min-height: 0; padding: 6px 2px; gap: 2px; }
+  .card__name { font-size: 11px; min-height: 26px; }
+  .cost { font-size: 13px; gap: 6px; }
+  .detail { right: 10px; top: 80px; bottom: auto; width: 270px; padding: 10px; gap: 8px; }
+  .detail__preview { width: 76px; height: 70px; }
+  .detail__info p, .detail__lines { font-size: 12px; }
 }

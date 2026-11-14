@@ -1,28 +1,29 @@
 import { useEffect, useReducer, useState } from "react";
 import { reduce, initialState, dailyDelta, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
+import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";
 import eventsData from "./data/events.json";
-import type { ModuleDef, ModuleType, Resources } from "./types";
+import type { EventDef, ModuleDef, ModuleType, Resources } from "./types";
+import { days, setLang, t } from "./i18n";
+import type { Lang } from "./i18n";
 import { Sky } from "./ui/Sky";
 import LunarMap from "./ui/map/LunarMap";
 import { ResourceBar } from "./ui/ResourceBar";
 import { CrewPanel } from "./ui/CrewPanel";
 import { SidePanel } from "./ui/SidePanel";
 import { BuildMenu } from "./ui/BuildMenu";
+import { LangSelect } from "./ui/LangSelect";
+import { Intro } from "./ui/Intro";
+import { DayClock } from "./ui/DayClock";
 import { MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
 
-// TODO: перенести EventDef в types.ts, когда @Regie утвердит формат events.json
-type EventDef = {
-  id: string;
-  title: string;
-  text: string;
-  choices: { id: string; label: string; hint: string }[];
-};
+// Тексты событий лежат в словарях i18n: ev.<id>.title / .text / .<choice>.label / .<choice>.hint
+// Цены выборов лежат в events.json (тип EventDef в types.ts)
 
 const MODULES = modulesData as ModuleDef[];
 const EVENTS = eventsData as EventDef[];
@@ -33,17 +34,43 @@ function canAfford(resources: Resources, cost: Partial<Resources>) {
   );
 }
 
+// На телефоне в вертикальном положении CSS показывает эту подсказку поверх игры
+function RotateHint() {
+  return (
+    <div className="rotate-hint" role="alert">
+      <svg viewBox="0 0 48 48" width="72" height="72" aria-hidden="true">
+        <rect x="14" y="4" width="20" height="40" rx="4" fill="none" stroke="currentColor" strokeWidth="3" />
+        <circle cx="24" cy="38" r="2" fill="currentColor" />
+      </svg>
+      {t("app.rotate")}
+    </div>
+  );
+}
+
 function Game({ onRestart }: { onRestart: () => void }) {
   const [state, dispatch] = useReducer(reduce, undefined, initialState);
   // Модуль, открытый в карточке справа
   const [selectedType, setSelectedType] = useState<ModuleType | null>("greenhouse");
   // Игрок выбирает место на карте: карта подсвечивает, куда можно поставить
   const [buildType, setBuildType] = useState<ModuleType | null>(null);
+  // Правила, открытые во время игры
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const delta = dailyDelta(state);
   const event = EVENTS.find((e) => e.id === state.activeEvent) ?? null;
   const daysToNight = NIGHT_START - state.day;
   const isPlaying = state.status === "playing";
+  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места
+  const clockRunning = isPlaying && event === null && !rulesOpen && buildType === null;
+
+  // Баннер «День N» на несколько секунд при смене дня
+  const [banner, setBanner] = useState<{ day: number; night: boolean } | null>(null);
+  useEffect(() => {
+    if (state.day === 1) return;
+    setBanner({ day: state.day, night: state.isNight });
+    const timer = window.setTimeout(() => setBanner(null), 1800);
+    return () => window.clearTimeout(timer);
+  }, [state.day, state.isNight]);
 
   // Esc отменяет постройку
   useEffect(() => {
@@ -69,6 +96,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
         defs={MODULES}
         isNight={state.isNight}
         buildType={buildType}
+        crewActive={isPlaying && event === null}
         canPlaceAt={(row, col) => buildType !== null && canPlace(state, buildType, row, col)}
         onSelectTile={handleSelectTile}
       />
@@ -77,14 +105,14 @@ function Game({ onRestart }: { onRestart: () => void }) {
         <div className="hud-panel base-badge">
           <MoonLogo />
           <div className="base-badge__text">
-            <strong>Лунная база «Альфа-1»</strong>
+            <strong>{t("app.base")}</strong>
             <span>
-              День {state.day} из {MISSION_DAYS} ·{" "}
+              {t("app.dayOf", { day: state.day, total: MISSION_DAYS })} ·{" "}
               {state.isNight
-                ? "лунная ночь"
+                ? t("app.night")
                 : daysToNight > 0
-                  ? `до ночи ${daysToNight} дн.`
-                  : "лунный день"}
+                  ? t("app.toNight", { days: days(daysToNight) })
+                  : t("app.lunarDay")}
             </span>
           </div>
           <button
@@ -95,8 +123,17 @@ function Game({ onRestart }: { onRestart: () => void }) {
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
               <path d="M5 3 L16 10 L5 17 Z" fill="currentColor" />
             </svg>
-            Следующий день
+            {t("app.nextDay")}
           </button>
+          <DayClock
+            running={clockRunning}
+            dayKey={state.day}
+            onDayEnd={() => dispatch({ type: "nextDay" })}
+          >
+            <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
+              ? {t("app.rules")}
+            </button>
+          </DayClock>
         </div>
         <ResourceBar resources={state.resources} delta={delta} />
       </header>
@@ -121,8 +158,16 @@ function Game({ onRestart }: { onRestart: () => void }) {
       {event && (
         <div className="overlay">
           <div className="modal" role="dialog" aria-labelledby="event-title">
-            <h2 id="event-title">{event.title}</h2>
-            <p>{event.text}</p>
+            <h2 id="event-title">{t(`ev.${event.id}.title`)}</h2>
+            <p>{t(`ev.${event.id}.text`)}</p>
+            {event.id === "flare" && state.flare && (
+              <p className="muted source">
+                {t("ev.flare.source", { flare: describeFlare(state.flare) })}{" "}
+                <a href={state.flare.link} target="_blank" rel="noreferrer">
+                  {state.flare.source}
+                </a>
+              </p>
+            )}
             <div className="modal__choices">
               {event.choices.map((choice) => (
                 <button
@@ -130,8 +175,8 @@ function Game({ onRestart }: { onRestart: () => void }) {
                   className="btn btn--choice"
                   onClick={() => dispatch({ type: "resolveEvent", choice: choice.id })}
                 >
-                  <strong>{choice.label}</strong>
-                  <span className="muted">{choice.hint}</span>
+                  <strong>{t(`ev.${event.id}.${choice.id}.label`)}</strong>
+                  <span className="muted">{t(`ev.${event.id}.${choice.id}.hint`)}</span>
                 </button>
               ))}
             </div>
@@ -142,8 +187,8 @@ function Game({ onRestart }: { onRestart: () => void }) {
       {!isPlaying && (
         <div className="overlay">
           <div className="modal">
-            <h2>{state.status === "won" ? "Миссия выполнена!" : "Миссия провалена"}</h2>
-            <p>Дней на Луне: {state.day}</p>
+            <h2>{state.status === "won" ? t("app.win") : t("app.lose")}</h2>
+            <p>{t("app.daysOnMoon", { n: state.day })}</p>
             <ul className="debrief">
               {buildDebrief(state).map((line) => (
                 <li key={line}>{line}</li>
@@ -151,18 +196,51 @@ function Game({ onRestart }: { onRestart: () => void }) {
             </ul>
             <div className="modal__choices">
               <button className="btn btn--primary" onClick={onRestart}>
-                Сыграть ещё раз
+                {t("app.playAgain")}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {banner && isPlaying && !event && (
+        <div key={banner.day} className={`day-banner ${banner.night ? "day-banner--night" : ""}`} aria-live="polite">
+          {t("app.dayOf", { day: banner.day, total: MISSION_DAYS })}
+          {banner.night ? ` · ${t("app.night")}` : ""}
+        </div>
+      )}
+
+      {rulesOpen && <Intro rulesOnly onStart={() => setRulesOpen(false)} />}
+      <RotateHint />
     </div>
   );
 }
 
+type Stage = "lang" | "intro" | "game";
+
 export default function App() {
+  const [stage, setStage] = useState<Stage>("lang");
   // Новый ключ пересоздаёт Game с чистым состоянием, поэтому restart не нужен в движке
   const [runId, setRunId] = useState(0);
-  return <Game key={runId} onRestart={() => setRunId((id) => id + 1)} />;
+  // Нужен только чтобы перерисовать дерево после смены языка: сам язык хранится в i18n
+  const [, setLangState] = useState<Lang | null>(null);
+
+  function pickLang(lang: Lang) {
+    setLang(lang);
+    setLangState(lang);
+    setStage("intro");
+  }
+
+  if (stage === "game") {
+    return <Game key={runId} onRestart={() => setRunId((id) => id + 1)} />;
+  }
+
+  // До начала игры показываем небо, а поверх него — выбор языка и вступление
+  return (
+    <div className="game">
+      <Sky />
+      {stage === "lang" ? <LangSelect onPick={pickLang} /> : <Intro onStart={() => setStage("game")} />}
+      {stage !== "lang" && <RotateHint />}
+    </div>
+  );
 }
