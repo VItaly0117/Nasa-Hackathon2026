@@ -35,13 +35,13 @@ export function initialState(): GameState {
   return {
     day: 1,
     isNight: false,
-    resources: { oxygen: 80, water: 70, food: 60, energy: 60, health: 100 },
+    // Запасы, которые экипаж привёз в ракете. Хватает на пару недель, дальше нужно строить
+    resources: { oxygen: 70, water: 60, food: 60, energy: 40, health: 100 },
     modules: [
-      // стартовая база вокруг посадочной площадки (ряд 5, колонка 12): каждый модуль в двух клетках
-      // от неё в своей стороне, чтобы между зданиями оставалось место
+      // На Луне есть только жилой модуль рядом с посадочной площадкой (ряд 5, колонка 12).
+      // Энергию, воду, еду и укрытие игрок строит сам
       { slot: slotOf(3, 11), type: "habitat", broken: false },
       { slot: slotOf(7, 11), type: "lifeSupport", broken: false },
-      { slot: slotOf(5, 14), type: "solar", broken: false },
     ],
     pending: [],
     activeEvent: null,
