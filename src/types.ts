@@ -11,6 +11,7 @@ export type Role = "engineer" | "scientist" | "doctor" | "technician";
 export type CrewMember = {
   id: number; // 1..4, совпадает с crew.n<id> / crew.r<id> в словарях и с crewData.ts
   role: Role;
+  morale: number; // 0..100: растёт, когда задания выполнены, падает, когда просрочены
   status: { kind: "free" } | { kind: "building"; slot: number; module: ModuleType };
 };
 
@@ -64,7 +65,17 @@ export type HistoryEntry =
   | { day: number; kind: "shortage"; resource: ResourceKey }                             // ресурс упал до нуля
   | { day: number; kind: "blackout"; night: boolean };                                   // база осталась без энергии
 
+// Задание, которое дал член экипажа. Что оно значит и когда выполнено, описано в engine/tasks.ts
+export type Task = {
+  id: string;
+  giver: number; // id члена экипажа
+  issuedDay: number;
+  deadline: number; // последний день, когда ещё можно успеть
+  status: "open" | "done" | "missed";
+};
+
 export type GameState = {
+  tasks: Task[];
   crew: CrewMember[];
   clockMs: number; // сколько миллисекунд игрового времени прошло в текущем дне
   history: HistoryEntry[];

@@ -3,14 +3,11 @@ import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule
 import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
 import { moduleName, t } from "../i18n";
+import { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START } from "./constants";
+import { issueTasks, MORALE_START, reviewTasks } from "./tasks";
 
-export const MISSION_DAYS = 20;
-// Сколько длится игровой день. Короче нельзя: дети 7-12 должны успеть прочитать и подумать
-export const DAY_MS = 25000;
-// Сколько строится любой модуль: одна игровая минута, около 2,4 дня. Пауза стройку останавливает, ×2 ускоряет
-export const BUILD_MS = 60000;
+export { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START };
 const CREW_ROLES: Role[] = ["engineer", "scientist", "doctor", "technician"];
-export const NIGHT_START = 14;
 
 const MODULES = modulesData as ModuleDef[];
 const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
@@ -57,8 +54,9 @@ function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources
 }
 
 export function initialState(): GameState {
-  return {
-    crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, status: { kind: "free" } })),
+  const state: GameState = {
+    crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, morale: MORALE_START, status: { kind: "free" } })),
+    tasks: [],
     clockMs: 0,
     day: 1,
     isNight: false,
@@ -79,6 +77,7 @@ export function initialState(): GameState {
     log: [{ day: 1, text: t("log.landed") }],
     status: "playing",
   };
+  return issueTasks(state); // первые задания экипаж даёт сразу
 }
 
 // Сколько каждого ресурса прибавится или убавится за следующий день
@@ -149,6 +148,9 @@ function nextDay(state: GameState): GameState {
   if (resources.health <= 0) return { ...next, status: "lost" };
   if (day > MISSION_DAYS) return { ...next, status: "won" };
 
+  // Новый день: проверяем задания и просим новые
+  next = issueTasks(reviewTasks(next));
+
   const eventId = eventForDay(day);
   if (eventId) next = applyEventStart({ ...next, activeEvent: eventId }, eventId);
   return next;
@@ -200,7 +202,8 @@ function advanceBuilds(state: GameState, ms: number): GameState {
     return ready;
   });
   const crew = state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c));
-  return { ...state, modules, crew, log, history };
+  // Достроили модуль: задание могло выполниться, это видно сразу, а не на следующий день
+  return reviewTasks({ ...state, modules, crew, log, history });
 }
 
 // Прошло ms мс игрового времени. Время дня и стройка идут от одних часов: пауза и ускорение работают сразу для всего.

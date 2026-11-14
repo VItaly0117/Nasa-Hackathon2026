@@ -31,6 +31,11 @@ export function describeFlare(flare: Flare): string {
   return t("flare.desc", { cls: flare.class, date });
 }
 
+// День, на который запланировано событие (например, вспышка): задания берут срок отсюда
+export function dayOfEvent(id: string): number {
+  return Number(Object.keys(SCHEDULE).find((d) => SCHEDULE[Number(d)] === id));
+}
+
 export function eventForDay(day: number): string | null {
   return SCHEDULE[day] ?? null;
 }

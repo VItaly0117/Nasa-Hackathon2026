@@ -1,7 +1,10 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
 import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
+import { ru } from "../i18n/ru";
+import { dayOfEvent } from "./events";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
+import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./tasks";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
 // Запуск: node scripts/run-checks.mjs
@@ -152,6 +155,43 @@ export function runChecks(): CheckResult[] {
   check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
   const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
   check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
+
+  // Задания от экипажа
+  const first = initialState();
+  check("В начале экипаж даёт 2 задания", first.tasks.length === 2 && first.tasks.every((x) => x.status === "open"), first.tasks.map((x) => x.id).join(", "));
+  check(
+    "Задание просит член экипажа с подходящей ролью",
+    first.tasks.every((x) => first.crew.find((c) => c.id === x.giver)?.role === TASK_DEFS.find((d) => d.id === x.id)!.role),
+    first.tasks.map((x) => `${x.id}: ${first.crew.find((c) => c.id === x.giver)?.role}`).join(", "),
+  );
+  const perDay = new Map<number, number>();
+  for (const x of idle.tasks) perDay.set(x.issuedDay, (perDay.get(x.issuedDay) ?? 0) + 1);
+  check(
+    "Новых заданий в день не больше 2 до 10-го дня и не больше 1 после",
+    [...perDay].every(([day, n]) => n <= tasksPerDay(day)),
+    [...perDay].map(([d, n]) => `${d}:${n}`).join(" "),
+  );
+  let maxOpen = 0;
+  let walk = initialState();
+  for (let i = 0; i < MISSION_DAYS && walk.status === "playing"; i++) {
+    if (walk.activeEvent) walk = reduce(walk, { type: "resolveEvent", choice: walk.activeEvent === "flare" ? "hide" : "repair" });
+    walk = reduce(walk, { type: "nextDay" });
+    maxOpen = Math.max(maxOpen, walk.tasks.filter((x) => x.status === "open").length);
+  }
+  check(`Открытых заданий одновременно не больше ${MAX_OPEN}`, maxOpen <= MAX_OPEN, `максимум ${maxOpen}`);
+  const shelterTask = idle.tasks.find((x) => x.id === "shelter");
+  check("Срок задания про убежище = день вспышки", shelterTask?.deadline === dayOfEvent("flare"), `срок ${shelterTask?.deadline}, вспышка ${dayOfEvent("flare")}`);
+  check("Без построек задания просрочены, а настроение экипажа падает", idle.tasks.some((x) => x.status === "missed") && idle.crew.every((c) => c.morale < MORALE_START), `настроение ${idle.crew.map((c) => c.morale).join(",")}`);
+  const greenhouseDone = reviewTasks({ ...first, modules: [...first.modules, { slot: slotOf(0, 0), type: "greenhouse", broken: false }] });
+  check(
+    "Построили теплицу: задание выполнено, настроение растёт",
+    greenhouseDone.tasks.find((x) => x.id === "greenhouse")?.status === "done" && greenhouseDone.crew.every((c) => c.morale === MORALE_START + MORALE_STEP),
+    `настроение ${greenhouseDone.crew.map((c) => c.morale).join(",")}`,
+  );
+  const unfinished = reviewTasks({ ...first, modules: [...first.modules, { slot: slotOf(0, 0), type: "greenhouse", broken: false, build: { leftMs: 1, totalMs: 1, crewId: 1 } }] });
+  check("Модуль в стройке задание ещё не закрывает", unfinished.tasks.find((x) => x.id === "greenhouse")?.status === "open", "статус open");
+  const noText = TASK_DEFS.flatMap((d) => [`task.${d.id}`, `task.${d.id}.why`]).filter((k) => !(k in ru));
+  check("У каждого задания есть текст и объяснение", noText.length === 0, noText.join(", ") || `${TASK_DEFS.length} заданий`);
 
   // Лимит хранения: без склада лишнее пропадает, со складом копится
   const fullWater = (extra: PlacedModule[]): GameState => {

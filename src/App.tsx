@@ -18,6 +18,7 @@ import { BuildMenu } from "./ui/BuildMenu";
 import { LangSelect } from "./ui/LangSelect";
 import { Intro } from "./ui/Intro";
 import { DayClock } from "./ui/DayClock";
+import { TaskToast } from "./ui/TaskToast";
 import { MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
@@ -71,6 +72,16 @@ function Game({ onRestart }: { onRestart: () => void }) {
     const timer = window.setTimeout(() => setBanner(null), 1800);
     return () => window.clearTimeout(timer);
   }, [state.day, state.isNight]);
+
+  // Новые задания от экипажа: карточка с портретом на несколько секунд
+  const [toastIds, setToastIds] = useState<string[]>([]);
+  useEffect(() => {
+    const fresh = state.tasks.filter((x) => x.issuedDay === state.day && x.status === "open").map((x) => x.id);
+    setToastIds(fresh);
+    if (fresh.length === 0) return;
+    const timer = window.setTimeout(() => setToastIds([]), 9000);
+    return () => window.clearTimeout(timer);
+  }, [state.tasks, state.day]);
 
   // Esc отменяет постройку
   useEffect(() => {
@@ -210,6 +221,8 @@ function Game({ onRestart }: { onRestart: () => void }) {
           {banner.night ? ` · ${t("app.night")}` : ""}
         </div>
       )}
+
+      <TaskToast tasks={state.tasks.filter((x) => toastIds.includes(x.id))} onClose={() => setToastIds([])} />
 
       {rulesOpen && <Intro rulesOnly onStart={() => setRulesOpen(false)} />}
       <RotateHint />

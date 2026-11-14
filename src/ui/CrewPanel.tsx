@@ -7,7 +7,7 @@ import { CollapseButton, startsCollapsed, useCollapsed } from "./Collapse";
 // TODO @Regie: у каждого астронавта свои здоровье, усталость и задача
 // Имена и роли лежат в словарях i18n: crew.n1..n4 и crew.r1..r4, а цвета — в crewData.ts
 
-function Avatar({ skin, hair, long, mood }: { skin: string; hair: string; long: boolean; mood: number }) {
+export function Avatar({ skin, hair, long, mood }: { skin: string; hair: string; long: boolean; mood: number }) {
   const mouth = mood > 0 ? "M15 25 Q20 29 25 25" : mood < 0 ? "M15 27 Q20 23 25 27" : "M15 26 H25";
   return (
     <svg viewBox="0 0 40 40" width="52" height="52" aria-hidden="true">
@@ -37,8 +37,10 @@ function Mood({ mood }: { mood: number }) {
   );
 }
 
+// Настроение лица: от морали (задания), а при плохом здоровье не бывает весёлым
+const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >= 60 ? 1 : morale >= 30 ? 0 : -1);
+
 export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
-  const mood = health >= 70 ? 1 : health >= 40 ? 0 : -1;
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
 
@@ -50,7 +52,9 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
       </div>
       {!collapsed && (
       <ul className="crew__list">
-        {CREW.map((p) => (
+        {CREW.map((p) => {
+          const mood = moodOf(crew.find((c) => c.id === p.id)?.morale ?? 70, health);
+          return (
           <li key={p.id} className="crew__item">
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
             <div className="crew__info">
@@ -68,7 +72,8 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
             </div>
             <Mood mood={mood} />
           </li>
-        ))}
+          );
+        })}
       </ul>
       )}
     </section>
