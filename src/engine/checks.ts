@@ -3,7 +3,11 @@ import { buildReport, validateDebriefData } from "./debrief";
 import { t } from "../i18n";
 import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, initialState, MISSION_DAYS, reduce } from "./engine";
 import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
+import eventsData from "../data/events.json";
+import { en } from "../i18n/en";
 import { ru } from "../i18n/ru";
+import { uk } from "../i18n/uk";
+import type { EventDef } from "../types";
 import { dayOfEvent } from "./events";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
 import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./tasks";
@@ -158,6 +162,22 @@ export function runChecks(): CheckResult[] {
   check("Полный день по часам = следующий день", oneDay.day === 2 && oneDay.clockMs === 0, `день ${oneDay.day}, часы ${oneDay.clockMs}`);
   const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
   check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
+
+  // Подсказка в окне события должна называть те же числа, что и цена в events.json (на всех трёх языках)
+  const dicts: Record<string, Record<string, string>> = { ru, uk, en };
+  const drift: string[] = [];
+  for (const ev of eventsData as EventDef[]) {
+    for (const ch of ev.choices) {
+      const nums = new Set<number>();
+      for (const cost of [ch.cost, ch.costWithout?.cost ?? {}]) for (const v of Object.values(cost)) if (v) nums.add(v);
+      if (ch.rest) [ch.rest.days, ch.rest.daysWith].forEach((n) => nums.add(n));
+      for (const [lang, dict] of Object.entries(dicts)) {
+        const hint = dict[`ev.${ev.id}.${ch.id}.hint`] ?? "";
+        for (const n of nums) if (!new RegExp(`(^|\\D)${n}(\\D|$)`).test(hint)) drift.push(`${lang} ${ev.id}.${ch.id}: нет числа ${n}`);
+      }
+    }
+  }
+  check("Подсказки в окнах событий совпадают с ценами в events.json", drift.length === 0, drift.join("; ") || "ru, uk, en");
 
   // Задания от экипажа
   const first = initialState();
