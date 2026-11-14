@@ -243,4 +243,14 @@ export const en: Record<keyof typeof ru, string> = {
   "source.osdr.usedFor": "Facts about astronaut health in the hints and the mission debrief",
   "source.csa-food.name": "CSA: food production in space",
   "source.csa-food.usedFor": "Facts for the greenhouse: how food is grown away from Earth",
+
+  // Единицы и склад
+  "module.storage.name": "Storage",
+  "module.storage.desc": "Adds room for water, food and materials. A battery adds room for energy.",
+  "res.unit.oxygen": "%",
+  "res.unit.water": "L",
+  "res.unit.food": "kg",
+  "res.unit.energy": "kWh",
+  "res.unit.materials": "kg",
+  "res.unit.health": "%",
 };

@@ -12,7 +12,8 @@ const SCHEDULE: Record<number, string> = {
   9: "flare",
 };
 
-const clamp = (value: number) => Math.max(0, Math.min(100, value));
+// Цена события только отнимает ресурсы, поэтому верхний предел не нужен
+const clamp = (value: number) => Math.max(0, value);
 
 // Случайная РЕАЛЬНАЯ вспышка NASA DONKI. Зовётся один раз при старте миссии (initialState),
 // чтобы reduce оставался чистой функцией.

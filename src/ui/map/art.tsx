@@ -12,6 +12,7 @@ export const ART_HEIGHT: Record<ModuleType, number> = {
   battery: 26,
   greenhouse: 44,
   shelter: 40,
+  storage: 34,
   iceMine: 30,
   rockMine: 30,
 };
@@ -175,6 +176,18 @@ function Shelter() {
   );
 }
 
+// Склад: три контейнера разного цвета, чтобы было видно, что тут лежат разные запасы
+function Storage() {
+  return (
+    <g>
+      <Shadow rx={42} ry={18} />
+      <Box w={18} d={9} h={24} dx={-14} dy={0} top="#9fd0ff" left="#6f9fd6" right="#86b6ec" />
+      <Box w={18} d={9} h={24} dx={14} dy={6} top="#7fe0b0" left="#4fb083" right="#66c99a" />
+      <Box w={14} d={7} h={14} dx={0} dy={-10} top="#fbbf24" left="#c98a12" right="#e0a21c" />
+    </g>
+  );
+}
+
 // Добыча стоит прямо на месторождении: под машиной видно лёд или камни
 function IceMine() {
   return (
@@ -202,6 +215,7 @@ const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
   battery: Battery,
   greenhouse: Greenhouse,
   shelter: Shelter,
+  storage: Storage,
   iceMine: IceMine,
   rockMine: RockMine,
 };

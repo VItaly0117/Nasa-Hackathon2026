@@ -23,6 +23,10 @@
 .resource__body { display: flex; flex-direction: column; line-height: 1.15; }
 .resource__value { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .resource__delta { font-size: 15px; opacity: 0.9; }
+/* «/100 л» мельче, чтобы главное число читалось сразу */
+.resource__cap { font-size: 0.55em; font-weight: 700; opacity: 0.7; margin-left: 2px; white-space: nowrap; }
+/* Склад полон: лишнее пропадает, значит пора строить склад */
+.resource[data-full] .resource__cap { color: var(--accent); opacity: 1; }
 
 /* Шесть ресурсов должны влезать в одну строку рядом с плашкой базы */
 @media (max-width: 1700px) {

@@ -1,6 +1,6 @@
-import type { GameState, ModuleType } from "../types";
+import type { GameState, ModuleType, PlacedModule } from "../types";
 import { buildReport, validateDebriefData } from "./debrief";
-import { initialState, MISSION_DAYS, reduce } from "./engine";
+import { capacityOf, initialState, MISSION_DAYS, reduce } from "./engine";
 import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
@@ -110,6 +110,26 @@ export function runChecks(): CheckResult[] {
     "Без батарей лунная ночь оставляет базу без энергии",
     noBattery.history.some((e) => e.kind === "blackout" && e.night),
     describe(noBattery),
+  );
+
+  // Лимит хранения: без склада лишнее пропадает, со складом копится
+  const fullWater = (extra: PlacedModule[]): GameState => {
+    const s = initialState();
+    const mine: PlacedModule = { slot: slotOf(0, 0), type: "iceMine", broken: false };
+    return { ...s, resources: { ...s.resources, water: 100 }, modules: [...s.modules, mine, ...extra] };
+  };
+  const storage: PlacedModule = { slot: slotOf(0, 1), type: "storage", broken: false };
+  const battery: PlacedModule = { slot: slotOf(0, 2), type: "battery", broken: false };
+  const noStorage = reduce(fullWater([]), { type: "nextDay" });
+  const withStorage = reduce(fullWater([storage]), { type: "nextDay" });
+  check("Без склада вода не больше 100", noStorage.resources.water <= 100, `вода ${noStorage.resources.water}`);
+  check("Со складом вода копится выше 100", withStorage.resources.water > 100, `вода ${withStorage.resources.water}`);
+  const capBase = capacityOf(initialState().modules);
+  const capBoth = capacityOf([...initialState().modules, storage, battery]);
+  check(
+    "Склад добавляет место воде, еде и материалам, батарея энергии; кислород и здоровье всегда 100",
+    capBase.water === 100 && capBoth.water > 100 && capBoth.food > 100 && capBoth.materials > 100 && capBoth.energy > 100 && capBoth.oxygen === 100 && capBoth.health === 100,
+    JSON.stringify(capBoth),
   );
 
   // Разбор должен говорить о том, что реально случилось

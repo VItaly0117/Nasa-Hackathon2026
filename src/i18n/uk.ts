@@ -242,4 +242,14 @@ export const uk: Record<keyof typeof ru, string> = {
   "source.osdr.usedFor": "Факти про здоров'я астронавтів у підказках і підсумковому розборі",
   "source.csa-food.name": "CSA: виробництво їжі в космосі",
   "source.csa-food.usedFor": "Факти для теплиці: як вирощують їжу поза Землею",
+
+  // Единицы и склад
+  "module.storage.name": "Склад",
+  "module.storage.desc": "Збільшує місце для води, їжі та матеріалів. Батарея додає місце для енергії.",
+  "res.unit.oxygen": "%",
+  "res.unit.water": "л",
+  "res.unit.food": "кг",
+  "res.unit.energy": "кВт·год",
+  "res.unit.materials": "кг",
+  "res.unit.health": "%",
 };

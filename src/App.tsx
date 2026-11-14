@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
-import { reduce, initialState, dailyDelta, MISSION_DAYS, NIGHT_START } from "./engine/engine";
+import { reduce, initialState, dailyDelta, capacityOf, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
@@ -135,7 +135,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
             </button>
           </DayClock>
         </div>
-        <ResourceBar resources={state.resources} delta={delta} />
+        <ResourceBar resources={state.resources} delta={delta} capacity={capacityOf(state.modules)} />
       </header>
 
       <CrewPanel health={state.resources.health} />

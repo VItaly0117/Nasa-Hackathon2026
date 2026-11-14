@@ -253,5 +253,15 @@ export const ru = {
   "source.osdr.usedFor": "Факты о здоровье астронавтов в подсказках и итоговом разборе",
   "source.csa-food.name": "CSA: производство еды в космосе",
   "source.csa-food.usedFor": "Факты для теплицы: как растят еду вне Земли",
+
+  // Единицы и склад
+  "module.storage.name": "Склад",
+  "module.storage.desc": "Увеличивает место для воды, еды и материалов. Батарея добавляет место для энергии.",
+  "res.unit.oxygen": "%",
+  "res.unit.water": "л",
+  "res.unit.food": "кг",
+  "res.unit.energy": "кВт·ч",
+  "res.unit.materials": "кг",
+  "res.unit.health": "%",
 } as const;
 

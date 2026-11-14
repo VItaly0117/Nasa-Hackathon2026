@@ -19,8 +19,23 @@ export function getDef(type: ModuleType): ModuleDef {
   return MODULES.find((m) => m.type === type)!;
 }
 
-export function clamp(value: number) {
-  return Math.max(0, Math.min(100, value));
+// Сколько каждого ресурса помещается на базе. Без складов везде 100: баланс как раньше.
+// Склад и батарея добавляют места (поле capacity в modules.json)
+export const BASE_CAPACITY = 100;
+
+export function capacityOf(modules: PlacedModule[]): Resources {
+  const cap: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
+  for (const key of KEYS) cap[key] = BASE_CAPACITY;
+  for (const module of modules) {
+    if (module.broken) continue;
+    const extra = getDef(module.type).capacity;
+    if (extra) for (const key of KEYS) cap[key] += extra[key] ?? 0;
+  }
+  return cap;
+}
+
+export function clamp(value: number, max = BASE_CAPACITY) {
+  return Math.max(0, Math.min(max, value));
 }
 
 function addTo(target: Resources, delta: Partial<Resources>) {
@@ -84,13 +99,14 @@ function nextDay(state: GameState): GameState {
     history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
   addTo(resources, CREW_PER_DAY);
-  for (const key of KEYS) resources[key] = clamp(resources[key]);
+  const capacity = capacityOf(state.modules);
+  for (const key of KEYS) resources[key] = clamp(resources[key], capacity[key]);
 
   // Отложенные последствия
   const pending: GameState["pending"] = [];
   for (const effect of state.pending) {
     if (effect.inDays <= 1) {
-      resources[effect.key] = clamp(resources[effect.key] + effect.amount);
+      resources[effect.key] = clamp(resources[effect.key] + effect.amount, capacity[effect.key]);
       log.push({ day: stamp, text: effect.reason });
     } else {
       pending.push({ ...effect, inDays: effect.inDays - 1 });

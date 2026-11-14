@@ -3,13 +3,14 @@ export type Resources = Record<ResourceKey, number>;
 
 export type ModuleType =
   | "habitat" | "lifeSupport" | "solar" | "battery" | "greenhouse" | "shelter"
-  | "iceMine" | "rockMine";
+  | "iceMine" | "rockMine" | "storage";
 
 export type ModuleDef = {
   type: ModuleType;   // название и описание лежат в словарях i18n: module.<type>.name / .desc
   cost: Partial<Resources>;         // разово при постройке
   perDay: Partial<Resources>;       // каждый день: + даёт, − берёт
   nightPerDay?: Partial<Resources>; // ночью, если отличается (панели, батарея)
+  capacity?: Partial<Resources>;    // сколько места для запасов добавляет модуль (склад, батарея)
 };
 
 export type PlacedModule = { slot: number; type: ModuleType; broken: boolean };
