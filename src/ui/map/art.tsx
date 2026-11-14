@@ -6,6 +6,8 @@ import type { Terrain } from "../../engine/placement";
 
 // Высота рисунка над землёй: по ней облачко-подпись встаёт над объектом
 export const ART_HEIGHT: Record<ModuleType, number> = {
+  iceMine: 30,
+  rockMine: 30,
   habitat: 50,
   lifeSupport: 42,
   solar: 34,
