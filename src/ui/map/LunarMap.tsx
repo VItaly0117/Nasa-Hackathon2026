@@ -124,13 +124,15 @@ type Size = { w: number; h: number };
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 // Карта не должна уезжать за край. Отдалять можно, пока картинка закрывает весь экран:
-// на ней же нарисовано небо, и за её краем ничего нет
+// на ней же нарисовано небо, и за её краем ничего нет. У верхнего края оставляем небольшой запас,
+// иначе горы и кратеры при фокусе на базе обрезаются.
 function clampView(v: View, size: Size): View {
   const k = clamp(v.k, Math.max(MIN_ZOOM, size.w / MAP_W, size.h / MAP_H), MAX_ZOOM);
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);
-  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, 0);
+  const minTopGap = size.h * 0.18;
+  const y = mh <= size.h ? size.h - mh : clamp(v.y, size.h - mh, minTopGap);
   return { x, y, k };
 }
 
