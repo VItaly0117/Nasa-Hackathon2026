@@ -9,8 +9,6 @@ const LANG_KEY = "moonbase:lang";
 // Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру.
 // 5: из экипажа убрали Софию, в старых сохранениях она ещё есть
 const SAVE_VERSION = 5;
-// Меняем номер, когда меняется форма GameState: старое сохранение тогда не загрузится и не сломает игру
-const SAVE_VERSION = 4;
 const MAX_RECORDS = 10;
 
 export type GameRecord = { days: number; health: number; won: boolean; at: string };
