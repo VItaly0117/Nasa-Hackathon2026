@@ -1,11 +1,13 @@
 import modulesData from "../data/modules.json";
-import type { Action, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "../types";
+import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
 import { applyEventStart, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, slotOf } from "./placement";
 import { moduleName, t } from "../i18n";
+import { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START } from "./constants";
+import { issueTasks, MORALE_START, reviewTasks } from "./tasks";
 
-export const MISSION_DAYS = 20;
-export const NIGHT_START = 14;
+export { BUILD_MS, DAY_MS, MISSION_DAYS, NIGHT_START };
+const CREW_ROLES: Role[] = ["engineer", "scientist", "doctor", "technician"];
 
 const MODULES = modulesData as ModuleDef[];
 const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
@@ -19,25 +21,47 @@ export function getDef(type: ModuleType): ModuleDef {
   return MODULES.find((m) => m.type === type)!;
 }
 
-export function clamp(value: number) {
-  return Math.max(0, Math.min(100, value));
+// Сколько каждого ресурса помещается на базе. Без складов везде 100: баланс как раньше.
+// Склад и батарея добавляют места (поле capacity в modules.json)
+export const BASE_CAPACITY = 100;
+
+export function capacityOf(modules: PlacedModule[]): Resources {
+  const cap: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
+  for (const key of KEYS) cap[key] = BASE_CAPACITY;
+  for (const module of modules) {
+    if (module.broken || module.build) continue;
+    const extra = getDef(module.type).capacity;
+    if (extra) for (const key of KEYS) cap[key] += extra[key] ?? 0;
+  }
+  return cap;
+}
+
+export function clamp(value: number, max = BASE_CAPACITY) {
+  return Math.max(0, Math.min(max, value));
 }
 
 function addTo(target: Resources, delta: Partial<Resources>) {
   for (const key of KEYS) target[key] += delta[key] ?? 0;
 }
 
+// Модуль в стройке занимает клетку, но ещё не работает
+export const isWorking = (m: PlacedModule) => !m.build;
+
 function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources> {
-  if (module.broken) return {};
+  if (module.broken || module.build) return {};
   const def = getDef(module.type);
   return isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
 }
 
 export function initialState(): GameState {
-  return {
+  const state: GameState = {
+    crew: CREW_ROLES.map((role, i): CrewMember => ({ id: i + 1, role, morale: MORALE_START, status: { kind: "free" } })),
+    tasks: [],
+    clockMs: 0,
     day: 1,
     isNight: false,
-    // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти
+    // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти.
+    // материалов 10, а убежище стоит 25: сначала нужен карьер
     resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 10 },
     modules: [
       // На Луне есть только жилой модуль рядом с посадочной площадкой (ряд 5, колонка 12).
@@ -52,6 +76,7 @@ export function initialState(): GameState {
     log: [{ day: 1, text: t("log.landed") }],
     status: "playing",
   };
+  return issueTasks(state); // первые задания экипаж даёт сразу
 }
 
 // Сколько каждого ресурса прибавится или убавится за следующий день
@@ -82,13 +107,14 @@ function nextDay(state: GameState): GameState {
     history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
   addTo(resources, CREW_PER_DAY);
-  for (const key of KEYS) resources[key] = clamp(resources[key]);
+  const capacity = capacityOf(state.modules);
+  for (const key of KEYS) resources[key] = clamp(resources[key], capacity[key]);
 
   // Отложенные последствия
   const pending: GameState["pending"] = [];
   for (const effect of state.pending) {
     if (effect.inDays <= 1) {
-      resources[effect.key] = clamp(resources[effect.key] + effect.amount);
+      resources[effect.key] = clamp(resources[effect.key] + effect.amount, capacity[effect.key]);
       log.push({ day: stamp, text: effect.reason });
     } else {
       pending.push({ ...effect, inDays: effect.inDays - 1 });
@@ -121,14 +147,27 @@ function nextDay(state: GameState): GameState {
   if (resources.health <= 0) return { ...next, status: "lost" };
   if (day > MISSION_DAYS) return { ...next, status: "won" };
 
+  // Новый день: проверяем задания и просим новые
+  next = issueTasks(reviewTasks(next));
+
   const eventId = eventForDay(day);
   if (eventId) next = applyEventStart({ ...next, activeEvent: eventId }, eventId);
   return next;
 }
 
+// Кого поставить строить: свободного с подходящей ролью, иначе любого свободного
+export function pickBuilder(state: GameState, type: ModuleType): CrewMember | null {
+  const free = state.crew.filter((c) => c.status.kind === "free");
+  return free.find((c) => c.role === getDef(type).builder) ?? free[0] ?? null;
+}
+
+export const hasFreeCrew = (state: GameState) => state.crew.some((c) => c.status.kind === "free");
+
 function build(state: GameState, slot: number, type: ModuleType): GameState {
   const { row, col } = cellOf(slot);
   if (!canPlace(state, type, row, col)) return state;
+  const builder = pickBuilder(state, type);
+  if (!builder) return state; // все заняты: модуль не ставится
   const def = getDef(type);
   const resources = { ...state.resources };
   for (const key of KEYS) {
@@ -139,16 +178,54 @@ function build(state: GameState, slot: number, type: ModuleType): GameState {
   return {
     ...state,
     resources,
-    modules: [...state.modules, { slot, type, broken: false }],
-    history: [...state.history, { day: state.day, kind: "built", module: type }],
-    log: [...state.log, { day: state.day, text: t("log.built", { name: moduleName(type) }) }],
+    modules: [...state.modules, { slot, type, broken: false, build: { leftMs: BUILD_MS, totalMs: BUILD_MS, crewId: builder.id } }],
+    crew: state.crew.map((c) => (c.id === builder.id ? { ...c, status: { kind: "building", slot, module: type } } : c)),
+    log: [...state.log, { day: state.day, text: t("log.buildStarted", { who: t(`crew.n${builder.id}`), name: moduleName(type) }) }],
   };
+}
+
+// Стройка идёт, пока идёт время. Готовый модуль начинает работать, строитель освобождается
+function advanceBuilds(state: GameState, ms: number): GameState {
+  if (!state.modules.some((m) => m.build)) return state;
+  const log = [...state.log];
+  const history = [...state.history];
+  const freed = new Set<number>();
+  const modules = state.modules.map((m) => {
+    if (!m.build) return m;
+    const leftMs = m.build.leftMs - ms;
+    if (leftMs > 0) return { ...m, build: { ...m.build, leftMs } };
+    freed.add(m.build.crewId);
+    log.push({ day: state.day, text: t("log.built", { name: moduleName(m.type) }) });
+    history.push({ day: state.day, kind: "built", module: m.type });
+    const { build: _done, ...ready } = m;
+    return ready;
+  });
+  const crew = state.crew.map((c): CrewMember => (freed.has(c.id) ? { ...c, status: { kind: "free" } } : c));
+  // Достроили модуль: задание могло выполниться, это видно сразу, а не на следующий день
+  return reviewTasks({ ...state, modules, crew, log, history });
+}
+
+// Прошло ms мс игрового времени. Время дня и стройка идут от одних часов: пауза и ускорение работают сразу для всего.
+// Если за это время наступает событие или миссия кончается, оставшееся время отбрасываем
+function tick(state: GameState, ms: number): GameState {
+  let s = state;
+  let left = ms;
+  while (left > 0 && s.status === "playing" && !s.activeEvent) {
+    const step = Math.min(left, DAY_MS - s.clockMs);
+    left -= step;
+    s = advanceBuilds(s, step);
+    const clockMs = s.clockMs + step;
+    s = clockMs >= DAY_MS ? nextDay({ ...s, clockMs: 0 }) : { ...s, clockMs };
+  }
+  return s;
 }
 
 export function reduce(state: GameState, action: Action): GameState {
   switch (action.type) {
+    case "tick":
+      return tick(state, action.ms);
     case "nextDay":
-      return state.status === "playing" && !state.activeEvent ? nextDay(state) : state;
+      return tick(state, DAY_MS - state.clockMs);
     case "build":
       return build(state, action.slot, action.module);
     case "resolveEvent": {

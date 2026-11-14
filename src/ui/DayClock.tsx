@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { t } from "../i18n";
+import { DAY_MS } from "../engine/constants";
 
-// Сколько длится игровой день: ровно 2 минуты. Паузы и пропуска дня нет
-export const DAY_MS = 120000;
+// Как часто часы отправляют движку tick (в мс). Реже нельзя: полоска будет дёргаться,
+// чаще не нужно: игра перерисовывается на каждый tick
+const TICK_MS = 100;
 
 type Props = {
   running: boolean;       // false: идёт событие, правила, выбор места или игра окончена
-  dayKey: number;         // новый день сбрасывает таймер
-  onDayEnd: () => void;
+  progress: number;       // 0..1: сколько дня прошло (GameState.clockMs / DAY_MS)
+  onTick: (ms: number) => void;
   children?: React.ReactNode; // например, кнопка «Правила» в том же ряду
 };
 
@@ -18,41 +20,32 @@ function format(ms: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-// Обратный отсчёт дня. Когда время выйдет, день сменится сам
-export function DayClock({ running, dayKey, onDayEnd, children }: Props) {
-  const [left, setLeft] = useState(DAY_MS);
-  const elapsed = useRef(0);
-  const endRef = useRef(onDayEnd);
-  endRef.current = onDayEnd;
-
-  useEffect(() => {
-    elapsed.current = 0;
-    setLeft(DAY_MS);
-  }, [dayKey]);
+// Обратный отсчёт дня: день ровно 2 минуты, паузы и ускорения нет. Само время считает движок (action tick):
+// от тех же часов идут день и стройка, поэтому они всегда согласованы
+export function DayClock({ running, progress, onTick, children }: Props) {
+  const tickRef = useRef(onTick);
+  tickRef.current = onTick;
 
   useEffect(() => {
     if (!running) return;
     let last = performance.now();
+    let acc = 0;
     let raf = 0;
-    const tick = (now: number) => {
+    const loop = (now: number) => {
       // Если вкладка пряталась, не прибавляем сразу всё пропущенное время
-      elapsed.current += Math.min(now - last, 100);
+      acc += Math.min(now - last, 100);
       last = now;
-      if (elapsed.current >= DAY_MS) {
-        elapsed.current = 0;
-        setLeft(DAY_MS);
-        endRef.current();
-      } else {
-        // Обновляем раз в 200 мс: секунды всё равно меняются реже
-        setLeft(Math.round((DAY_MS - elapsed.current) / 200) * 200);
+      if (acc >= TICK_MS) {
+        tickRef.current(acc);
+        acc = 0;
       }
-      raf = requestAnimationFrame(tick);
+      raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [running]);
 
-  const progress = 1 - left / DAY_MS;
+  const left = DAY_MS * (1 - progress);
   const low = left <= 15000;
 
   return (

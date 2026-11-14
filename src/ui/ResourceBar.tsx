@@ -6,7 +6,11 @@ import "./ResourceBar.css";
 type Props = {
   resources: Resources;
   delta: Partial<Resources>;
+  capacity: Resources; // сколько каждого ресурса помещается на базе (склад и батарея добавляют места)
 };
+
+// Кислород и здоровье остаются процентами, остальное в единицах с лимитом: «70/100 л»
+const PERCENT: ResourceKey[] = ["oxygen", "health"];
 
 const ORDER: ResourceKey[] = ["oxygen", "water", "food", "energy", "materials", "health"];
 
@@ -24,7 +28,7 @@ function formatDelta(perDay: number): string {
   return "0";
 }
 
-export function ResourceBar({ resources, delta }: Props) {
+export function ResourceBar({ resources, delta, capacity }: Props) {
   return (
     <ul className="resources" aria-label={t("res.aria")}>
       {ORDER.map((key) => {
@@ -42,10 +46,20 @@ export function ResourceBar({ resources, delta }: Props) {
             key={key}
             className={`resource resource--${level}`}
             title={left !== null ? t("res.leftTitle", { label, days: daysShort(left) }) : label}
+            data-full={!PERCENT.includes(key) && value >= capacity[key] ? "" : undefined}
           >
             <ResourceIcon type={key} />
             <div className="resource__body">
-              <span className="resource__value">{value}%</span>
+              <span className="resource__value">
+                {value}
+                {PERCENT.includes(key) ? (
+                  t(`res.unit.${key}`)
+                ) : (
+                  <small className="resource__cap">
+                    /{capacity[key]} {t(`res.unit.${key}`)}
+                  </small>
+                )}
+              </span>
               <span className={`resource__delta ${perDay < 0 ? "minus" : perDay > 0 ? "plus" : ""}`}>
                 {left !== null && left <= WARN_DAYS
                   ? t("res.forDays", { days: daysShort(left) })

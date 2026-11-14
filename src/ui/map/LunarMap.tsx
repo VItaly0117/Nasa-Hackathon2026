@@ -14,6 +14,7 @@ import type { Terrain, TileInfo } from "../../engine/placement";
 import { moduleName, t } from "../../i18n";
 import { ART_HEIGHT, ArtDefs, ModuleArt, TerrainArt } from "./art";
 import { Walkers } from "./Walkers";
+import { BuildProgress } from "./BuildProgress";
 import type { WalkTarget } from "./Walkers";
 import "./LunarMap.css";
 
@@ -319,7 +320,11 @@ export default function LunarMap({
         x,
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
         title: moduleName(def.type),
-        text: module.broken ? t("map.broken") : perDayText(def, isNight),
+        text: module.build
+          ? t("map.building", { n: Math.round((1 - module.build.leftMs / module.build.totalMs) * 100) })
+          : module.broken
+            ? t("map.broken")
+            : perDayText(def, isNight),
       };
     }
 
@@ -486,7 +491,10 @@ export default function LunarMap({
                     style={{ cursor: "pointer" }}
                     pointerEvents={buildType ? "none" : "auto"}
                   >
-                    <ModuleArt type={module.type} broken={module.broken} />
+                    <g opacity={module.build ? 0.45 : 1}>
+                      <ModuleArt type={module.type} broken={module.broken} />
+                    </g>
+                    {module.build && <BuildProgress type={module.type} done={1 - module.build.leftMs / module.build.totalMs} />}
                   </g>
                 );
               }

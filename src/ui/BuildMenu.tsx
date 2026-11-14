@@ -11,6 +11,7 @@ type Props = {
   selected: ModuleType | null;   // какой модуль открыт в карточке справа
   placing: boolean;              // игрок сейчас выбирает место на карте
   disabled: boolean;
+  crewBusy: boolean;             // все члены экипажа заняты стройкой: ставить нельзя
   isAffordable: (def: ModuleDef) => boolean;
   onSelect: (type: ModuleType) => void;
   onStartBuild: () => void;
@@ -51,6 +52,7 @@ export function BuildMenu({
   selected,
   placing,
   disabled,
+  crewBusy,
   isAffordable,
   onSelect,
   onStartBuild,
@@ -135,8 +137,13 @@ export function BuildMenu({
               {t("build.cancel")}
             </button>
           ) : (
-            <button className="btn btn--primary" onClick={onStartBuild} disabled={disabled || !affordable}>
-              {affordable ? t("build.build") : t("build.cantAfford")}
+            <button
+              className="btn btn--primary"
+              onClick={onStartBuild}
+              disabled={disabled || !affordable || crewBusy}
+              title={crewBusy ? t("build.crewBusyHint") : undefined}
+            >
+              {crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
             </button>
           )}
         </section>

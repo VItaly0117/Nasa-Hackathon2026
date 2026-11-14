@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
-import { reduce, initialState, dailyDelta, MISSION_DAYS, NIGHT_START } from "./engine/engine";
+import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
 import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
@@ -19,6 +19,7 @@ import { LangSelect } from "./ui/LangSelect";
 import { Intro } from "./ui/Intro";
 import { Prologue, Rocket } from "./ui/Prologue";
 import { DayClock } from "./ui/DayClock";
+import { TaskToast } from "./ui/TaskToast";
 import { MoonLogo } from "./ui/icons";
 import "./styles/tokens.css";
 import "./App.css";
@@ -73,6 +74,16 @@ function Game({ onRestart }: { onRestart: () => void }) {
     return () => window.clearTimeout(timer);
   }, [state.day, state.isNight]);
 
+  // Новые задания от экипажа: карточка с портретом на несколько секунд
+  const [toastIds, setToastIds] = useState<string[]>([]);
+  useEffect(() => {
+    const fresh = state.tasks.filter((x) => x.issuedDay === state.day && x.status === "open").map((x) => x.id);
+    setToastIds(fresh);
+    if (fresh.length === 0) return;
+    const timer = window.setTimeout(() => setToastIds([]), 9000);
+    return () => window.clearTimeout(timer);
+  }, [state.tasks, state.day]);
+
   // Esc отменяет постройку
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -83,7 +94,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
   }, []);
 
   function handleSelectTile(tile: TileInfo) {
-    if (!buildType || !canPlace(state, buildType, tile.row, tile.col)) return;
+    if (!buildType || !hasFreeCrew(state) || !canPlace(state, buildType, tile.row, tile.col)) return;
     dispatch({ type: "build", slot: slotOf(tile.row, tile.col), module: buildType });
     setBuildType(null);
   }
@@ -118,18 +129,18 @@ function Game({ onRestart }: { onRestart: () => void }) {
           </div>
           <DayClock
             running={clockRunning}
-            dayKey={state.day}
-            onDayEnd={() => dispatch({ type: "nextDay" })}
+            progress={state.clockMs / DAY_MS}
+            onTick={(ms) => dispatch({ type: "tick", ms })}
           >
             <button className="btn btn--ghost btn--small" onClick={() => setRulesOpen(true)}>
               ? {t("app.rules")}
             </button>
           </DayClock>
         </div>
-        <ResourceBar resources={state.resources} delta={delta} />
+        <ResourceBar resources={state.resources} delta={delta} capacity={capacityOf(state.modules)} />
       </header>
 
-      <CrewPanel health={state.resources.health} />
+      <CrewPanel health={state.resources.health} crew={state.crew} />
       <SidePanel state={state} />
 
       <BuildMenu
@@ -137,6 +148,7 @@ function Game({ onRestart }: { onRestart: () => void }) {
         selected={selectedType}
         placing={buildType !== null}
         disabled={!isPlaying}
+        crewBusy={!hasFreeCrew(state)}
         isAffordable={(def) => canAfford(state.resources, def.cost)}
         onSelect={(type) => {
           setSelectedType(type);
@@ -202,6 +214,8 @@ function Game({ onRestart }: { onRestart: () => void }) {
           {banner.night ? ` · ${t("app.night")}` : ""}
         </div>
       )}
+
+      <TaskToast tasks={state.tasks.filter((x) => toastIds.includes(x.id))} onClose={() => setToastIds([])} />
 
       {rulesOpen && <Intro rulesOnly onStart={() => setRulesOpen(false)} />}
       <RotateHint />

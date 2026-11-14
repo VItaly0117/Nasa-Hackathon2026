@@ -12,7 +12,8 @@ const SCHEDULE: Record<number, string> = {
   9: "flare",
 };
 
-const clamp = (value: number) => Math.max(0, Math.min(100, value));
+// Цена события только отнимает ресурсы, поэтому верхний предел не нужен
+const clamp = (value: number) => Math.max(0, value);
 
 // Случайная РЕАЛЬНАЯ вспышка NASA DONKI. Зовётся один раз при старте миссии (initialState),
 // чтобы reduce оставался чистой функцией.
@@ -28,6 +29,11 @@ export function describeFlare(flare: Flare): string {
     .format(new Date(flare.date))
     .replace(/\s*[гр]\.$/, ""); // Intl добавляет «г.» / «р.»: убираем, чтобы фраза не кончалась двумя точками
   return t("flare.desc", { cls: flare.class, date });
+}
+
+// День, на который запланировано событие (например, вспышка): задания берут срок отсюда
+export function dayOfEvent(id: string): number {
+  return Number(Object.keys(SCHEDULE).find((d) => SCHEDULE[Number(d)] === id));
 }
 
 export function eventForDay(day: number): string | null {
@@ -75,7 +81,7 @@ export function resolveEvent(state: GameState, choiceId: string): GameState {
   let textKey = choice.result;
   let unprotected = false;
   if (choice.costWithout) {
-    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module);
+    const hasModule = state.modules.some((m) => m.type === choice.costWithout!.module && !m.build);
     if (!hasModule) {
       unprotected = true;
       pay(choice.costWithout.cost);
