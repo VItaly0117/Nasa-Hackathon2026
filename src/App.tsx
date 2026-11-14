@@ -1,11 +1,12 @@
 import { useEffect, useReducer, useState } from "react";
 import { reduce, initialState, dailyDelta, MISSION_DAYS, NIGHT_START } from "./engine/engine";
 import { buildDebrief } from "./engine/debrief";
+import { describeFlare } from "./engine/events";
 import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";
 import eventsData from "./data/events.json";
-import type { ModuleDef, ModuleType, Resources } from "./types";
+import type { EventDef, ModuleDef, ModuleType, Resources } from "./types";
 import { days, setLang, t } from "./i18n";
 import type { Lang } from "./i18n";
 import { Sky } from "./ui/Sky";
@@ -22,7 +23,7 @@ import "./styles/tokens.css";
 import "./App.css";
 
 // Тексты событий лежат в словарях i18n: ev.<id>.title / .text / .<choice>.label / .<choice>.hint
-type EventDef = { id: string; choices: string[] };
+// Цены выборов лежат в events.json (тип EventDef в types.ts)
 
 const MODULES = modulesData as ModuleDef[];
 const EVENTS = eventsData as EventDef[];
@@ -159,15 +160,23 @@ function Game({ onRestart }: { onRestart: () => void }) {
           <div className="modal" role="dialog" aria-labelledby="event-title">
             <h2 id="event-title">{t(`ev.${event.id}.title`)}</h2>
             <p>{t(`ev.${event.id}.text`)}</p>
+            {event.id === "flare" && state.flare && (
+              <p className="muted source">
+                {t("ev.flare.source", { flare: describeFlare(state.flare) })}{" "}
+                <a href={state.flare.link} target="_blank" rel="noreferrer">
+                  {state.flare.source}
+                </a>
+              </p>
+            )}
             <div className="modal__choices">
               {event.choices.map((choice) => (
                 <button
-                  key={choice}
+                  key={choice.id}
                   className="btn btn--choice"
-                  onClick={() => dispatch({ type: "resolveEvent", choice })}
+                  onClick={() => dispatch({ type: "resolveEvent", choice: choice.id })}
                 >
-                  <strong>{t(`ev.${event.id}.${choice}.label`)}</strong>
-                  <span className="muted">{t(`ev.${event.id}.${choice}.hint`)}</span>
+                  <strong>{t(`ev.${event.id}.${choice.id}.label`)}</strong>
+                  <span className="muted">{t(`ev.${event.id}.${choice.id}.hint`)}</span>
                 </button>
               ))}
             </div>
