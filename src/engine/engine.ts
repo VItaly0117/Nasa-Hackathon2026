@@ -66,6 +66,8 @@ function nextDay(state: GameState): GameState {
   const log = [...state.log];
   const history = [...state.history];
   const day = state.day + 1;
+  // Номер дня для журнала и истории. Последний шаг миссии относится к её последнему дню, а не к «дню 21»
+  const stamp = Math.min(day, MISSION_DAYS);
 
   // Без энергии всё, что её потребляет, отключается
   const noPower = resources.energy <= 0;
@@ -75,8 +77,8 @@ function nextDay(state: GameState): GameState {
     addTo(resources, output);
   }
   if (noPower) {
-    log.push({ day, text: "Нет энергии: системы, которым она нужна, отключены" });
-    history.push({ day, kind: "blackout", night: state.isNight });
+    log.push({ day: stamp, text: "Нет энергии: системы, которым она нужна, отключены" });
+    history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
   addTo(resources, CREW_PER_DAY);
   for (const key of KEYS) resources[key] = clamp(resources[key]);
@@ -86,7 +88,7 @@ function nextDay(state: GameState): GameState {
   for (const effect of state.pending) {
     if (effect.inDays <= 1) {
       resources[effect.key] = clamp(resources[effect.key] + effect.amount);
-      log.push({ day, text: effect.reason });
+      log.push({ day: stamp, text: effect.reason });
     } else {
       pending.push({ ...effect, inDays: effect.inDays - 1 });
     }
@@ -98,12 +100,12 @@ function nextDay(state: GameState): GameState {
     const reason = `Без ${VITAL_NAMES[key]} экипаж слабеет: здоровье −${SHORTAGE_DAMAGE}`;
     if (pending.some((p) => p.reason === reason)) continue;
     pending.push({ inDays: 2, key: "health", amount: -SHORTAGE_DAMAGE, reason });
-    log.push({ day, text: `Закончились запасы ${VITAL_NAMES[key]}` });
-    history.push({ day, kind: "shortage", resource: key });
+    log.push({ day: stamp, text: `Закончились запасы ${VITAL_NAMES[key]}` });
+    history.push({ day: stamp, kind: "shortage", resource: key });
   }
 
-  if (day === NIGHT_START - 2) log.push({ day, text: "Через 2 дня наступит лунная ночь" });
-  if (day === NIGHT_START) log.push({ day, text: "Наступила лунная ночь: панели не дают энергии" });
+  if (day === NIGHT_START - 2) log.push({ day: stamp, text: "Через 2 дня наступит лунная ночь" });
+  if (day === NIGHT_START) log.push({ day: stamp, text: "Наступила лунная ночь: панели не дают энергии" });
 
   let next: GameState = {
     ...state,

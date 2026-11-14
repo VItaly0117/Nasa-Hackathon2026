@@ -153,6 +153,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   box-shadow: var(--panel-shadow);
 }
 .modal h2 { margin-top: 0; }
+.modal a { color: var(--accent); }
 .modal__choices { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .debrief { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 
