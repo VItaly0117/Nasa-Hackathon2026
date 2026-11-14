@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "../types";
-import type { ModuleDef, ModuleType, Resources, ResourceKey } from "../types";
 import { moduleDesc, moduleName, t } from "../i18n";
 import { ModulePreview } from "./map/art";
 import { ResourceIcon } from "./icons";
@@ -151,10 +150,6 @@ export function BuildMenu({
               {locked
                 ? t("online.lockedBy", { role: t(`role.${locked}`) })
                 : crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
-              disabled={disabled || !affordable || crewBusy}
-              title={crewBusy ? t("build.crewBusyHint") : undefined}
-            >
-              {crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
             </button>
           )}
         </section>
