@@ -273,6 +273,8 @@ export const en: Record<keyof typeof ru, string> = {
   "app.winText": "You survived 20 days. The rocket lifts off and the crew flies home to Earth!",
   "app.loseText": "The crew did not survive on the Moon. Next time build power, water and a shelter sooner.",
   "app.timerLeft": "Time left today",
+  "app.timerHelp": "Time left until the game day ends. The bar fills as the day passes and turns red {sec} s before the end.",
+  "cycle.aria": "Mission: day {day} of {total}. Lunar night begins on day {night}.",
   "prologue.skip": "Skip",
   "prologue.next": "Next",
   "prologue.go": "To the mission",

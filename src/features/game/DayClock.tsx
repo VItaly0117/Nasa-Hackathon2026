@@ -5,6 +5,8 @@ import { DAY_MS } from "@/engine";
 // Как часто часы отправляют движку tick (в мс). Реже нельзя: полоска будет дёргаться,
 // чаще не нужно: игра перерисовывается на каждый tick
 const TICK_MS = 100;
+// Когда до конца дня остаётся меньше этого, таймер и полоска краснеют
+const LOW_MS = 15000;
 
 type Props = {
   running: boolean;       // false: идёт событие, правила, выбор места или игра окончена
@@ -48,10 +50,13 @@ export function DayClock({ running, progress, onTick, children }: Props) {
   }, [running]);
 
   const left = DAY_MS * (1 - progress);
-  const low = left <= 15000;
+  const low = left <= LOW_MS;
+
+  const help = t("app.timerHelp", { sec: LOW_MS / 1000 });
 
   return (
     <div className="dayclock">
+      <span className="dayclock__label" title={help}>{t("app.timerLeft")}</span>
       <div
         className={`dayclock__time ${low ? "dayclock__time--low" : ""}`}
         role="timer"
@@ -68,6 +73,7 @@ export function DayClock({ running, progress, onTick, children }: Props) {
         className={`dayclock__bar ${low ? "dayclock__bar--low" : ""}`}
         role="progressbar"
         aria-label={t("app.dayTimer")}
+        title={help}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress * 100)}

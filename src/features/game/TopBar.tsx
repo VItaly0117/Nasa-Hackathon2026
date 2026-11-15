@@ -5,6 +5,7 @@ import { days, t } from "@/i18n";
 import { sound } from "@/audio/audio";
 import { useGame, useMeta, useSession } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
+import { CycleBar } from "./CycleBar";
 import { DayClock } from "./DayClock";
 import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
 import { ResourcesContainer } from "./Panels";
@@ -81,6 +82,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         <GameClock>
           <Buttons onMenu={onMenu} />
         </GameClock>
+        <CycleBar />
       </div>
       <ResourcesContainer />
     </header>

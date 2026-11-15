@@ -37,3 +37,13 @@
 .dayclock__bar > div { width: 100%; height: 100%; transform-origin: left center; background: linear-gradient(90deg, #7fb0ff, #ffd166); }
 .dayclock__bar--low > div { background: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
 @keyframes urgent { 50% { opacity: 0.55; } }
+
+.dayclock__label { font-size: 14px; font-weight: 700; opacity: 0.9; white-space: nowrap; }
+
+/* Цикл миссии: день до первой ночи и сама ночь */
+.cycle { flex-basis: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.cycle__track { position: relative; flex: 1; height: 10px; border-radius: 6px; overflow: visible; background: #1a2250; }
+.cycle__day { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px 0 0 6px; background: linear-gradient(90deg, #5b8fe0, #f5c451); }
+.cycle__night { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 0 6px 6px 0; background: linear-gradient(90deg, #3a4aa8, #1c2468); }
+.cycle__marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #0c1235; border: 1.5px solid var(--panel-border); font-size: 13px; line-height: 1; transition: left 0.2s linear; }
+@media (prefers-reduced-motion: reduce) { .cycle__marker { transition: none; } }

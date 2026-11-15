@@ -141,3 +141,9 @@
   .tile-ok { animation: none; }
   .map-stage--smooth { transition: none; }
 }
+
+/* Ночь на карте: окна жилого модуля светятся, солнечные панели тускнеют (в стороне от меню стройки) */
+.art-window { transition: fill 1.5s ease, filter 1.5s ease; }
+.game--night .map-svg .art-window { fill: #ffd98a; filter: drop-shadow(0 0 3px #ffc857); }
+.art--solar { transition: filter 1.5s ease; }
+.game--night .map-svg .art--solar { filter: saturate(0.35) brightness(0.55); }
