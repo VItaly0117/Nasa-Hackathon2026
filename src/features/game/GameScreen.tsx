@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { t } from "@/i18n";
 import { useGame, useMeta, useSession } from "@/session/hooks";
 import { Intro } from "@/features/story/Intro";
@@ -32,6 +33,15 @@ function Summary() {
 
 function Rules() {
   const ui = useGameUi();
+  const { rulesOpen, setRulesOpen } = ui;
+  useEffect(() => {
+    if (!rulesOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRulesOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [rulesOpen, setRulesOpen]);
   return ui.rulesOpen ? <Intro rulesOnly onStart={() => ui.setRulesOpen(false)} /> : null;
 }
 

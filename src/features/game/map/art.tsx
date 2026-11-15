@@ -58,10 +58,10 @@ function Habitat() {
       <IsoBox w={27} d={13.5} h={17} dy={-1} />
       {/* окна на левой стене */}
       <g {...LINE} strokeWidth="1">
-        <polygon points="-23,-14 -16,-10.5 -16,-4 -23,-7.5" fill="url(#gWindow)" />
-        <polygon points="-12,-8.5 -5,-5 -5,1.5 -12,-2" fill="url(#gWindow)" />
+        <polygon points="-23,-14 -16,-10.5 -16,-4 -23,-7.5" fill="url(#gWindow)" className="art-window" />
+        <polygon points="-12,-8.5 -5,-5 -5,1.5 -12,-2" fill="url(#gWindow)" className="art-window" />
         {/* дверь на правой стене */}
-        <polygon points="8,-1 16,-5 16,6.5 8,10.5" fill="url(#gWindow)" />
+        <polygon points="8,-1 16,-5 16,6.5 8,10.5" fill="url(#gWindow)" className="art-window" />
       </g>
       <Wear d="M -26 -6 q 3 -4 6 -1 q -1 4 -6 1 Z M 18 -12 q 4 -2 6 2 q -4 3 -6 -2 Z" />
       {/* купол */}
@@ -125,7 +125,7 @@ function Panel({ dx, dy }: { dx: number; dy: number }) {
         d={`M ${pt(0, -8)} L ${pt(0, 12)} M ${pt(-10, -3)} L ${pt(10, 7)} M ${pt(10, -3)} L ${pt(-10, 7)}`}
         stroke="#bcd0f5" strokeWidth="0.9" opacity="0.85" fill="none"
       />
-      <polygon points={`${pt(-15, 0)} ${pt(-3, -6)} ${pt(2, -3.5)} ${pt(-10, 3)}`} fill="#ffffff" opacity="0.16" />
+      <polygon points={`${pt(-15, 0)} ${pt(-3, -6)} ${pt(2, -3.5)} ${pt(-10, 3)}`} fill="#ffffff" opacity="0.16" className="panel-glare" />
     </g>
   );
 }
@@ -350,6 +350,7 @@ export function ArtDefs() {
       <linearGradient id="gWhiteLeft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#d5d2e6" /><stop offset="1" stopColor="#a8a4c0" /></linearGradient>
       <linearGradient id="gWhiteRight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f1f0f9" /><stop offset="1" stopColor="#c9c6de" /></linearGradient>
       <linearGradient id="gSlab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#4a4566" /><stop offset="1" stopColor="#2f2a47" /></linearGradient>
+      <radialGradient id="gNightGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stopColor="#ffd86b" stopOpacity="0.75" /><stop offset="1" stopColor="#ffb347" stopOpacity="0" /></radialGradient>
       <linearGradient id="gWindow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7cc2f5" /><stop offset="1" stopColor="#2d6fb8" /></linearGradient>
       <radialGradient id="gDome" cx="0.35" cy="0.25" r="0.9"><stop offset="0" stopColor="#ffffff" /><stop offset="0.6" stopColor="#e4e3f1" /><stop offset="1" stopColor="#b6b2cd" /></radialGradient>
       <linearGradient id="gTankBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2c58a8" /><stop offset="0.35" stopColor="#5d97e8" /><stop offset="1" stopColor="#274c94" /></linearGradient>
