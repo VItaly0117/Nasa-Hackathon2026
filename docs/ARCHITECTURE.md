@@ -68,6 +68,6 @@ i18n, audio, ui — вспомогательные: ими пользуются 
 
 ## Как добавлять
 
-- **Новое действие:** тип в `src/types.ts`, ветка в `engine/reduce.ts`, `ACTION_TYPES` на сервере, `SAVE_VERSION`, этот документ и проверка.
+- **Новое действие:** тип в `src/types.ts`, ветка в `engine/reduce.ts`, `ACTION_TYPES` в `shared/protocol.ts`, `SAVE_VERSION`, этот документ и проверка.
 - **Новый модуль:** запись в `content/modules.json`, картинка в `features/game/map/art.tsx`, высота в `art-size.ts`, тексты `module.<type>.*` в трёх словарях.
 - **Новый экран:** папка в `features/`, подписка на нужный кусок через `useGame`, без обращения к `engine/` внутренним путём.

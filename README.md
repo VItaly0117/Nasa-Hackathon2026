@@ -96,7 +96,7 @@ npm run lint
 ├── PROJECT_DOCUMENTATION.md  # 📘 Полная техническая документация для ИИ и разработчиков
 ├── LLMS.txt                  # 🤖 Инструкция и указатель для AI-агентов
 ├── docs/ARCHITECTURE.md      # Слои, правила импортов, как добавлять новое
-├── server/index.mjs          # Сервер совместной игры (HTTP + Server-Sent Events)
+├── server/index.ts          # Сервер совместной игры (HTTP + Server-Sent Events)
 ├── scripts/                  # проверки, золотой прогон, отчёт по балансу, загрузка вспышек DONKI
 └── src/
     ├── engine/               # Детерминированный игровой движок (чистый TypeScript)

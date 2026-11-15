@@ -59,7 +59,7 @@
 - **Сборка:** `tsc -b && vite build` (output: `dist/`).
 - **Проверки:**
   - `node scripts/run-checks.mjs` — 72 автономных проверки баланса и механики движка через Vite SSR без браузера.
-  - `node scripts/run-online-checks.mjs` — интеграционные тесты комнаты мультиплеера.
+  - `npm run test:online` — Vitest-тесты комнаты мультиплеера (`tests/online/`, протокол в `shared/protocol.ts`).
   - `npm run check` — запускает оба набора тестов.
 
 ---
@@ -94,12 +94,12 @@
 ├── package.json               # Скрипты: dev, server, lint, typecheck, architecture, check, golden, build
 ├── tsconfig*.json             # TS-конфиги (в tsconfig.app.json алиас @/ → src/)
 ├── vite.config.ts             # Vite: React, алиас @/, прокси /api на порт 8787
-├── server/index.mjs           # Node.js HTTP + SSE сервер комнат совместной игры
+├── server/index.ts           # Node.js HTTP + SSE сервер комнат совместной игры
 │
 ├── scripts/
 │   ├── fetch-donki.mjs        # Вспышки NASA DONKI → src/content/nasa/flares.json
 │   ├── run-checks.mjs         # Запуск проверок движка (engine/checks.ts)
-│   ├── run-online-checks.mjs  # Проверка сервера комнат и списка действий
+│   ├── (тесты сервера теперь в tests/online/, протокол в shared/protocol.ts)
 │   ├── check-architecture.mjs # Границы слоёв
 │   └── golden-replay.mjs      # «Золотой прогон»: 60 игр, хеш состояния без журнала
 │
@@ -400,7 +400,7 @@ export type Action =
 
 ## 8. Сетевой мультиплеер и сервер (`server/`, `src/net/`)
 
-### Сервер (`server/index.mjs`)
+### Сервер (`server/index.ts`)
 - Запуск: `npm run server` (по умолчанию порт 8787).
 - Полностью in-memory: комнаты хранятся в `Map<string, Room>`.
 - Спецификация REST / SSE API:
@@ -416,7 +416,7 @@ export type Action =
      - Прием действия от игрока `{ player, action }`.
      - **Авторизация тиков:** действие `type: "tick"` разрешено присылать **только хосту** (`hostId`). Если пришлет не хост, возвращается HTTP 409 `{ error: "not host" }`.
      - Разрешенные типы действий: `tick`, `build`, `resolveEvent`, `repair`, `research`. При неизвестном типе — HTTP 400.
-     - **Правило:** список на сервере (`ACTION_TYPES`) должен совпадать со списком `Action` из `src/types.ts` без `nextDay` (пропускать день онлайн нельзя). Новое действие добавляется в оба места; `scripts/run-online-checks.mjs` проверяет это сам и упадёт, если они разошлись.
+     - **Правило:** список в `shared/protocol.ts` (`ACTION_TYPES`) должен совпадать со списком `Action` из `src/types.ts` без `nextDay` (пропускать день онлайн нельзя). Новое действие добавляется в оба места; `tests/online/server.test.ts` проверяет это сам и упадёт, если они разошлись.
 
 ### Клиент (`src/net/online.ts`)
 - Подключение через `joinRoom(name)` и `openStream(session, from, handlers)`.
@@ -507,7 +507,7 @@ export type Action =
   10. Медпункт удешевляет лечение ровно в 2 раза и сокращает болезнь до 1 дня.
   11. Склады корректно увеличивают максимальную вместимость до 200 единиц.
   12. Тесты разбора миссии (`debrief`) на отсутствие опечаток и незаполненных скобок шаблонов.
-  13. Мультиплеерные тесты комнат (`scripts/run-online-checks.mjs`): четыре роли, права ведущего, валидация действий и совпадение списка действий движка и сервера.
+  13. Мультиплеерные тесты комнат (`tests/online/server.test.ts`): четыре роли, права ведущего, валидация действий и совпадение списка действий движка и сервера.
   14. Починка: цена берётся из `events.json`, при открытом окне поломки закрывает его, после конца игры не работает. Разбор различает «починили сразу», «починили позже» и «не починили».
   15. Научная экспедиция: награда, один раз, лимит хранения, не работает после конца игры.
 

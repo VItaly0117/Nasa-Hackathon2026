@@ -1,6 +1,6 @@
 import type { Action, Role } from "@/types";
 
-// Связь с сервером совместной игры (server/index.mjs).
+// Связь с сервером совместной игры (server/index.ts).
 // В разработке Vite перенаправляет /api на сервер (vite.config.ts). Если сервер живёт по другому адресу,
 // его можно задать при сборке: VITE_SERVER_URL=https://... npm run build
 const BASE = `${import.meta.env.VITE_SERVER_URL ?? ""}/api/rooms`;

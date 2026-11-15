@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   // @/ означает src/: вместо цепочек ../../
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  // Совместная игра: запросы /api уходят на сервер из server/index.mjs (npm run server)
+  // Совместная игра: запросы /api уходят на сервер из server/index.ts (npm run server)
   server: {
     proxy: { '/api': 'http://localhost:8787' },
   },
