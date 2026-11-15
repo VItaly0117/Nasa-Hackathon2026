@@ -50,12 +50,11 @@ function Astronaut({ suit, name }: { suit: string; name: string }) {
 type Props = {
   targets: WalkTarget[];
   active: boolean; // false: игра на паузе или идёт событие, астронавты стоят
-  k: number;       // масштаб карты: подсказка держит один размер на экране
 };
 
 // Маленькие астронавты ходят от модуля к модулю и «работают». Положение меняем напрямую в SVG,
 // без перерисовки React на каждом кадре
-export function Walkers({ targets, active, k }: Props) {
+export function Walkers({ targets, active }: Props) {
   const roots = useRef<(SVGGElement | null)[]>([]);
   // Над кем сейчас курсор (или кого коснулись): у него показываем подсказку
   const [hovered, setHovered] = useState<number | null>(null);
@@ -206,7 +205,7 @@ export function Walkers({ targets, active, k }: Props) {
           />
           <g
             className="astro__tip"
-            transform={`translate(0 -124) scale(${1 / k})`}
+            style={{ transform: "translate(0px, -124px) scale(var(--inv-k, 1))" }}
             display={hovered === i ? undefined : "none"}
             pointerEvents="none"
           >
