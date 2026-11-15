@@ -1,4 +1,4 @@
-import type { ResourceKey } from "../types";
+import type { ResourceKey } from "@/types";
 
 // Иконки ресурсов в стиле макета. TODO @Zakhar: можно заменить на свои из assets/icons/
 export function ResourceIcon({ type, size = 28 }: { type: ResourceKey; size?: number }) {

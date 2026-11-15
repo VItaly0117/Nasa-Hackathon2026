@@ -1,0 +1,86 @@
+/* Начальный экран. Окно и кнопки общие (.overlay, .modal, .btn из App.css, .intro из Intro.css) */
+.menu { text-align: center; width: min(560px, 94vw); }
+.menu__title { margin: 14px 0 6px; font-size: 44px; font-weight: 900; letter-spacing: 0.02em; }
+.menu__tagline { margin: 0 0 26px; font-size: 18px; line-height: 1.45; opacity: 0.9; }
+.menu__buttons { display: flex; flex-direction: column; gap: 14px; }
+.menu__btn { min-height: 60px; font-size: 21px; }
+
+.menu h2 { margin-bottom: 12px; }
+.menu__hint { margin: 0 0 20px; font-size: 17px; line-height: 1.45; opacity: 0.9; text-align: left; }
+.menu__label { display: block; text-align: left; font-weight: 800; margin-bottom: 8px; }
+.menu__input {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-border);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.menu__input:focus { outline: none; border-color: var(--accent); }
+.menu__input::placeholder { letter-spacing: normal; text-transform: none; font-weight: 600; opacity: 0.55; }
+.menu__error { margin: 10px 0 0; text-align: left; color: #ffb3b3; font-weight: 700; }
+
+/* Сервер и роль игрока в шапке во время совместной игры */
+.online-badge { font-size: 13px; color: var(--accent); font-weight: 800; }
+.online-lost {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: #5a1d1d;
+  border: 1.5px solid #ff7a7a;
+  font-weight: 800;
+}
+
+/* ---------- Главный экран: кнопки поверх общего неба (.backdrop); макет с рисованными кнопками лежит в src/assets/menu_bd.png ---------- */
+.mm { position: absolute; inset: 0; z-index: 5; display: flex; padding: 16px; overflow-y: auto; }
+.mm__box { width: min(484px, 92vw); margin: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.mm__title { margin: 0; font-size: 46px; font-weight: 900; color: #fff; text-shadow: 0 2px 14px rgba(90, 110, 255, 0.55), 0 2px 4px rgba(0, 0, 0, 0.5); }
+.mm__tagline { margin: -4px 0 8px; max-width: 32ch; font-size: 19px; line-height: 1.4; color: #e9edff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
+
+/* Выбор языка и звука */
+.mm__row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.mm__pill {
+  display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 14px;
+  border-radius: 26px; border: 1.5px solid rgba(190, 205, 255, 0.35);
+  background: rgba(58, 65, 126, 0.72); backdrop-filter: blur(6px);
+  color: var(--text); font-size: 16px; font-weight: 700; text-align: left; cursor: pointer;
+}
+.mm__pill span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mm__pill:hover { background: rgba(78, 86, 156, 0.85); }
+
+/* Основные кнопки */
+.mm__btn {
+  width: 100%; min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 18px; border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: #fff; font-size: 22px; font-weight: 800; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  cursor: pointer; transition: transform 0.08s, filter 0.15s;
+}
+.mm__btn:hover:not(:disabled) { filter: brightness(1.08); }
+.mm__btn:active:not(:disabled) { transform: translateY(2px); }
+.mm__btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.mm__btn--new { background: linear-gradient(#faaa30, #eb9f3a 70%, #d98a2a); box-shadow: 0 4px 0 #a8651a, inset 0 -6px 0 rgba(90, 150, 40, 0.55); }
+.mm__btn--olive { background: linear-gradient(#a99e85, #8c827b 60%, #6a6470); box-shadow: 0 4px 0 #4a4358, inset 0 -6px 0 rgba(90, 140, 50, 0.5); }
+.mm__btn--glass { background: rgba(78, 71, 119, 0.62); backdrop-filter: blur(6px); border-color: rgba(190, 205, 255, 0.3); }
+
+@media (max-height: 620px), (max-width: 900px) {
+  .menu__title { font-size: 30px; margin-top: 6px; }
+  .menu__tagline { font-size: 15px; margin-bottom: 14px; }
+  .menu__buttons { gap: 8px; }
+  .menu__btn { min-height: 46px; font-size: 17px; }
+  .menu__hint { font-size: 14px; margin-bottom: 12px; }
+  .mm__box { gap: 8px; }
+  .mm__title { font-size: 30px; }
+  .mm__tagline { font-size: 15px; margin-bottom: 4px; }
+  .mm__pill { min-height: 42px; font-size: 14px; }
+  .mm__btn { min-height: 46px; font-size: 17px; }
+}

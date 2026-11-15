@@ -1,0 +1,16 @@
+{
+  "source": "NASA-STD-3001 Technical Brief OCHMO-TB-002 «Environmental Control & Life Support System (ECLSS): Human-Centered Approach», Rev A, 2023-04-20",
+  "url": "https://www.nasa.gov/wp-content/uploads/2023/07/eclss-technical-brief-ochmo.pdf",
+  "perCrewmemberPerDay": {
+    "oxygenKgResting": 0.771,
+    "oxygenKgWithExercise": 1.083,
+    "potableWaterLitersMin": 2.5,
+    "foodKcalAverage": 3035
+  },
+  "notes": {
+    "oxygen": "Расчёт брифа для экипажа из 7 человек: 0,771 кг на человека в сутки в покое; тренировка добавляет 0,376 кг за занятие, всего 1,083 кг.",
+    "water": "Не менее 2,5 л питьевой воды на человека в сутки на питьё; отдельно выделяется вода на гигиену, медицину и работы в открытом космосе (цифра в брифе не названа).",
+    "food": "Средняя потребность в питании 3035 ккал на человека в сутки (масса еды в килограммах в брифе не указана, мы её не выдумываем).",
+    "recycling": "Система на МКС возвращает до 90% жидкости, собранной от гигиены и из атмосферы (так сказано в том же брифе)."
+  }
+}

@@ -1,3 +1,11 @@
+// Сообщение без языка: ключ словаря и параметры. Ядро игры выдаёт только такие сообщения,
+// а переводит их слой интерфейса (src/i18n/messages.ts). Значения параметров это id, числа и ключи,
+// а не готовые слова: так состояние не зависит от языка игрока и одинаково у всех в совместной игре
+export type Msg = { key: string; params?: Record<string, string | number> };
+
+// Запись бортового журнала
+export type LogEntry = Msg & { day: number };
+
 export type ResourceKey = "oxygen" | "water" | "food" | "energy" | "health" | "materials";
 export type Resources = Record<ResourceKey, number>;
 
@@ -6,7 +14,7 @@ export type ModuleType =
   | "iceMine" | "rockMine" | "storage" | "medbay";
 
 // Роль определяет, кого игра ставит строить в первую очередь: у каждого модуля есть builder в modules.json
-export type Role = "engineer" | "scientist" | "technician";
+export type Role = "engineer" | "scientist" | "doctor" | "technician";
 
 export type CrewMember = {
   id: number; // 1..4, совпадает с crew.n<id> / crew.r<id> в словарях и с crewData.ts
@@ -53,7 +61,7 @@ export type EventChoice = {
 // Заголовок и описание события: ev.<id>.title / ev.<id>.text
 export type EventDef = { id: string; choices: EventChoice[] };
 
-// Реальная вспышка из NASA DONKI (src/data/nasa/flares.json)
+// Реальная вспышка из NASA DONKI (src/content/nasa/flares.json)
 export type Flare = {
   id: string;
   date: string;        // день пика, YYYY-MM-DD
@@ -72,7 +80,7 @@ export type HistoryEntry =
   | { day: number; kind: "shortage"; resource: ResourceKey }                             // ресурс упал до нуля
   | { day: number; kind: "blackout"; night: boolean };                                   // база осталась без энергии
 
-// Задание, которое дал член экипажа. Что оно значит и когда выполнено, описано в engine/tasks.ts
+// Задание, которое дал член экипажа. Что оно значит и когда выполнено, описано в engine/systems/tasks.ts
 export type Task = {
   id: string;
   giver: number; // id члена экипажа
@@ -81,12 +89,17 @@ export type Task = {
   status: "open" | "done" | "missed";
 };
 
+// Режим игры: меняет стартовые запасы и расход экипажа (engine/constants.ts → MODES)
+export type GameMode = "easy" | "normal" | "hard";
+
 export type GameState = {
+  mode?: GameMode; // нет в старых сохранениях и в совместной игре: это "normal"
   seed: number; // для детерминированных случайностей (болезни): одна и та же игра повторяется
   illness: { crewId: number; slot: number } | null; // кто заболел, пока открыто событие
   sickCount: number;
   lastIllnessDay: number;
   tasks: Task[];
+  research: string[]; // завершённые научные исследования этой миссии
   crew: CrewMember[];
   clockMs: number; // сколько миллисекунд игрового времени прошло в текущем дне
   history: HistoryEntry[];
@@ -95,9 +108,9 @@ export type GameState = {
   isNight: boolean;
   resources: Resources;
   modules: PlacedModule[];
-  pending: { inDays: number; key: ResourceKey; amount: number; reason: string }[];
+  pending: { inDays: number; key: ResourceKey; amount: number; reason: Msg }[];
   activeEvent: string | null;
-  log: { day: number; text: string }[];
+  log: LogEntry[];
   status: "playing" | "won" | "lost";
 };
 
@@ -106,4 +119,6 @@ export type Action =
   | { type: "nextDay" }      // пропустить остаток дня
   | { type: "build"; slot: number; module: ModuleType }
   | { type: "repair"; slot: number }
+  | { type: "research"; id: "moonDust"; answer: "shield" | "brush" }
+  | { type: "research"; id: "iceScout"; answer: "ice" | "rock" }
   | { type: "resolveEvent"; choice: string };

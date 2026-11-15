@@ -1,0 +1,72 @@
+/* Карточки заданий от экипажа: всплывают сверху по центру и сами уходят */
+.task-toasts {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 150px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(390px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.task-toast {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 44px 14px 14px;
+  pointer-events: auto;
+  background: rgba(14, 18, 36, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: toast-in 0.35s ease-out;
+}
+
+.task-toast > :first-child { flex: none; width: 44px; height: 44px; border-radius: 10px; overflow: hidden; }
+
+.task-toast__body { display: flex; flex-direction: column; gap: 6px; line-height: 1.35; min-width: 0; }
+.task-toast__who { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; }
+.task-toast__body strong { font-size: 15px; font-weight: 600; }
+.task-toast__why { font-size: 13px; opacity: 0.7; }
+.task-toast__until {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.task-toast__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s, background 0.15s;
+}
+.task-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-height: 620px), (max-width: 900px) {
+  .task-toasts { top: 120px; }
+}

@@ -1,0 +1,16 @@
+/* ---------- Экипаж слева ---------- */
+.crew { position: absolute; left: 18px; top: 176px; width: 280px; padding: 14px; z-index: 1; }
+.crew__list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.crew__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.crew__info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.crew__info strong { font-size: 18px; }
+.crew__role { font-size: 14px; opacity: 0.8; }
+.crew__bar { height: 8px; margin-top: 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+.crew__bar > div { height: 100%; border-radius: 4px; transition: width 0.4s; }

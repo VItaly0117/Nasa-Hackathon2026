@@ -1,0 +1,135 @@
+/* Карта вместе с небом на фоновой картинке занимает весь экран.
+   Внутри неё сцена двигается и масштабируется через transform */
+.map-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0d24;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.map-frame:active { cursor: grabbing; }
+
+.map-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.map-stage--smooth { transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.3, 1); }
+
+.map-svg { display: block; }
+
+.tile-ok { animation: tile-pulse 1.4s ease-in-out infinite; }
+.tile-ice-survey { fill: #56d8ff; fill-opacity: 0.42; stroke: #b8f2ff; stroke-width: 4px; animation: tile-pulse 1.1s ease-in-out infinite; }
+@keyframes tile-pulse { 50% { fill-opacity: 0.5; } }
+
+.bubble {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.bubble__body {
+  background: #7FA6F5;
+  color: #0E1A3A;
+  border-radius: 16px;
+  padding: 10px 18px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.bubble__title { font-weight: 800; font-size: 18px; }
+
+.bubble__repair-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  background: #f5b83d;
+  color: #1a1505;
+  border: none;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.1s, background 0.15s;
+  margin-top: 2px;
+}
+.bubble__repair-btn:hover:not(:disabled) {
+  background: #ffc85a;
+  transform: translateY(-1px);
+}
+.bubble__repair-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.bubble__repair-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bubble__tail {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #7FA6F5;
+}
+
+/* Бейджи з іменами астронавтів на карті */
+.astro__name-tag {
+  font-family: var(--font, "Nunito", sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  fill: #ffffff;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.astro__name-bg {
+  fill: rgba(14, 26, 58, 0.85);
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1.2px;
+}
+
+/* Кнопки приближения слева внизу */
+.zoom {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.zoom__btn {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  border: 1.5px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--panel-shadow);
+}
+.zoom__btn:hover { background: rgba(60, 76, 150, 0.9); }
+.zoom__btn:active { transform: scale(0.94); }
+
+@media (max-height: 620px), (max-width: 900px) {
+  .zoom { left: 10px; bottom: 10px; gap: 8px; }
+  .zoom__btn { width: 46px; height: 46px; font-size: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-ok { animation: none; }
+  .map-stage--smooth { transition: none; }
+}

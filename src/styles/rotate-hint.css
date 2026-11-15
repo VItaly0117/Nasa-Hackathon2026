@@ -1,0 +1,20 @@
+/* ---------- Подсказка «поверни телефон» ---------- */
+.rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #0b1026;
+  color: var(--text);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  padding: 24px;
+}
+.rotate-hint svg { animation: tilt 2s ease-in-out infinite; }
+@keyframes tilt { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-90deg); } }
+@media (orientation: portrait) and (max-width: 700px) { .rotate-hint { display: flex; } }

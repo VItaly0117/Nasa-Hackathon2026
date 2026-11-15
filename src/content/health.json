@@ -1,0 +1,30 @@
+[
+  {
+    "id": "bones",
+    "source": "NASA OSDR"
+  },
+  {
+    "id": "muscles",
+    "source": "NASA OSDR"
+  },
+  {
+    "id": "immune",
+    "source": "NASA OSDR"
+  },
+  {
+    "id": "radiation",
+    "source": "NASA OSDR RadLab"
+  },
+  {
+    "id": "flare",
+    "source": "NASA DONKI"
+  },
+  {
+    "id": "food",
+    "source": "CSA"
+  },
+  {
+    "id": "nutrition",
+    "source": "CSA"
+  }
+]

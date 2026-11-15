@@ -1,6 +1,6 @@
-import type { GameState, ModuleType, PlacedModule } from "../types";
-import { FORCE_BLOCK, FORCE_BUILD, IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
-import type { Terrain } from "../data/map";
+import type { GameState, ModuleType } from "@/types";
+import { FORCE_BLOCK, FORCE_BUILD, IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "@/content/map";
+import type { Terrain } from "@/content/map";
 
 export type { Terrain };
 export { MAP_LAYOUT, MAP_ROWS, MAP_COLS };
@@ -29,6 +29,7 @@ const TERRAIN_MAP: Record<string, Terrain> = {
 
 export function getTileInfo(row: number, col: number): TileInfo {
   const slot = row * MAP_COLS + col;
+  const terrain = TERRAIN_MAP[MAP_LAYOUT[row][col]];
   return {
     row,
     col,
@@ -74,12 +75,12 @@ export function cellDistance(a: { row: number; col: number }, b: { row: number; 
   return Math.max(Math.abs(p.i - q.i), Math.abs(p.j - q.j));
 }
 
-export function isNearBase(modules: PlacedModule[], row: number, col: number): boolean {
+export function isNearBase(modules: { slot: number }[], row: number, col: number): boolean {
   return modules.some((m) => cellDistance(cellOf(m.slot), { row, col }) <= BUILD_RADIUS);
 }
 
 // Зона стройки: радиус вокруг базы плюс зелёные клетки, размеченные вручную
-export function inBuildZone(modules: PlacedModule[], row: number, col: number): boolean {
+export function inBuildZone(modules: { slot: number }[], row: number, col: number): boolean {
   return FORCE_BUILD.has(slotOf(row, col)) || isNearBase(modules, row, col);
 }
 

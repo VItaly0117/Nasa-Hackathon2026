@@ -4,28 +4,33 @@
 
 ## Critical Instructions for LLMs & AI Coding Agents
 1. **DO NOT scan or read all project files.** Complete, unambiguous technical documentation is provided in:
-   👉 **`PROJECT_DOCUMENTATION.md`** (read this file first for full architecture, data schemas, rules, and recipes).
+   👉 **`PROJECT_DOCUMENTATION.md`** (read this file first for full architecture, data schemas, rules, and recipes) and **`docs/ARCHITECTURE.md`** (layers and import rules).
 2. **Deterministic Engine Rule:** The game engine (`src/engine/`) is a pure headless state reducer (`reduce(state, action)`). All randomness is seeded (`mulberry32`). Never use unseeded `Math.random()` inside the engine.
-3. **Crew Structure:** The crew has exactly 3 astronauts:
-   - ID 1: Maksym (Engineer)
-   - ID 2: Olena (Scientist)
-   - ID 4: Danylo (Technician)
-   *(Doctor / Sofia ID 3 was removed. Shelter and medbay modules are built by Technician).*
+3. **Crew Structure:** The crew has exactly 4 astronauts (names differ per language, ids and roles do not):
+   - ID 1: Alice / Алиса / Аліса (Engineer)
+   - ID 2: Max / Максим (Scientist)
+   - ID 3: Vitaliy / Виталий / Віталій (Doctor)
+   - ID 4: Daniel / Даниил / Данило (Technician)
+   *(The crew size has changed twice, always re-check `CREW_ROLES` in `src/engine/state.ts`. Shelter and medbay are built by the Doctor.)*
 4. **Time & Clocks:**
-   - `DAY_MS = 120000` (2 minutes).
+   - `DAY_MS = 90000` (1:30 / 90 seconds).
    - `BUILD_MS = 60000` (1 minute / 0.5 day).
    - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
-5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts`. Do not use root `en.ts`, `ru.ts`, `uk.ts` (they are empty artifacts).
-6. **Testing:** Always run `npm run check` (`node scripts/run-checks.mjs && node scripts/run-online-checks.mjs`) to verify engine balance and room protocol after modifying code or JSON configs.
+5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts`; `t(key)` is typed by `MessageKey`. The game state and log hold no text (`Msg = {key, params}`), `formatMsg` translates on display. Keys built from data ids use `tDynamic`.
+6. **Multiplayer:** the server only replays actions. Online `ACTION_TYPES`, `ROLES` and the room-name rule live in `shared/protocol.ts`; Vitest checks the list against `Action` in `src/types.ts` (`nextDay` is excluded). A change of state shape also needs a `SAVE_VERSION` bump in `src/session/storage.ts`.
+7. **Testing:** Run `npm run lint`, `npm run typecheck`, `npm run check` (balance, room protocol, layer rules) and `npm run golden` (60-run replay; game behavior must not change in a refactor) after modifying code or JSON configs.
+8. **Layers:** `content ← engine ← session ← features ← app`. Import the engine only via `@/engine`; use the `@/` alias for `src/`. `npm run architecture` enforces this.
 
 ## Key Files Reference
 - `PROJECT_DOCUMENTATION.md`: Master specification for human and AI developers.
 - `src/types.ts`: TypeScript contracts for `GameState`, `Action`, `ModuleDef`, `CrewMember`, `Task`, etc.
-- `src/engine/engine.ts`: Core state transitions (`reduce`, `tick`, `build`, `repair`).
+- `src/engine/index.ts`: public engine API; `reduce.ts` routes actions to `actions/*` and `systems/*`.
+- `src/session/`: store, solo/online sessions, save/records, React hooks (`useGame` with selectors).
+- `src/features/`: screens by function (`game`, `menu`, `story`, `results`).
 - `src/engine/constants.ts`: Fundamental numbers and timings.
 - `src/engine/placement.ts`: Isometric coordinate mapping and terrain checks.
-- `src/engine/tasks.ts`: 16 dynamic crew tasks with conditions and deadlines.
-- `src/engine/events.ts`: Scheduled events (breakdown day 6, solar flare day 9) and DONKI flare data.
-- `src/data/modules.json`: Costs, production, and storage capacities of 10 modules.
-- `src/audio/audio.ts`: Real-time Web Audio API procedural sound synthesizer (retro SFX, alarms, ambient, quindar tones).
-- `server/index.mjs`: Zero-dependency Node HTTP + SSE multiplayer room server.
+- `src/engine/systems/tasks.ts`: 16 dynamic crew tasks with conditions and deadlines.
+- `src/engine/systems/events.ts`: Scheduled events (breakdown day 6, solar flare day 9) and DONKI flare data.
+- `src/content/modules.json`: Costs, production, and storage capacities of 10 modules.
+- `src/audio/audio.ts`: Real-time Web Audio API procedural sound synthesizer (short SFX and alarms; there is no background hum).
+- `server/index.ts`, `shared/protocol.ts`: Zero-dependency Node HTTP + SSE multiplayer room server.
