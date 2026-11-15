@@ -410,3 +410,120 @@
   .game .build .card { min-width: 0; }
   .game .build .card__name { overflow-wrap: anywhere; hyphens: auto; }
 }
+
+/* ===== 3. Телефон горизонтально (низкий экран) =====
+   Сверху слева шапка, справа от неё ресурсы одной строкой компактных плашек (как в портрете);
+   под шапкой слева пилюля «Экипаж», под ресурсами справа пилюля «Цель»; зум лежит в ряд слева внизу.
+   Раньше у панелей оставались top и bottom от десктопа, на высоте 300 px они схлопывались в тёмную полоску. */
+@media (max-height: 620px) and (orientation: landscape) {
+  .game .topbar { top: calc(8px + env(safe-area-inset-top, 0px)); left: 10px; right: 10px; gap: 8px; flex-wrap: nowrap; align-items: flex-start; }
+  .game .topbar .base-badge { flex: 0 0 auto; width: min(350px, 46vw); }
+
+  /* ресурсы: шесть равных плашек «иконка / значение / стрелка» */
+  .game .topbar .resources {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+  }
+  .game .topbar .resources .resource {
+    position: static;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 4px 2px 5px;
+    border-radius: 16px;
+    text-align: center;
+  }
+  .game .topbar .resource > svg { width: 20px; height: 20px; flex: none; }
+  .game .topbar .resource__body { align-items: center; white-space: nowrap; }
+  .game .topbar .resource__value { position: relative; font-size: 15px; line-height: 1.1; }
+  .game .topbar .resource__cap { display: none; }
+  .game .topbar .resource__warn { position: absolute; top: -9px; right: -11px; margin: 0; font-size: 12px; }
+  .game .topbar .resource__delta { font-size: 12px; line-height: 1.1; }
+  .game .topbar .resource__delta-text { display: none; }
+  .game .topbar .resources .resource .resource__tip {
+    top: calc(100% + 8px);
+    left: auto;
+    right: 0;
+    width: min(340px, 100%);
+    padding: 12px 14px;
+    font-size: 14px;
+    transform: translateY(-4px);
+  }
+  .game .topbar .resources .resource:hover .resource__tip,
+  .game .topbar .resources .resource:focus-visible .resource__tip { transform: none; }
+  .game .topbar .resource__tip::before { display: none; }
+
+  /* «Экипаж»: пилюля под шапкой; раскрытая панель тянется до низа и скроллится */
+  .game .hud-panel.crew {
+    top: calc(126px + env(safe-area-inset-top, 0px));
+    left: 10px;
+    bottom: auto;
+    width: max-content;
+    min-width: 172px;
+    max-width: 46vw;
+    max-height: none;
+    padding: 2px 4px 2px 12px;
+    overflow: visible;
+  }
+  .game .hud-panel.crew:not(.crew--collapsed) {
+    width: min(320px, 42vw);
+    max-height: calc(100dvh - 136px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    padding: 2px 8px 10px 12px;
+    overflow-y: auto;
+  }
+  .game .crew .panel-head, .game .side .goal .panel-head { min-height: 44px; gap: 8px; }
+  .game .crew .hud-title, .game .side .goal .panel-head .hud-title { font-size: 15px; white-space: nowrap; }
+  .game .crew .collapse-btn, .game .side .collapse-btn { width: 44px; height: 44px; }
+  .game .crew .crew__list { margin-top: 4px; gap: 6px; }
+
+  /* «Цель»: пилюля справа под ресурсами; раскрытая заканчивается над кнопкой «Будівництво» */
+  .game .side {
+    top: calc(76px + env(safe-area-inset-top, 0px));
+    right: 10px;
+    bottom: auto;
+    width: min(250px, 34vw);
+    gap: 6px;
+    max-height: calc(100dvh - 76px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  .game .side:has(.goal__row) { width: min(340px, 44vw); max-height: calc(100dvh - 76px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .game .side .hud-panel.goal { padding: 2px 4px 2px 12px; }
+  .game .side .hud-panel.goal:has(.goal__row) { padding: 2px 10px 10px 12px; }
+  .game .side .alert { padding: 6px 10px; gap: 8px; }
+  .game .side .alert p { font-size: 12px; margin-top: 2px; }
+  .game .side .alert svg { width: 28px; height: 28px; flex: none; }
+
+  /* карточка задания: между пилюлей экипажа и целью, одна за раз */
+  .game .task-toasts { top: calc(126px + env(safe-area-inset-top, 0px)); left: 200px; width: clamp(200px, calc(100vw - 200px - 36vw), 360px); }
+  .game .task-toast { padding: 8px 44px 10px 10px; }
+
+  /* зум: в ряд слева внизу, не лезет на пилюлю экипажа */
+  .game .zoom { flex-direction: row; left: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
+  .game .zoom .zoom__btn { width: 44px; height: 44px; }
+
+  /* строительство: кнопка компактнее, шторка в один ряд слева от неё */
+  .game .build-dock { right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .game .build-toggle { width: auto; min-width: 0; height: 56px; padding: 0 18px 6px; font-size: 17px; }
+  .game .build { right: 190px; max-height: calc(100dvh - 76px); padding: 6px 8px 8px; }
+  .game .build .card { min-height: 104px; padding: 6px 4px; gap: 2px; }
+  .game .build .card svg { max-width: 52px; max-height: 44px; }
+  .game .build .card__name { font-size: 12px; min-height: 28px; }
+}
+
+/* Пока открыта шторка строительства в ландшафте, пилюля экипажа под ней не нужна */
+@media (max-height: 620px) and (orientation: landscape) {
+  .game:has(.build .build__list) .hud-panel.crew.crew--collapsed { display: none; }
+}
+/* Портрет: раскрытая панель экипажа или цели занимает место карточки задания, карточка ждёт */
+@media (max-width: 600px) and (orientation: portrait) {
+  .game .hud-top:has(.goal__row) .task-toasts,
+  .game .hud-top:has(.hud-panel.crew:not(.crew--collapsed)) .task-toasts { display: none; }
+}
