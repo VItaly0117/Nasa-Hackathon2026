@@ -482,19 +482,19 @@
   }
   .game .crew .panel-head, .game .side .goal .panel-head { min-height: 44px; gap: 8px; }
   .game .crew .hud-title, .game .side .goal .panel-head .hud-title { font-size: 15px; white-space: nowrap; }
-  .game .crew .collapse-btn, .game .side .collapse-btn { width: 40px; height: 40px; }
+  .game .crew .collapse-btn, .game .side .collapse-btn { width: 44px; height: 44px; }
   .game .crew .crew__list { margin-top: 4px; gap: 6px; }
 
   /* «Цель»: пилюля справа под ресурсами; раскрытая заканчивается над кнопкой «Будівництво» */
   .game .side {
-    top: calc(68px + env(safe-area-inset-top, 0px));
+    top: calc(76px + env(safe-area-inset-top, 0px));
     right: 10px;
     bottom: auto;
     width: min(250px, 34vw);
     gap: 6px;
-    max-height: calc(100dvh - 68px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 76px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
-  .game .side:has(.goal__row) { width: min(340px, 44vw); max-height: calc(100dvh - 68px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .game .side:has(.goal__row) { width: min(340px, 44vw); max-height: calc(100dvh - 76px - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
   .game .side .hud-panel.goal { padding: 2px 4px 2px 12px; }
   .game .side .hud-panel.goal:has(.goal__row) { padding: 2px 10px 10px 12px; }
   .game .side .alert { padding: 6px 10px; gap: 8px; }
