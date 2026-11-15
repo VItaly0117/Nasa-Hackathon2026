@@ -509,23 +509,28 @@ export default function LunarMap({
   useEffect(() => {
     if (!bubbleKey || bubbleX === undefined || bubbleY === undefined) return;
     const { w, h } = sizeRef.current;
-    if (w < 700) return;
     const v = viewRef.current;
-    const TOP_SAFE = 210; // верхняя панель с таймером и ресурсами
-    const LEFT_SAFE = 390; // панель экипажа
-    const RIGHT_SAFE = 20;
-    const BOTTOM_SAFE = 110;
-    const bh = 300; // реальная высота облачка с кнопками
+    // Телефон: облачко уменьшено в CSS (см. .bubble в LunarMap.css), панели уже и стоят иначе
+    const small = w < 700 || h < 620;
+    const scale = small ? 0.72 : 1;
+    const bh = 300 * scale; // реальная высота облачка с кнопками
+    const bw = BUBBLE_W * scale;
+    const portrait = h > w;
+    // верх: шапка с ресурсами (в портрете ещё пилюли панелей); на совсем низком экране только ряд ресурсов
+    const TOP_SAFE = !small ? 210 : portrait ? 250 : h - 128 - 20 >= bh ? 128 : 64;
+    const LEFT_SAFE = small ? 10 : 390; // панель экипажа
+    const RIGHT_SAFE = small ? 10 : 20;
+    const BOTTOM_SAFE = small ? (portrait ? 80 : 10) : 110;
     const sx = v.x + bubbleX * v.k;
     const sy = v.y + bubbleY * v.k;
     let dx = 0;
     let dy = 0;
     if (sy - bh < TOP_SAFE) dy = TOP_SAFE - (sy - bh);
     else if (sy > h - BOTTOM_SAFE) dy = h - BOTTOM_SAFE - sy;
-    const underCrew = sy - bh + dy < 720; // панель экипажа занимает левую колонку до этой высоты
+    const underCrew = !small && sy - bh + dy < 720; // панель экипажа занимает левую колонку до этой высоты
     const left = underCrew ? LEFT_SAFE : RIGHT_SAFE;
-    if (sx - BUBBLE_W / 2 < left) dx = left - (sx - BUBBLE_W / 2);
-    else if (sx + BUBBLE_W / 2 > w - RIGHT_SAFE) dx = w - RIGHT_SAFE - (sx + BUBBLE_W / 2);
+    if (sx - bw / 2 < left) dx = left - (sx - bw / 2);
+    else if (sx + bw / 2 > w - RIGHT_SAFE) dx = w - RIGHT_SAFE - (sx + bw / 2);
     if (dx || dy) {
       animate();
       apply({ ...v, x: v.x + dx, y: v.y + dy });

@@ -527,3 +527,108 @@
   .game .hud-top:has(.goal__row) .task-toasts,
   .game .hud-top:has(.hud-panel.crew:not(.crew--collapsed)) .task-toasts { display: none; }
 }
+
+/* ===== 4. Телефон в любой ориентации: подсказка ресурса и компактные панели =====
+   Плашка ресурса сама служит опорой для подсказки (у неё backdrop-filter), поэтому ширину задаём явно,
+   а не «на всю строку»: иначе подсказка сжимается до ширины плашки и текст идёт по слову в строке. */
+@media (max-width: 600px) and (orientation: portrait), (max-height: 620px) and (orientation: landscape) {
+  .game .hud-top .topbar .resources .resource .resource__tip {
+    top: calc(100% + 8px);
+    left: 50%;
+    right: auto;
+    width: min(280px, 72vw);
+    padding: 12px 14px;
+    gap: 8px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    transform: translate(-50%, -4px);
+  }
+  .game .hud-top .topbar .resources .resource:hover .resource__tip,
+  .game .hud-top .topbar .resources .resource:focus-visible .resource__tip { transform: translate(-50%, 0); }
+  /* крайние плашки: подсказка прижата к своему краю, чтобы не уйти за экран */
+  .game .hud-top .topbar .resources .resource:nth-child(-n + 2) .resource__tip { left: 0; transform: translate(0, -4px); }
+  .game .hud-top .topbar .resources .resource:nth-child(n + 5) .resource__tip { left: auto; right: 0; transform: translate(0, -4px); }
+  .game .hud-top .topbar .resources .resource:nth-child(-n + 2):hover .resource__tip,
+  .game .hud-top .topbar .resources .resource:nth-child(-n + 2):focus-visible .resource__tip,
+  .game .hud-top .topbar .resources .resource:nth-child(n + 5):hover .resource__tip,
+  .game .hud-top .topbar .resources .resource:nth-child(n + 5):focus-visible .resource__tip { transform: none; }
+  .game .hud-top .topbar .resources .resource .resource__tip { background: rgb(40, 44, 100); }
+  .game .hud-top .resource__tip strong { font-size: 14px; padding: 3px 12px; }
+  .game .hud-top .resource__tip p:nth-of-type(2) { padding: 8px 10px; }
+  .game .hud-top .resource__tipnote { font-size: 13px; }
+
+  /* экипаж: карточки плотнее, чтобы в панель помещалось больше людей */
+  .game .crew .crew__item { padding: 6px 10px; gap: 10px; border-radius: 14px; }
+  .game .crew .crew__item > img:first-child, .game .crew .crew__item > svg:first-child { width: 40px; height: 40px; }
+  .game .crew .crew__item > svg:last-child { width: 24px; height: 24px; }
+  .game .crew .crew__info strong { font-size: 15px; }
+  .game .crew .crew__role { font-size: 12px; }
+  .game .crew .crew__badge { font-size: 12px; padding: 0 8px; }
+  .game .crew .crew__barrow { margin-top: 3px; }
+  .game .crew .crew__bar { height: 6px; margin-top: 0; }
+
+  /* цель: текст мельче, шаги компактнее */
+  .game .side .goal p { font-size: 13px; margin: 6px 0 8px; padding: 8px 10px; line-height: 1.35; }
+  .game .side .goal .goal__row { font-size: 14px; }
+  .game .side .goal .hud-title:not(:first-child) { font-size: 14px; margin: 10px 0 8px; }
+  .game .side .goal .tasks__list { gap: 8px; }
+  .game .side .goal .task { padding: 6px 8px; }
+  .game .side .goal .task strong { font-size: 13px; }
+  .game .side .goal .task__why { font-size: 12px; }
+}
+
+/* ===== 5. Слои на телефоне: подсказка ресурса поверх пилюль и карточек; облачко модуля не прячется под панелями ===== */
+@media (max-width: 600px) and (orientation: portrait) {
+  .game .hud-top .topbar { position: relative; top: auto; left: auto; right: auto; z-index: 2; }
+  /* пока над модулем открыто облачко, карточка задания не закрывает его */
+  .game:has(.bubble) .hud-top .task-toasts { display: none; }
+}
+@media (max-height: 620px) and (orientation: landscape) {
+  /* низкий экран: облачку нужна вся высота под ресурсами, свёрнутые пилюли и карточка задания уступают место */
+  .game:has(.bubble) .hud-panel.crew.crew--collapsed,
+  .game:has(.bubble) .side:not(:has(.goal__row)),
+  .game:has(.bubble) .task-toasts,
+  .game:has(.bubble__actions) .zoom { display: none; }
+}
+
+/* ===== 6. Итоги дня на низком экране: всё плотнее, список дел виден над кнопкой ===== */
+@media (max-height: 620px) {
+  .overlay > .daysum { width: min(720px, 96vw); }
+  .daysum__head { padding: 10px 16px 4px; gap: 2px; }
+  .daysum .daysum__title { font-size: 20px; }
+  .daysum__verdict { font-size: 15px; }
+  .daysum__body { padding: 6px 16px 8px; gap: 8px 12px; }
+  .daysum__res { gap: 6px; }
+  .daysum__res li { flex-direction: row; justify-content: center; gap: 6px; padding: 6px 8px; border-radius: 12px; }
+  .daysum__res li > svg { width: 22px; height: 22px; flex: none; }
+  .daysum__res-name { display: none; }
+  .daysum .daysum__res strong { font-size: 14px; }
+  .daysum__res-state { font-size: 12px; }
+  .daysum__did, .daysum__next { padding: 8px 12px; }
+  .daysum h3 { font-size: 12px; margin-bottom: 4px; }
+  .daysum__list li { font-size: 14px; padding: 2px 0; }
+  .daysum__foot { padding: 6px 16px 8px; }
+  .daysum__foot .daysum__go { min-height: 44px; font-size: 16px; }
+}
+
+/* ===== 7. Отклик на нажатия и появление окон (любой экран) ===== */
+.btn:active:not(:disabled), .build-toggle:active, .collapse-btn:active, .zoom__btn:active, .intro__x:active, .build__close:active {
+  transform: scale(0.93);
+  transition-duration: 0.06s;
+}
+.overlay { animation: overlay-in 0.22s ease-out both; }
+.overlay > .modal, .overlay > .daysum { animation: window-in 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+@keyframes window-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+/* раскрытие «Экипажа» и «Цели»: содержимое выезжает сверху */
+.crew .crew__list, .goal .panel-head ~ * { animation: reveal-in 0.24s ease-out both; }
+@keyframes reveal-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+/* главное меню появляется плавно (в том числе после кнопки «Меню» в игре) */
+.mm:not(.mm--leaving) { animation: overlay-in 0.4s ease-out both; }
+.mm:not(.mm--leaving) .btn, .mm:not(.mm--leaving) h1 { animation: reveal-in 0.4s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .overlay > .modal, .overlay > .daysum, .crew .crew__list, .goal .panel-head ~ *, .mm, .mm .btn, .mm h1 { animation: none !important; }
+}
