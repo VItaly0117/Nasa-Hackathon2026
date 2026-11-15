@@ -13,7 +13,7 @@
     "golden": "node scripts/golden-replay.mjs --check",
     "typecheck": "tsc -b",
     "architecture": "node scripts/check-architecture.mjs",
-    "test:unit": "vitest run tests/engine",
+    "test:unit": "vitest run tests/engine tests/i18n",
     "test:online": "vitest run tests/online",
     "e2e": "playwright test e2e/smoke.spec.ts e2e/online.spec.ts e2e/sound.spec.ts",
     "perf": "playwright test e2e/perf.spec.ts"
