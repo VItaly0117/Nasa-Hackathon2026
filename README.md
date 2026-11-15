@@ -1,6 +1,10 @@
-# 🌕 Moonbase: NASA Space Apps Hackathon 2026 (Team Qcold)
+<div align="center">
 
-> A kid-friendly, science-based survival strategy game about running the first permanent research base at the Moon's south pole. Real NASA data drives the events, the resource consumption and the post-mission debrief. It can be played solo or cooperatively with friends in real time.
+# 🌕 Moonbase
+
+### Build a base on the Moon. Keep four astronauts alive for 20 days. Learn real NASA science on the way.
+
+**NASA Space Apps Hackathon 2026 · Team Qcold**
 
 [![CI](https://github.com/sohodolly/Qcold-team-Nasa-Hackathon2026-/actions/workflows/ci.yml/badge.svg)](https://github.com/sohodolly/Qcold-team-Nasa-Hackathon2026-/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-brightgreen)](https://nodejs.org/)
@@ -8,7 +12,35 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-GPL-blue.svg)](LICENSE)
 
-**Live demo:** <https://sohodolly.github.io/Qcold-team-Nasa-Hackathon2026-/> (solo mode works there; cooperative mode needs the Node server, see below).
+### [▶ Play the live demo](https://sohodolly.github.io/Qcold-team-Nasa-Hackathon2026-/)
+
+<img src="docs/screenshots/game.png" alt="Moonbase: the lunar base with the build menu, crew panel and current goal" width="820" />
+
+</div>
+
+A kid-friendly, science-based survival strategy game about running the first permanent research base at the Moon's south pole. Real NASA data drives the events and the resource consumption. Play solo, or cooperatively with up to four friends in real time. The live demo is solo; cooperative mode needs the small Node server described below.
+
+| 🛰️ Real NASA data | 👩‍🚀 A crew you care about | 🤝 Play together | 📱 Any screen |
+| --- | --- | --- | --- |
+| The day-9 solar flare is a real DONKI event. Oxygen, water and food needs come from NASA's ECLSS norms. | Four astronauts with professions, tasks, moods and illnesses that take them out of work. | Up to four players share one base, each with a role, with no desync thanks to a deterministic engine. | Desktop, tablet and phone in both orientations, in Ukrainian, Russian and English. |
+
+<div align="center">
+<img src="docs/screenshots/menu.png" alt="Main menu" width="560" />
+&nbsp;
+<img src="docs/screenshots/phone.png" alt="The game on a phone in portrait" width="200" />
+</div>
+
+### Run it in 30 seconds
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:5173>. Needs Node.js 22+. Details, cooperative mode and tests are in [Quick start](#2-quick-start).
 
 ---
 
@@ -32,7 +64,7 @@
 
 ## 1. What is this project
 
-**Moonbase** is a browser game for children and curious adults. You command a 20-day mission at the lunar south pole with a crew of four astronauts. You have to build modules, keep oxygen, water, food, energy and crew health above zero, survive a real solar flare and the long lunar night, and finish with an honest debrief that explains which real NASA facts mattered to your result.
+**Moonbase** is a browser game for children and curious adults. You command a 20-day mission at the lunar south pole with a crew of four astronauts. You have to build modules, keep oxygen, water, food, energy and crew health above zero, survive a real solar flare and the long lunar night, and bring everyone home on the rocket.
 
 Why it exists:
 
@@ -150,7 +182,7 @@ Shortcuts use physical keys, so they work on any keyboard layout.
 
 **Difficulty:** Easy, Normal and Hard change the starting stock and the consumption factor (0.75, 1, 1.25).
 
-**Finale:** a 4-frame animated ending. Victory: the crew boards the rocket and flies home. Defeat: red alarm, the lights go out, the signal from Earth is lost and only a beacon blinks. After that comes a results screen with a grade, "what helped", "what hurt" and NASA facts connected to your own decisions.
+**Finale:** a 4-frame animated ending. Victory: the crew boards the rocket and flies home. Defeat: red alarm, the lights go out, the signal from Earth is lost and only a beacon blinks. After the ending you return to the main menu and can start a new mission.
 
 ---
 
@@ -183,7 +215,7 @@ Shortcuts use physical keys, so they work on any keyboard layout.
 
 ### Platforms and accessibility
 
-- Desktop, laptop, tablet and phone in landscape. Portrait phones get a "rotate your device" hint.
+- Desktop, laptop, tablet and phone in both portrait and landscape, each with its own HUD layout.
 - Layout rules for narrow and short screens (build menu becomes a swipeable row, one task card at a time).
 - iPhone safe areas (`viewport-fit=cover`) so there are no empty bars on notched devices.
 - Keyboard controls, visible focus, ARIA roles and labels, automated accessibility checks with axe.
@@ -281,7 +313,7 @@ POST /api/rooms/:name/actions { player, action } -> append an action to the room
 | `npm run test:online` | The cooperative server: roles, resume, duplicates |
 | `npm run architecture` | Layer import rules |
 | `npm run golden` | 60 deterministic games must equal the baseline in `docs/baseline/golden.json` (`node scripts/golden-replay.mjs --write` to update intentionally) |
-| `npm run e2e` | Playwright: start, build a module, results screen, multiplayer roles and reconnect, accessibility (axe), sound, performance, layouts at 1280x800, 1024x768, 768x1024 and 812x375 |
+| `npm run e2e` | Playwright: start, build a module, the ending, multiplayer roles and reconnect, accessibility (axe), sound, performance, layouts at 1280x800, 1024x768, 768x1024 and 812x375 |
 | `node scripts/balance-report.mjs` | Win rate and resource curves per difficulty ([`docs/BALANCE_REPORT.md`](docs/BALANCE_REPORT.md)) |
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request: lint, type check, architecture check, unit and online tests, the golden replay, and in a second job the Playwright end-to-end suite. Tests were written both by hand and by a GitHub Copilot agent working under strict rules (tests only, no balance changes); bugs it found were fixed separately.
