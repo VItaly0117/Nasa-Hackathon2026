@@ -132,7 +132,7 @@
     ├── ui/                    # Общее: icons, crewData, Collapse, useCollapsed, RotateHint, ErrorBoundary
     ├── i18n/                  # index (t, tDynamic, days), messages (formatMsg, describeFlare), ru/uk/en
     ├── net/online.ts          # Клиент комнат (SSE)
-    └── audio/audio.ts         # Процедурный звук
+    └── audio/                 # Процедурный звук: audio.ts (sound, мьютинг), effects.ts (одиночные звуки), ambient.ts (фон), noise.ts
 ```
 
 ---
@@ -429,7 +429,7 @@ export type Action =
 
 ---
 
-## 9. Процедурный звуковой движок (`src/audio/audio.ts`)
+## 9. Процедурный звуковой движок (`src/audio/`: `audio.ts`, `effects.ts`, `ambient.ts`, `noise.ts`)
 
 В игре реализован встроенный ретро-футуристичный аудиодвижок на чистом **Web Audio API** без внешних тяжелых звуковых файлов (ноль килобайт внешних ассетов):
 - **Синтез в реальном времени:** Осцилляторы (`sine`, `square`, `sawtooth`, `triangle`), биквадратные фильтры (`lowpass`, `bandpass`) и процедурный генератор белого шума.
