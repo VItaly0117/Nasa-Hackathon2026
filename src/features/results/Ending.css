@@ -2,7 +2,7 @@
    Победа: экипаж идёт к ракетам, садится, ракеты взлетают и летят к Земле.
    Поражение: ракеты стоят, огни на базе гаснут, экипаж остаётся на Луне. */
 .ending-scene {
-  --bar-h: clamp(180px, 28vh, 260px);
+  --bar-h: clamp(230px, 34vh, 320px);
   position: fixed;
   inset: 0;
   z-index: 40;
@@ -210,40 +210,35 @@
 .end--lose.end--s2 .end-habitat__win { background: #34395a; box-shadow: none; }
 .end--lose .end-rk { filter: brightness(0.7); }
 
-/* ---------- Субтитры ---------- */
-.end-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--bar-h);
-  padding: 22px clamp(16px, 6vw, 90px) 26px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: linear-gradient(rgba(2, 3, 10, 0.72), rgba(2, 3, 10, 0.96));
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-}
-.end-text {
-  margin: 0;
-  max-width: 920px;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  font-size: clamp(18px, 2.5vw, 28px);
-  line-height: 1.5;
-  font-weight: 700;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-  animation: end-sub 0.9s ease both;
-}
-.end-sub { margin: -6px 0 0; color: var(--accent, #f5b83d); font-weight: 800; letter-spacing: 0.04em; }
-.end-actions { display: flex; gap: 16px; min-height: 48px; }
+/* ---------- Субтитры: стиль как в прологе (.prologue__bar), здесь только мелочи ---------- */
+.end-sub { margin: -10px 0 -6px; color: #ffc65a; font-weight: 800; letter-spacing: 0.04em; text-align: center; animation: end-sub 0.9s ease 0.3s both; }
 @keyframes end-sub { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+/* ---------- Доп. анимация ---------- */
+/* Земля дышит свечением атмосферы */
+.end-earth { animation: end-glow 4s ease-in-out infinite alternate; }
+@keyframes end-glow { from { box-shadow: 0 0 3vmin rgba(120,185,255,.35), 0 0 0 0.8vmin rgba(120,185,255,.1); } to { box-shadow: 0 0 6vmin rgba(120,185,255,.6), 0 0 0 1.6vmin rgba(120,185,255,.18); } }
+
+/* Звёзды «летят» вниз во время взлёта */
+.end--win.end--s2 .end-stars, .end--win.end--s3 .end-stars { animation: end-streak 7s ease-in forwards; }
+@keyframes end-streak { from { transform: translateY(0); } to { transform: translateY(14vmin); } }
+.end--win.end--s3 .end-stars i, .end--win.end--s2 .end-stars i { transform: scaleY(2.4); }
+
+/* Огненный след за ракетой */
+.end-trail {
+  position: absolute; left: 50%; top: 92%; width: 2.2vmin; height: 26vmin; margin-left: -1.1vmin;
+  background: linear-gradient(rgba(255,190,90,.75), rgba(255,120,60,.25) 55%, transparent);
+  border-radius: 0 0 50% 50%; filter: blur(0.5vmin); transform-origin: top; opacity: 0;
+  animation: end-trail 5.6s ease-in 0.8s forwards;
+}
+@keyframes end-trail { 0% { opacity: 0; transform: scaleY(0.2); } 25% { opacity: 1; transform: scaleY(0.7); } 100% { opacity: 0.9; transform: scaleY(1.4); } }
+
+/* Лёгкое покачивание ракет на старте и мягкое появление экипажа */
+.end--win.end--s1 .end-rk { animation: end-idle 1.4s ease-in-out infinite alternate; }
+@keyframes end-idle { from { transform: translateY(0); } to { transform: translateY(-0.5vmin); } }
+.end--win.end--s1 .end-man__bob { animation: end-bob 0.3s ease-in-out infinite alternate; }
+
 @media (prefers-reduced-motion: reduce) {
-  .end-earth, .end-rk, .end-ground, .end-crew, .end-man, .end-dark, .end-habitat__win, .end-walker { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .end-earth, .end-trail, .end-rk, .end-ground, .end-crew, .end-man, .end-dark, .end-habitat__win, .end-walker { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   .end-walker, .end-rk, .end-man__bob, .end-puff, .end-stars i { animation: none !important; }
 }

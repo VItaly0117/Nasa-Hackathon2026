@@ -96,29 +96,66 @@ export function Ending({ won, onDone }: Props) {
           ))}
         </div>
 
-        <div className="end-rk end-rk--a">
-          <Rocket flame={won && step >= 2} />
-          {won && step === 2 && <span className="end-puff" />}
-        </div>
+        {(["a", "b"] as const).map((r) => (
+          <div key={r} className={`end-rk end-rk--${r}`}>
+            <Rocket flame={won && step >= 2} />
+            {won && step === 2 && <span className={`end-puff ${r === "b" ? "end-puff--late" : ""}`} />}
+            {won && step === 2 && <span className="end-trail" />}
+          </div>
+        ))}
 
         <div className="end-dark" />
       </div>
 
-      <div className="end-bar">
-        <p key={step} className="end-text" role="status" aria-live="polite">
+      <div className="prologue__bar end-bar">
+        <ol className="prologue__dots" aria-hidden="true">
+          {Array.from({ length: durations.length + 1 }, (_, i) => (
+            <li key={i} className={i === step ? "is-on" : i < step ? "is-done" : ""} />
+          ))}
+        </ol>
+        <p key={step} className="prologue__text" role="status" aria-live="polite">
           {finished ? tDynamic(`end.${key}.final`) : text}
         </p>
-        {finished && <p className="end-sub">{tDynamic(`end.${key}.title`)}</p>}
-        <div className="end-actions">
-          <button
-            className={`btn ${finished ? "btn--primary" : "btn--ghost btn--small"}`}
-            onClick={() => {
-              sound.playClick();
-              onDone();
-            }}
-          >
-            {finished ? t("end.continue") : t("prologue.skip")}
-          </button>
+        {finished ? (
+          <p className="end-sub">{tDynamic(`end.${key}.title`)}</p>
+        ) : (
+          <div key={`t${step}`} className="prologue__timer" aria-hidden="true">
+            <div style={{ animationDuration: `${readMs}ms` }} />
+          </div>
+        )}
+        <div className="prologue__actions">
+          {finished ? (
+            <button
+              className="pro-btn pro-btn--go"
+              onClick={() => {
+                sound.playClick();
+                onDone();
+              }}
+            >
+              {t("end.continue")}
+            </button>
+          ) : (
+            <>
+              <button
+                className="pro-btn pro-btn--glass"
+                onClick={() => {
+                  sound.playClick();
+                  onDone();
+                }}
+              >
+                {t("prologue.skip")}
+              </button>
+              <button
+                className="pro-btn pro-btn--next"
+                onClick={() => {
+                  sound.playClick();
+                  setStep((s) => s + 1);
+                }}
+              >
+                {t("prologue.next")}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

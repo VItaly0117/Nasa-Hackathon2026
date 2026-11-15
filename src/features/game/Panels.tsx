@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
 import { capacityOf, dailyDelta, hasFreeCrew, REPAIR_COST } from "@/engine";
@@ -28,7 +29,8 @@ export function ResourcesContainer() {
 export function CrewContainer() {
   const health = useGame((s) => s.resources.health);
   const crew = useGame((s) => s.crew);
-  const broken = useGame((s) => s.modules.filter((m) => m.broken).map((m) => ({ slot: m.slot, type: m.type })), shallowEqual);
+  const modules = useGame((s) => s.modules);
+  const broken = useMemo(() => modules.filter((m) => m.broken).map((m) => ({ slot: m.slot, type: m.type })), [modules]);
   const canAffordRepair = useGame((s) => canAffordCost(s.resources, REPAIR_COST));
   const send = useSend();
   return (
@@ -56,9 +58,18 @@ export function SideContainer() {
     <SidePanel
       state={view}
       surveyingIce={ui.surveyingIce}
-      onCancelIceSurvey={() => ui.setSurveyingIce(false)}
-      onStartIceSurvey={() => ui.setSurveyingIce(true)}
-      onResearch={(answer) => send({ type: "research", id: "moonDust", answer })}
+      onCancelIceSurvey={() => {
+        sound.playClick();
+        ui.setSurveyingIce(false);
+      }}
+      onStartIceSurvey={() => {
+        sound.playClick();
+        ui.setSurveyingIce(true);
+      }}
+      onResearch={(answer) => {
+        sound.playDecisionConfirm();
+        send({ type: "research", id: "moonDust", answer });
+      }}
     />
   );
 }

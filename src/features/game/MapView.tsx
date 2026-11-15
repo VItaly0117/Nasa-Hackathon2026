@@ -58,15 +58,20 @@ export function MapView() {
   function handleSelectTile(tile: TileInfo) {
     const state = session.store.getState();
     if (ui.surveyingIce) {
+      sound.playDecisionConfirm();
       send({ type: "research", id: "iceScout", answer: tile.terrain === "ice" ? "ice" : "rock" });
       ui.setSurveyingIce(false);
       return;
     }
     const type = ui.buildType;
-    if (!type || !hasFreeCrew(state) || !canPlace(state, type, tile.row, tile.col)) return;
-    sound.playBuildStart();
-    send({ type: "build", slot: slotOf(tile.row, tile.col), module: type });
-    ui.stopPlacing();
+    if (type) {
+      if (!hasFreeCrew(state) || !canPlace(state, type, tile.row, tile.col)) return;
+      sound.playBuildStart();
+      send({ type: "build", slot: slotOf(tile.row, tile.col), module: type });
+      ui.stopPlacing();
+      return;
+    }
+    sound.playClick();
   }
 
   return (

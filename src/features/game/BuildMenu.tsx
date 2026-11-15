@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
 import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
+import { sound } from "@/audio/audio";
 import { ResourceIcon } from "@/ui/icons";
 import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 import "./BuildMenu.css";
+
+const IDLE_MS = 30000;
 
 type Props = {
   defs: ModuleDef[];
@@ -75,12 +78,33 @@ export function BuildMenu({
     wasPlacing.current = placing;
   }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Бейдж: сколько модулей можно построить прямо сейчас
+  const buildable = disabled || crewBusy ? 0 : defs.filter((d) => isAffordable(d) && !(lockedBy && lockedBy(d))).length;
+  // Пульсация кнопки, если игрок долго ничего не делает, а построить уже можно
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    let timer = window.setTimeout(() => setIdle(true), IDLE_MS);
+    const reset = () => {
+      setIdle(false);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setIdle(true), IDLE_MS);
+    };
+    window.addEventListener("pointerdown", reset);
+    window.addEventListener("keydown", reset);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", reset);
+      window.removeEventListener("keydown", reset);
+    };
+  }, []);
+  const nudge = collapsed && !placing && buildable > 0 && idle;
+
   return (
     <>
       <div className="build-dock">
         <button
-          className={`build-toggle ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
-          onClick={placing ? onCancel : toggle}
+          className={`build-toggle ${nudge ? "build-toggle--nudge" : ""} ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
+          onClick={placing ? onCancel : () => { sound.playClick(); toggle(); }}
           aria-expanded={!collapsed}
           aria-label={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
           title={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
@@ -99,6 +123,11 @@ export function BuildMenu({
             </svg>
           )}
           <span className="build-toggle__label">{placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}</span>
+          {collapsed && !placing && buildable > 0 && (
+            <span className="build-toggle__badge" role="img" aria-label={t("build.badge", { n: buildable })} title={t("build.badge", { n: buildable })}>
+              {buildable}
+            </span>
+          )}
         </button>
       </div>
       {!collapsed && (

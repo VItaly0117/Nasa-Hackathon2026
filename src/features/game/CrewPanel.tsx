@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { CrewMember, ModuleType } from "@/types";
 import portrait1 from "@/assets/crew/crew1.webp";
 import portrait2 from "@/assets/crew/crew2.webp";
@@ -53,9 +52,6 @@ export type BrokenModule = { slot: number; type: ModuleType };
 export function CrewPanel({
   health,
   crew,
-  broken = [],
-  canAffordRepair = true,
-  onRepair,
 }: {
   health: number;
   crew: CrewMember[];
@@ -63,7 +59,6 @@ export function CrewPanel({
   canAffordRepair?: boolean;
   onRepair?: (slot: number) => void;
 }) {
-  const [menuFor, setMenuFor] = useState<number | null>(null);
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
   const scrollRef = useScrollMore<HTMLElement>();
@@ -84,23 +79,13 @@ export function CrewPanel({
             <Avatar id={p.id} mood={mood} />
             <div className="crew__info">
               <strong>{tDynamic(`crew.n${p.id}`)}</strong>
-              <span className="crew__role">
-                {tDynamic(`crew.r${p.id}`)} ·{" "}
+              <span className="crew__role">{tDynamic(`crew.r${p.id}`)}</span>
+              <span className="crew__status">
                 {(() => {
                   const status = crew.find((c) => c.id === p.id)?.status;
-                  if (status?.kind === "building") return t("crew.building", { name: moduleName(status.module) });
-                  if (status?.kind === "sick") return t("crew.sick");
-                  return (
-                    <button
-                      type="button"
-                      className="crew__free"
-                      aria-expanded={menuFor === p.id}
-                      title={t("crew.assign")}
-                      onClick={() => setMenuFor(menuFor === p.id ? null : p.id)}
-                    >
-                      {t("crew.free")} ▾
-                    </button>
-                  );
+                  if (status?.kind === "building") return <span className="crew__badge crew__badge--busy">{t("crew.building", { name: moduleName(status.module) })}</span>;
+                  if (status?.kind === "sick") return <span className="crew__badge crew__badge--sick">{t("crew.sick")}</span>;
+                  return <span className="crew__badge crew__badge--free">{t("crew.free")}</span>;
                 })()}
               </span>
               <div className="crew__barrow" title={`${t("crew.healthBar")}: ${Math.round(health)}%`}>
@@ -118,31 +103,7 @@ export function CrewPanel({
                   <div style={{ width: `${health}%`, background: barColor }} />
                 </div>
               </div>
-              {menuFor === p.id && (
-                <div className="crew__menu" role="menu" aria-label={t("crew.assign")}>
-                  {broken.length === 0 ? (
-                    <p className="crew__menu-empty">{t("crew.assignNone")}</p>
-                  ) : (
-                    broken.map((b) => (
-                      <button
-                        key={b.slot}
-                        type="button"
-                        role="menuitem"
-                        className="crew__menu-item"
-                        disabled={!canAffordRepair}
-                        title={canAffordRepair ? undefined : t("crew.assignNoMoney")}
-                        onClick={() => {
-                          onRepair?.(b.slot);
-                          setMenuFor(null);
-                        }}
-                      >
-                        🔧 {t("crew.assignRepair", { name: moduleName(b.type) })}
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+                          </div>
             <Mood mood={mood} />
           </li>
           );

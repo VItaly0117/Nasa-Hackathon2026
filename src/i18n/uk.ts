@@ -169,6 +169,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "sum.out.nightSoon": "Ніч через {days}",
   "sum.out.event": "Через {days}: {title}",
   "sum.continue": "Продовжити",
+  "sum.next": "Почати день {day}",
 
   "res.aria": "Ресурси бази",
   "res.oxygen": "Кисень",
@@ -232,6 +233,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "build.aria": "Будівництво",
   "build.tab": "Будівництво",
   "build.close": "Закрити",
+  "build.badge": "{n} можна збудувати",
   "build.hintPlacing": "Обери зелену клітинку на карті",
   "build.hintPick": "Обери модуль",
   "build.night": "Вночі працює інакше",

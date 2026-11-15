@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { t } from "@/i18n";
 import { DAY_MS } from "@/engine";
+import { sound } from "@/audio/audio";
 
 // Как часто часы отправляют движку tick (в мс). Реже нельзя: полоска будет дёргаться,
 // чаще не нужно: игра перерисовывается на каждый tick
@@ -23,7 +24,7 @@ function format(ms: number) {
 
 // Обратный отсчёт дня: день ровно 2 минуты, паузы и ускорения нет. Само время считает движок (action tick):
 // от тех же часов идут день и стройка, поэтому они всегда согласованы
-export function DayClock({ running, progress, isNight = false, onTick, children }: Props) {
+export function DayClock({ running, progress, isNight: _isNight = false, onTick, children }: Props) {
   const tickRef = useRef(onTick);
   useEffect(() => {
     tickRef.current = onTick;
@@ -50,11 +51,28 @@ export function DayClock({ running, progress, isNight = false, onTick, children 
 
   const left = DAY_MS * (1 - progress);
   const low = left <= 15000;
+  const critical = left <= 5000 && left > 0;
+
+  // Звук тік-так таймера на останніх 15 секундах для дитини 7-12 років
+  const lastSecondRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!running || !low || left <= 0) {
+      lastSecondRef.current = null;
+      return;
+    }
+    const sec = Math.ceil(left / 1000);
+    if (sec <= 15 && sec > 0 && sec !== lastSecondRef.current) {
+      lastSecondRef.current = sec;
+      const isTock = sec % 2 === 0;
+      sound.playTimerTick(isTock, sec);
+    }
+  }, [running, low, left]);
 
   return (
     <div className="dayclock">
       <div
-        className={`dayclock__time ${low ? "dayclock__time--low" : ""}`}
+        className={`dayclock__time ${low ? "dayclock__time--low" : ""} ${critical ? "dayclock__time--critical" : ""}`}
         role="timer"
         aria-label={`${t("app.untilDayEnd")} ${format(left)}`}
         title={t("app.untilDayEnd")}

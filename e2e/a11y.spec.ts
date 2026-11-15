@@ -71,7 +71,7 @@ test("mission results accessibility", async ({ page }, testInfo) => {
   await continueFromSavedState(page, { day: 20, clockMs: 89_000 });
   await expect(page.locator(".ending-scene")).toBeVisible();
   await page.getByRole("button", { name: "Пропустить" }).click();
-  await expect(page.getByRole("heading", { name: /Миссия выполнена/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Лунная база" })).toBeVisible();
   await checkAccessibility(page, testInfo, "mission-results");
 });
 

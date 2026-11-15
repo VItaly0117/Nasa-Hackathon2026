@@ -102,3 +102,10 @@
   .daysum__res { grid-template-columns: repeat(2, 1fr); }
   .daysum__verdict { font-size: 23px; }
 }
+
+/* Прогрес місії: показує, що гра триває, а не завершується */
+.daysum > .daysum__bar { display: none; }
+.daysum__mission { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.daysum__mission p { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #aebaf5; }
+.daysum__mission-bar { width: 100%; height: 8px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.12); }
+.daysum__mission-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8fb4ff, var(--orange-1, #f5a623)); }

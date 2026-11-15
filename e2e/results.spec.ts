@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("итоги миссии: ускоренный прогон, ролик, оценка и разбор с фактами NASA", async ({ page }) => {
+test("итоги миссии: ускоренный прогон, ролик и возврат в меню", async ({ page }) => {
   test.setTimeout(90_000);
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
   await page.goto("/");
@@ -33,11 +33,8 @@ test("итоги миссии: ускоренный прогон, ролик, о
   await page.clock.fastForward(30_000);
   await page.getByRole("button", { name: "Пропустить" }).click();
 
-  await expect(page.getByText(/^Оценка:/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Что помогло" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Что помешало" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Данные NASA" })).toBeVisible();
-  await expect(page.locator(".results__card").filter({ hasText: "NASA" }).first()).toBeVisible();
+  // Итогового экрана нет: после ролика возвращаемся в меню
+  await expect(page.getByRole("heading", { level: 1, name: "Лунная база" })).toBeVisible();
 });
 
 test("меню и данные NASA переведены на русский, украинский и английский", async ({ page }) => {
@@ -87,10 +84,9 @@ test("меню и данные NASA переведены на русский, у
 
     await page.getByRole("button", { name: language.sources, exact: true }).click();
     await expect(page.getByRole("heading", { name: language.sources })).toBeVisible();
-    const radlab = page.locator(".results__card").filter({ hasText: "RadLab" });
+    const radlab = page.locator(".mm__card").filter({ hasText: "RadLab" });
     await expect(radlab).toContainText(language.radlab);
-    await expect(radlab).toContainText(language.inGame);
-    await expect(page.locator(".results__card").filter({ hasText: "ECLSS" })).toContainText(language.eclss);
+    await expect(page.locator(".mm__card").filter({ hasText: "ECLSS" })).toContainText(language.eclss);
     expect(await page.locator("body").innerText()).not.toMatch(/\bapp\.[\w.]+/);
     await page.getByRole("button", { name: language.close, exact: true }).click();
   }

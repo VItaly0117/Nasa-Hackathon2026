@@ -69,5 +69,9 @@
 .task { display: flex; gap: 12px; align-items: flex-start; }
 .task strong { display: block; margin-bottom: 3px; }
 .task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
-.task__why { opacity: 0.8; font-size: 14px; display: block; line-height: 1.35; }
+.task__why { color: #d0d9f5; font-size: 14px; display: block; line-height: 1.35; }
 .task--late .task__mark, .task--late strong { color: #ff9b9b; }
+
+/* Панели над картой полупрозрачные, чтобы не закрывать объекты; при наведении/фокусе становятся плотными */
+.crew.hud-panel, .side .hud-panel { background: rgba(52, 58, 116, 0.55); transition: background 0.2s; }
+.crew.hud-panel:hover, .crew.hud-panel:focus-within, .side .hud-panel:hover, .side .hud-panel:focus-within { background: rgba(52, 58, 116, 0.92); }

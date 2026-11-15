@@ -1,5 +1,5 @@
 // Генератор буфера шума (реголит, ветер, сварка)
-export function createNoiseBuffer(ctx: AudioContext, seconds = 0.5): AudioBuffer {
+export function createNoiseBuffer(ctx: BaseAudioContext, seconds = 0.5): AudioBuffer {
   const bufferSize = Math.floor(ctx.sampleRate * seconds);
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);

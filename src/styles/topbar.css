@@ -14,13 +14,16 @@
 .topbar > * { pointer-events: auto; }
 
 .base-badge { flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; padding: 12px 14px; max-width: 600px; }
-.base-badge__text { display: flex; flex-direction: column; min-width: 150px; flex: 1; }
+.base-badge { position: relative; --side-btn: 72px; }
+.base-badge__mute { position: absolute; top: 12px; right: 14px; box-sizing: border-box; width: var(--side-btn); justify-content: center; }
+.base-badge__text { padding-right: calc(var(--side-btn) + 14px); display: flex; flex-direction: column; min-width: 150px; flex: 1; }
 .base-badge__text strong { font-size: 20px; font-weight: 800; }
 .base-badge__text span { font-size: 15px; opacity: 0.9; }
 
-.dayclock { flex-basis: 100%; min-width: 0; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+.dayclock { flex-basis: 100%; min-width: 0; display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; }
 .dayclock > * { flex-shrink: 0; }
-.dayclock .btn { padding-left: 10px; padding-right: 10px; font-size: 14px; }
+.dayclock .btn { flex: 1 1 auto; justify-content: center; padding-left: 10px; padding-right: 10px; font-size: 14px; }
+.dayclock .btn:last-child { flex: 0 0 var(--side-btn); }
 .dayclock .btn--icon { padding-left: 8px; padding-right: 8px; }
 .dayclock__time { min-width: 0; padding: 4px 8px; font-size: 18px; gap: 4px; }
 .dayclock__label { font-size: 10px; }
@@ -38,6 +41,7 @@
   font-variant-numeric: tabular-nums;
 }
 .dayclock__time--low { color: #ff8a8a; border-color: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
+.dayclock__time--critical { color: #ff3b3b; border-color: #ff2222; animation: urgent-critical 0.35s ease-in-out infinite; }
 .dayclock__bar { position: relative; flex: 1; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.4); }
 .dayclock__bar > div { border-radius: 8px; }
 .dayclock__label { font-size: 12px; font-weight: 700; opacity: 0.8; white-space: nowrap; }
@@ -45,4 +49,6 @@
 .dayclock__phase { font-size: 13px; font-weight: 800; white-space: nowrap; opacity: 0.9; }
 .dayclock__bar > div { width: 100%; height: 100%; transform-origin: left center; background: linear-gradient(90deg, #7fb0ff, #ffd166); }
 .dayclock__bar--low > div { background: #ff7a7a; animation: urgent 0.7s ease-in-out infinite; }
+.dayclock__bar--critical > div { background: #ff3b3b; animation: urgent-critical 0.35s ease-in-out infinite; }
 @keyframes urgent { 50% { opacity: 0.55; } }
+@keyframes urgent-critical { 50% { opacity: 0.45; transform: scale(1.05); } }
