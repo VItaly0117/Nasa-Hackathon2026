@@ -1,3 +1,4 @@
+import radiation from "@/content/nasa/radiation.json";
 import type { Flare, ModuleType, Msg } from "@/types";
 import { days as daysText, getLang, moduleName, t, tDynamic } from "./index";
 
@@ -55,4 +56,13 @@ export function formatMsg(message: Msg): string {
 // «класс X1.1, 25 мая 2025»
 export function describeFlare(flare: Flare): string {
   return t("flare.desc", { cls: flare.class, date: formatDate(flare.date) });
+}
+
+// Настоящие измерения дозиметров на МКС (NASA RadLab, src/content/nasa/radiation.json): в день вспышки, если за него есть данные,
+// иначе средняя по дням со вспышками, на которые данные есть. Это просто «сколько меряли», причинную связь со вспышкой мы не утверждаем
+export function describeRadiation(flare: Flare): string {
+  const day = radiation.days.find((d) => d.date === flare.date);
+  const rate = day ? day.meanDoseRate : (radiation.meanOfDailyMeans ?? 0);
+  const params = { rate: rate.toFixed(1), mgy: ((rate * 24) / 1000).toFixed(2) };
+  return t(day ? "ev.flare.radiationDay" : "ev.flare.radiationAvg", params);
 }

@@ -1,7 +1,7 @@
 import eventsData from "@/content/events.json";
 import type { EventDef } from "@/types";
 import { t, tDynamic } from "@/i18n";
-import { describeFlare } from "@/i18n/messages";
+import { describeFlare, describeRadiation } from "@/i18n/messages";
 import { sound } from "@/audio/audio";
 import { useGame, useSend } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
@@ -43,6 +43,7 @@ export function EventModal() {
             </a>
           </p>
         )}
+        {event.id === "flare" && flare && <p className="muted source">{describeRadiation(flare)}</p>}
         <div className="modal__choices">
           {event.choices.map((choice, i) => (
             <button

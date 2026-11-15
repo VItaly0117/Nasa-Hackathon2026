@@ -9,6 +9,8 @@ import { BUILD_MS, canPlace, capacityOf, choiceCost, dailyDelta, DAY_MS, dayOfEv
 import eventsData from "@/content/events.json";
 import sourcesData from "@/content/sources.json";
 import consumptionData from "@/content/nasa/consumption.json";
+import radiationData from "@/content/nasa/radiation.json";
+import flaresData from "@/content/nasa/flares.json";
 import { en } from "@/i18n/en";
 import { ru } from "@/i18n/ru";
 import { uk } from "@/i18n/uk";
@@ -346,6 +348,10 @@ export function runChecks(): CheckResult[] {
   const real = consumptionData.perCrewmemberPerDay;
   const realOk = Object.values(real).every((v) => typeof v === "number" && v > 0) && real.oxygenKgWithExercise > real.oxygenKgResting && consumptionData.url.startsWith("https://www.nasa.gov/");
   check("Нормы расхода NASA на человека заполнены (кислород, вода, еда) со ссылкой на источник", realOk, `кислород ${real.oxygenKgResting}–${real.oxygenKgWithExercise} кг, вода от ${real.potableWaterLitersMin} л, еда ${real.foodKcalAverage} ккал в сутки`);
+  // Настоящие измерения RadLab: у каждого дня есть показания, средняя в разумных пределах, дата совпадает с вспышкой из DONKI
+  const flareDates = new Set((flaresData as { date: string }[]).map((f) => f.date));
+  const badRadiation = radiationData.days.filter((d) => !(d.samples > 0 && d.meanDoseRate > 0 && d.meanDoseRate < 1000 && d.maxDoseRate >= d.meanDoseRate && flareDates.has(d.date)));
+  check("Данные RadLab: у каждого дня есть показания, и он совпадает со вспышкой DONKI", radiationData.days.length > 0 && badRadiation.length === 0, `${radiationData.days.length} дней, средняя ${radiationData.meanOfDailyMeans} мкГр/ч`);
   const facts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => missionFact(initialState(seed)).id);
   check(
     "Факт NASA в итогах выбирается по seed: один seed даёт один факт, и текст у него есть",
