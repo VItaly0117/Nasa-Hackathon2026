@@ -19,6 +19,7 @@ interface LunarMapProps {
   buildType: ModuleType | null;
   surveyingIce?: boolean;
   crewActive: boolean;
+  sickCrewIds?: number[]; // кто из астронавтов болеет (стоят на месте)
   canPlaceAt: (row: number, col: number) => boolean;
   canAffordRepair?: boolean;
   onRepairModule?: (slot: number) => void;
@@ -150,6 +151,7 @@ export default function LunarMap({
   buildType,
   surveyingIce = false,
   crewActive,
+  sickCrewIds,
   canPlaceAt,
   canAffordRepair = true,
   onRepairModule,
@@ -589,7 +591,7 @@ export default function LunarMap({
             )}
 
             {/* Слой 6: астронавты ходят между модулями */}
-            <Walkers targets={walkTargets} active={crewActive} />
+            <Walkers targets={walkTargets} active={crewActive} sickIds={sickCrewIds} />
 
             {/* Слой 7: облачко-подпись над выбранным объектом, поверх всего */}
             {bubble && <Bubble {...bubble} />}

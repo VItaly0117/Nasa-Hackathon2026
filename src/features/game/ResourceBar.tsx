@@ -22,10 +22,11 @@ function daysLeft(value: number, perDay: number): number | null {
   return Math.floor(value / -perDay);
 }
 
+// Расход бывает дробным (нормы NASA пересчитаны в игровые единицы): показываем один знак после запятой, если он нужен
 function formatDelta(perDay: number): string {
-  if (perDay > 0) return `+${perDay}`;
-  if (perDay < 0) return `−${Math.abs(perDay)}`;
-  return "0";
+  const v = Math.round(Math.abs(perDay) * 10) / 10;
+  if (v === 0) return "0";
+  return `${perDay > 0 ? "+" : "−"}${v}`;
 }
 
 export function ResourceBar({ resources, delta, capacity }: Props) {

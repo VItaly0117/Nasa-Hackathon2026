@@ -17,6 +17,8 @@ const sameMapModules = (a: MapModule[], b: MapModule[]) =>
   a.length === b.length &&
   a.every((m, i) => m.slot === b[i].slot && m.type === b[i].type && m.broken === b[i].broken && m.building === b[i].building && m.waiting === b[i].waiting);
 
+const sameIds = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+
 // Доля готовности стройки: меняется 10 раз в секунду, поэтому перерисовывается только этот маленький кусок
 function LiveProgress({ slot, type }: { slot: number; type: ModuleType }) {
   const done = useGame((s) => {
@@ -49,6 +51,7 @@ export function MapView() {
     sameMapModules,
   );
   const isNight = useGame((s) => s.isNight);
+  const sickCrewIds = useGame((s) => s.crew.filter((c) => c.status.kind === "sick").map((c) => c.id), sameIds);
   const crewActive = useGame((s) => s.status === "playing" && s.activeEvent === null);
   const canAffordRepair = useGame((s) => canAffordCost(s.resources, REPAIR_COST));
 
@@ -74,6 +77,7 @@ export function MapView() {
       buildType={ui.buildType}
       surveyingIce={ui.surveyingIce}
       crewActive={crewActive}
+      sickCrewIds={sickCrewIds}
       canPlaceAt={(row, col) => ui.buildType !== null && canPlace(session.store.getState(), ui.buildType, row, col)}
       canAffordRepair={canAffordRepair}
       onRepairModule={(slot) => {
