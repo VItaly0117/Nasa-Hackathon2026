@@ -1,4 +1,4 @@
-export const ACTION_TYPES = ["tick", "build", "resolveEvent", "repair", "research"] as const;
+export const ACTION_TYPES = ["tick", "build", "resolveEvent", "repair", "research", "pause", "demolish"] as const;
 
 export const ROLES = ["engineer", "technician", "doctor", "scientist"] as const;
 
@@ -24,6 +24,8 @@ export type OnlineAction =
   | { type: "build"; slot: number; module: ModuleType }
   | { type: "resolveEvent"; choice: string }
   | { type: "repair"; slot: number }
+  | { type: "pause"; slot: number }
+  | { type: "demolish"; slot: number }
   | { type: "research"; id: "moonDust"; answer: "shield" | "brush" }
   | { type: "research"; id: "iceScout"; answer: "ice" | "rock" };
 

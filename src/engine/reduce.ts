@@ -1,5 +1,6 @@
 import type { Action, GameState } from "@/types";
 import { build } from "@/engine/actions/build";
+import { cancelBuild, demolish, togglePause } from "@/engine/actions/manage";
 import { repairModule } from "@/engine/actions/repair";
 import { completeResearch } from "@/engine/actions/research";
 import { tick } from "@/engine/actions/tick";
@@ -17,6 +18,12 @@ export function reduce(state: GameState, action: Action): GameState {
       return build(state, action.slot, action.module);
     case "repair":
       return repairModule(state, action.slot);
+    case "pause":
+      return togglePause(state, action.slot);
+    case "cancelBuild":
+      return cancelBuild(state, action.slot);
+    case "demolish":
+      return demolish(state, action.slot);
     case "research":
       return completeResearch(state, action.id, action.answer);
     case "resolveEvent": {
