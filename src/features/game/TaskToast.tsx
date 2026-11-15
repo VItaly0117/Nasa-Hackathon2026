@@ -18,7 +18,7 @@ export function TaskToast({ tasks, onClose }: Props) {
         const person = CREW.find((c) => c.id === task.giver)!;
         return (
           <section key={task.id} className="hud-panel task-toast">
-            <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={1} />
+            <Avatar id={person.id} mood={1} />
             <div className="task-toast__body">
               <span className="task-toast__who">
                 {tDynamic(`crew.n${person.id}`)} · {tDynamic(`crew.r${person.id}`)}

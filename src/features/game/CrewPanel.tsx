@@ -1,4 +1,8 @@
 import type { CrewMember } from "@/types";
+import portrait1 from "@/assets/crew/crew1.webp";
+import portrait2 from "@/assets/crew/crew2.webp";
+import portrait3 from "@/assets/crew/crew3.webp";
+import portrait4 from "@/assets/crew/crew4.webp";
 import { moduleName, t, tDynamic } from "@/i18n";
 import { CREW } from "@/ui/crewData";
 import { CollapseButton } from "@/ui/Collapse";
@@ -9,19 +13,20 @@ import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 // TODO @Regie: у каждого астронавта свои здоровье, усталость и задача
 // Имена и роли лежат в словарях i18n: crew.n1..n4 и crew.r1..r4, а цвета — в crewData.ts
 
-export function Avatar({ skin, hair, long, mood }: { skin: string; hair: string; long: boolean; mood: number }) {
-  const mouth = mood > 0 ? "M15 25 Q20 29 25 25" : mood < 0 ? "M15 27 Q20 23 25 27" : "M15 26 H25";
+// Портрет астронавта: готовая картинка (src/assets/crew/crew<id>.webp). Когда плохо, портрет тускнеет
+const PORTRAITS: Record<number, string> = { 1: portrait1, 2: portrait2, 3: portrait3, 4: portrait4 };
+
+export function Avatar({ id, mood }: { id: number; mood: number }) {
   return (
-    <svg viewBox="0 0 40 40" width="52" height="52" aria-hidden="true">
-      <rect width="40" height="40" rx="10" fill="#2a3a78" />
-      {long && <path d="M8 22 Q6 8 20 7 Q34 8 32 22 L32 34 L8 34 Z" fill={hair} />}
-      <path d="M10 40 Q10 31 20 31 Q30 31 30 40 Z" fill="#e8edf7" />
-      <circle cx="20" cy="20" r="10" fill={skin} />
-      <path d="M10 18 Q11 8 20 8 Q29 8 30 18 Q24 13 10 18 Z" fill={hair} />
-      <circle cx="16.5" cy="20" r="1.4" fill="#2b1d1a" />
-      <circle cx="23.5" cy="20" r="1.4" fill="#2b1d1a" />
-      <path d={mouth} stroke="#7a3b2e" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-    </svg>
+    <img
+      src={PORTRAITS[id]}
+      width={52}
+      height={52}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      style={{ borderRadius: 10, display: "block", objectFit: "cover", filter: mood < 0 ? "saturate(0.55) brightness(0.9)" : undefined }}
+    />
   );
 }
 
@@ -60,7 +65,7 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
           const mood = member?.status.kind === "sick" ? -1 : moodOf(member?.morale ?? 70, health);
           return (
           <li key={p.id} className="crew__item">
-            <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
+            <Avatar id={p.id} mood={mood} />
             <div className="crew__info">
               <strong>{tDynamic(`crew.n${p.id}`)}</strong>
               <span className="crew__role">

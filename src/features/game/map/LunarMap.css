@@ -17,7 +17,8 @@
 .map-stage--smooth { transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.3, 1); }
 
 .map-svg { display: block; position: absolute; left: 0; top: 0; }
-.map-bg { display: block; position: absolute; left: 0; top: 0; pointer-events: none; transition: opacity 0.3s; }
+/* will-change: фон остаётся отдельным слоем, даже когда у сцены карты will-change включается и выключается при движении (иначе возможно мигание) */
+.map-bg { display: block; position: absolute; left: 0; top: 0; pointer-events: none; transition: opacity 0.3s; will-change: transform; }
 .map-sky-fx { display: block; position: absolute; left: 0; top: 0; pointer-events: none; }
 .map-frame--dragging .map-svg { pointer-events: none; }
 

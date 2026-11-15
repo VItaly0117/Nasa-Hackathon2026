@@ -201,7 +201,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "goal.hint.energy": "Збудуйте батареї: вночі енергія падає до нуля.",
   "goal.hint.none": "Нічого термінового. Сплануйте наступний модуль.",
   "res.tip.left": "Вистачить на {days}.",
-  "res.tip.cap": "",
+  "res.tip.cap": "Склад повний: усе зайве пропадає. Склад або батарея додадуть місця.",
 
   "crew.title": "Екіпаж ({n})",
   "crew.aria": "Екіпаж",

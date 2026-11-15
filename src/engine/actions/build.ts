@@ -9,6 +9,7 @@ import { reviewTasks } from "@/engine/systems/tasks";
 
 // Начать стройку: свободный член экипажа берёт модуль, ресурсы списываются сразу
 export function build(state: GameState, slot: number, type: ModuleType): GameState {
+  if (state.status !== "playing") return state; // после конца игры ничего не строим (как repair и research)
   const { row, col } = cellOf(slot);
   if (!canPlace(state, type, row, col)) return state;
   const builder = pickBuilder(state, type);

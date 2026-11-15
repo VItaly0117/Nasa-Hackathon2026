@@ -1,4 +1,5 @@
 import modulesData from "@/content/modules.json";
+import consumptionData from "@/content/nasa/consumption.json";
 import type { GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "@/types";
 import { MODES } from "./constants";
 
@@ -7,13 +8,31 @@ import { MODES } from "./constants";
 const MODULES = modulesData as ModuleDef[];
 
 export const RESOURCE_KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
-// Что экипаж тратит каждый день
-export const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
+// Расход экипажа за день считается по нормам NASA на человека (src/content/nasa/consumption.json, бриф OCHMO-TB-002):
+// кислород 0,771 кг в покое и 1,083 кг с тренировкой, питьевая вода не менее 2,5 л, еда в среднем 3 035 ккал.
+// Нормы переводятся в игровые единицы по допущениям из того же файла (раздел game): 1% кислорода = 0,7 кг,
+// игровая вода = 0,3 от реальной, 1 «кг» еды = суточный рацион одного человека.
+// Кислорода тратит больше тот, кто работает (строит): ему добавляется «тренировка». Отдыхающий и больной тратит как в покое.
+const NORM = consumptionData.perCrewmemberPerDay;
+const GAME = consumptionData.game;
+const OXYGEN_REST = NORM.oxygenKgResting / GAME.oxygenKgPerUnit;
+const OXYGEN_WORK = NORM.oxygenKgWithExercise / GAME.oxygenKgPerUnit;
+const WATER_PER_PERSON = (NORM.potableWaterLitersMin * GAME.waterScale);
+const FOOD_PER_PERSON = NORM.foodKcalAverage / GAME.foodKcalPerUnit;
 
-// Расход экипажа за день с поправкой на режим игры
+const round2 = (v: number) => Math.round(v * 100) / 100;
+
+// Что экипаж тратит за день (с поправкой на режим игры и на то, кто сейчас работает). Числа отрицательные
 export function crewNeeds(state: GameState): Partial<Resources> {
   const need = MODES[state.mode ?? "normal"].need;
-  return Object.fromEntries(Object.entries(CREW_PER_DAY).map(([key, v]) => [key, Math.round((v ?? 0) * need)]));
+  let oxygen = 0;
+  for (const member of state.crew) oxygen += member.status.kind === "building" ? OXYGEN_WORK : OXYGEN_REST;
+  const people = state.crew.length;
+  return {
+    oxygen: -round2(oxygen * need),
+    water: -round2(people * WATER_PER_PERSON * need),
+    food: -round2(people * FOOD_PER_PERSON * need),
+  };
 }
 
 export function getDef(type: ModuleType): ModuleDef {

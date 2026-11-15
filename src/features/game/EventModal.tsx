@@ -28,7 +28,7 @@ export function EventModal() {
     if (event.id === "illness" && person) {
       return (
         <div className="modal__portrait">
-          <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
+          <Avatar id={person.id} mood={-1} />
         </div>
       );
     }

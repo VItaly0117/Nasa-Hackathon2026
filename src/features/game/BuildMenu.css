@@ -247,6 +247,8 @@
   .build__list { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
   .card { min-height: 0; padding: 6px 2px; gap: 2px; }
   .card__name { font-size: 11px; min-height: 26px; }
+  /* превью крупное (96 px) только на больших экранах: в узкой строке из 8 карточек оно ужимается */
+  .card svg { width: 100%; max-width: 60px; height: auto; }
   .cost { font-size: 13px; gap: 6px; }
   .detail__info p, .detail__lines { font-size: 12px; }
 }

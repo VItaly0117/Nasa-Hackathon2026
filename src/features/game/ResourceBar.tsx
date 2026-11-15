@@ -33,10 +33,11 @@ function formatDays(n: number): string {
   return n < 1 ? `${n.toFixed(1)} ${t("unit.dShort")}` : daysShort(Math.floor(n));
 }
 
+// Расход бывает дробным (нормы NASA пересчитаны в игровые единицы): показываем один знак после запятой, если он нужен
 function formatDelta(perDay: number): string {
-  if (perDay > 0) return `+${perDay}`;
-  if (perDay < 0) return `−${Math.abs(perDay)}`;
-  return "0";
+  const v = Math.round(Math.abs(perDay) * 10) / 10;
+  if (v === 0) return "0";
+  return `${perDay > 0 ? "+" : "−"}${v}`;
 }
 
 function levelOf(left: number | null, fraction: number): Level {
@@ -110,6 +111,7 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
                   </>
                 )}
               </p>
+              {!PERCENT.includes(key) && value >= capacity[key] && <p className="resource__tipnote">{t("res.tip.cap")}</p>}
               {left !== null && (
                 <p className="resource__tipnote">{t("res.tip.left", { days: formatDays(left) })}</p>
               )}
