@@ -12,7 +12,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-GPL-blue.svg)](LICENSE)
 
-### [▶ Play the live demo](https://sohodolly.github.io/Qcold-team-Nasa-Hackathon2026-/)
+### [▶ Play the live demo](https://sohodolly.github.io/Qcold-team-Nasa-Hackathon2026-/) · [📊 Presentation](Moonbase.pptx)
 
 <img src="docs/screenshots/game.png" alt="Moonbase: the lunar base with the build menu, crew panel and current goal" width="820" />
 
