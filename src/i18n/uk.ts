@@ -18,7 +18,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "walker.working": "Працює біля: {where}",
   "menu.continue": "Продовжити гру",
   "menu.continueDay": "Продовжити гру · день {day}",
-  "menu.server": "Сервер",
+  "menu.server": "Грати з друзями",
   "app.menu": "Меню",
   "app.toMenu": "До меню",
 

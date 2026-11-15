@@ -87,7 +87,7 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                   <ResourceIcon type={key} size={32} />
                   <span className="daysum__res-name">{tDynamic(`res.${key}`)}</span>
                   <strong className={n > 0 ? "is-up" : n < 0 ? "is-down" : ""}>
-                    {n > 0 ? `▲ +${n}` : n < 0 ? `▼ −${Math.abs(n)}` : "•"}
+                    {n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0"}
                   </strong>
                   {left !== null && mood !== "good" && (
                     <span className="daysum__res-state">{t("sum.res.left", { days: days(left) })}</span>
@@ -132,8 +132,10 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
           </section>
         )}
 
-        <button className="btn btn--primary daysum__go" autoFocus onClick={onClose}>
-          {t("sum.continue")}
+        <button className={`btn btn--primary daysum__go${paused ? " is-paused" : ""}`} autoFocus onClick={onClose}
+          style={{ "--dur": `${seconds}s` } as React.CSSProperties}>
+          <span className="daysum__timer" aria-hidden="true" />
+          <span className="daysum__go-text">{t("sum.continue")}</span>
         </button>
       </div>
     </div>

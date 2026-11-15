@@ -19,7 +19,7 @@ export const ru = {
   "walker.working": "Работает у: {where}",
   "menu.continue": "Продолжить игру",
   "menu.continueDay": "Продолжить игру · день {day}",
-  "menu.server": "Сервер",
+  "menu.server": "Играть с друзьями",
   "app.menu": "Меню",
   "app.toMenu": "В меню",
 
