@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 
+const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
 const storageState = {
   cookies: [],
-  origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }],
+  origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }],
 };
 
 const moduleByRole: Record<string, string> = {
@@ -14,7 +15,7 @@ const moduleByRole: Record<string, string> = {
 };
 
 async function openRoom(browser: Browser, room: string) {
-  const context = await browser.newContext({ storageState, viewport: { width: 1280, height: 800 } });
+  const context = await browser.newContext({ baseURL: appUrl, storageState, viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
   await page.goto("/");
   await page.getByRole("button", { name: "Сервер" }).click();
