@@ -1,0 +1,12 @@
+/* Общие стили игры. Порядок важен для каскада: файлы собраны из прежнего App.css в том же порядке. */
+@import "./base.css";
+@import "./topbar.css";
+@import "./crew.css";
+@import "./side.css";
+@import "./buttons.css";
+@import "./modal.css";
+@import "./day-summary.css";
+@import "./banner.css";
+@import "./rotate-hint.css";
+@import "./responsive.css";
+@import "./motion.css";

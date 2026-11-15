@@ -1,478 +1,20 @@
-import { useEffect, useReducer, useRef, useState } from "react";
-import { reduce, initialState, dailyDelta, capacityOf, hasFreeCrew, DAY_MS, MISSION_DAYS, NIGHT_START, REPAIR_COST } from "./engine/engine";
-import { summarizeDay } from "./engine/daySummary";
-import { allTasksDone } from "./engine/tasks";
-import type { DaySummary as DaySummaryData } from "./engine/daySummary";
-import { clearSave, loadGame, loadLang, loadRecords, recordFrom, saveGame, saveLang, saveRecord } from "./engine/storage";
-import type { GameRecord } from "./engine/storage";
-import { openStream, sendAction } from "./net/online";
-import type { Player, Session } from "./net/online";
-import { MainMenu } from "./ui/MainMenu";
-import { ResultsScreen } from "./ui/ResultsScreen";
-import { SourcesPanel } from "./ui/SourcesPanel";
-import { describeFlare } from "./engine/events";
-import { canPlace, slotOf } from "./engine/placement";
-import type { TileInfo } from "./engine/placement";
-import modulesData from "./data/modules.json";
-import eventsData from "./data/events.json";
-import type { Action, EventDef, GameMode, GameState, ModuleDef, ModuleType, Resources } from "./types";
-import { days, LANGS, setLang, t } from "./i18n";
-import type { Lang } from "./i18n";
-import LunarMap from "./ui/map/LunarMap";
-import { ResourceBar } from "./ui/ResourceBar";
-import { CrewPanel } from "./ui/CrewPanel";
-import { SidePanel } from "./ui/SidePanel";
-import { BuildMenu } from "./ui/BuildMenu";
-import { Intro } from "./ui/Intro";
-import { Prologue } from "./ui/Prologue";
-import { Ending } from "./ui/Ending";
-import { DayClock } from "./ui/DayClock";
-import { DaySummary } from "./ui/DaySummary";
-import { TaskToast } from "./ui/TaskToast";
-import { Avatar } from "./ui/CrewPanel";
-import { CREW } from "./ui/crewData";
-import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "./ui/icons";
-import { sound } from "./audio/audio";
+import { useState } from "react";
+import { clearSave, loadGame, loadLang, saveLang } from "@/session/storage";
+import { createOnlineSession } from "@/session/online";
+import { SessionProvider } from "@/session/react";
+import { createSoloSession } from "@/session/solo";
+import type { GameSession } from "@/session/types";
+import type { GameMode, GameState } from "./types";
+import { LANGS, setLang } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { GameScreen } from "@/features/game/GameScreen";
+import { Intro } from "@/features/story/Intro";
+import { MainMenu } from "@/features/menu/MainMenu";
+import { Prologue } from "@/features/story/Prologue";
+import { RotateHint } from "@/ui/RotateHint";
+import { SourcesPanel } from "@/features/menu/SourcesPanel";
 import "./styles/tokens.css";
-import "./App.css";
-
-// Тексты событий лежат в словарях i18n: ev.<id>.title / .text / .<choice>.label / .<choice>.hint
-// Цены выборов лежат в events.json (тип EventDef в types.ts)
-
-const MODULES = modulesData as ModuleDef[];
-const EVENTS = eventsData as EventDef[];
-
-function canAfford(resources: Resources, cost: Partial<Resources>) {
-  return Object.entries(cost).every(
-    ([key, value]) => resources[key as keyof Resources] >= (value ?? 0)
-  );
-}
-
-// На телефоне в вертикальном положении CSS показывает эту подсказку поверх игры
-function RotateHint() {
-  return (
-    <div className="rotate-hint" role="alert">
-      <svg viewBox="0 0 48 48" width="72" height="72" aria-hidden="true">
-        <rect x="14" y="4" width="20" height="40" rx="4" fill="none" stroke="currentColor" strokeWidth="3" />
-        <circle cx="24" cy="38" r="2" fill="currentColor" />
-      </svg>
-      {t("app.rotate")}
-    </div>
-  );
-}
-
-// Одиночная игра (новая или продолженная из сохранения) или совместная на сервере
-type Mode = { kind: "solo"; resume: GameState | null; difficulty: GameMode } | { kind: "online"; session: Session };
-
-// Время дня ведущий отправляет на сервер пачками, а не 10 раз в секунду
-const ONLINE_TICK_MS = 500;
-// Одиночную игру сохраняем не чаще, чем раз в столько мс: время идёт непрерывно
-const SAVE_EVERY_MS = 2000;
-// Пауза между «все задания выполнены» и досрочным концом дня
-const WRAP_UP_MS = 2500;
-
-function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: () => void; onMenu: () => void; onSources: () => void }) {
-  const online = mode.kind === "online" ? mode.session : null;
-  // Совместная игра: та же игра получается из seed комнаты и всех действий, что уже случились до входа
-  const [state, apply] = useReducer(reduce, undefined, () =>
-    online
-      ? online.actions.reduce(reduce, initialState(online.seed))
-      : (mode.kind === "solo" && mode.resume) || initialState(undefined, mode.kind === "solo" ? mode.difficulty : "normal")
-  );
-  // В одиночной игре действие применяется сразу. В совместной уходит на сервер и применяется,
-  // когда сервер разошлёт его всем: так у всех игроков один и тот же порядок действий
-  const dispatch = (action: Action) => (online ? void sendAction(online, action) : apply(action));
-
-  const [players, setPlayers] = useState<Player[]>(online?.players ?? []);
-  const [hostId, setHostId] = useState<string | null>(online?.hostId ?? null);
-  const [connected, setConnected] = useState(true);
-  const [muted, setMuted] = useState(() => sound.isMuted());
-  const isHost = !online || hostId === online.playerId;
-
-  useEffect(() => sound.subscribe(setMuted), []);
-
-  useEffect(() => {
-    if (!online) return;
-    return openStream(online, online.actions.length, {
-      onAction: apply,
-      onPlayers: (list, host) => {
-        setPlayers(list);
-        setHostId(host);
-      },
-      onConnection: setConnected,
-    });
-  }, [online]);
-
-  const tickAcc = useRef(0);
-  function handleTick(ms: number) {
-    if (!online) return apply({ type: "tick", ms });
-    tickAcc.current += ms;
-    if (tickAcc.current < ONLINE_TICK_MS) return;
-    void sendAction(online, { type: "tick", ms: tickAcc.current });
-    tickAcc.current = 0;
-  }
-
-  // Модуль строит игрок с ролью из modules.json. Пока такой роли ни у кого нет, строить может любой
-  const lockedBy = online
-    ? (def: ModuleDef) =>
-        def.builder && def.builder !== online.role && players.some((p) => p.role === def.builder) ? def.builder : null
-    : undefined;
-
-  // Сохранение одиночной игры: «Продолжить игру» в меню начнёт с этого места
-  const latest = useRef(state);
-  const lastSave = useRef(0);
-  useEffect(() => {
-    latest.current = state;
-    if (online) return;
-    if (state.status !== "playing") {
-      clearSave();
-      return;
-    }
-    const now = Date.now();
-    if (now - lastSave.current >= SAVE_EVERY_MS) {
-      saveGame(state);
-      lastSave.current = now;
-    }
-  }, [state, online]);
-  useEffect(() => {
-    if (online) return;
-    const flush = () => {
-      if (latest.current.status === "playing") saveGame(latest.current);
-    };
-    window.addEventListener("beforeunload", flush);
-    return () => window.removeEventListener("beforeunload", flush);
-  }, [online]);
-  // Сохраняем до перехода: меню сразу читает сохранение, чтобы показать «Продолжить игру»
-  function toMenu() {
-    if (!online && latest.current.status === "playing") saveGame(latest.current);
-    onMenu();
-  }
-  // Модуль, открытый в карточке справа
-  const [selectedType, setSelectedType] = useState<ModuleType | null>("greenhouse");
-  // Игрок выбирает место на карте: карта подсвечивает, куда можно поставить
-  const [buildType, setBuildType] = useState<ModuleType | null>(null);
-  const [surveyingIce, setSurveyingIce] = useState(false);
-  // Правила, открытые во время игры
-  const [rulesOpen, setRulesOpen] = useState(false);
-
-  // Итоги дня: состояние на начало дня запоминаем, а при смене дня сравниваем с ним.
-  // Последний день не показываем: вместо него итог всей миссии
-  // Считаем прямо при отрисовке, а не в эффекте: так итоги появляются в том же кадре, что и новый день,
-  // и часы не успевают пройти лишний тик
-  const [dayStart, setDayStart] = useState(state);
-  const [summary, setSummary] = useState<DaySummaryData | null>(null);
-  if (state.day !== dayStart.day) {
-    setDayStart(state);
-    if (state.status === "playing") setSummary(summarizeDay(dayStart, state));
-  }
-
-  const delta = dailyDelta(state);
-  // Пока открыты итоги дня, событие ждёт: сначала итоги, потом новое решение
-  const event = summary ? null : (EVENTS.find((e) => e.id === state.activeEvent) ?? null);
-  const daysToNight = NIGHT_START - state.day;
-  const isPlaying = state.status === "playing";
-  // Финальный ролик показывается один раз за игру, потом итоговый экран
-  const [endingSeen, setEndingSeen] = useState(false);
-  useEffect(() => {
-    if (isPlaying) setEndingSeen(false);
-  }, [isPlaying]);
-  // Одиночная миссия закончилась: записываем результат один раз и запоминаем, лучший ли он
-  const [record, setRecord] = useState<{ best: GameRecord; isNew: boolean } | null>(null);
-  const recorded = useRef(false);
-  useEffect(() => {
-    if (online || isPlaying || recorded.current) return;
-    recorded.current = true;
-    const mine = recordFrom(state);
-    const hadBefore = loadRecords().length > 0;
-    const better = saveRecord(mine);
-    setRecord({ best: loadRecords()[0] ?? mine, isNew: better && hadBefore });
-  }, [online, isPlaying, state]);
-  // Время дня идёт, только пока игрок ничем не занят: ни события, ни правил, ни выбора места, ни итогов дня.
-  // В совместной игре время общее: его двигает только ведущий и останавливает только событие
-  const clockRunning = online
-    ? isHost && connected && isPlaying && state.activeEvent === null
-    : isPlaying && state.activeEvent === null && !summary && !rulesOpen && buildType === null;
-
-  // Все задания дня выполнены, а время ещё осталось: через пару секунд (чтобы игрок увидел результат
-  // и мог передумать, открыв правила или выбрав место) день завершается сам.
-  // Следим за изменением состояния, а не по таймеру опроса. В совместной игре clockRunning верно только у ведущего,
-  // поэтому действие отправит один клиент
-  const wrapUp = clockRunning && allTasksDone(state);
-  useEffect(() => {
-    if (!wrapUp) return;
-    const timer = window.setTimeout(() => dispatch({ type: "nextDay" }), WRAP_UP_MS);
-    return () => window.clearTimeout(timer);
-  }, [wrapUp, state.day]);
-
-  // Баннер «День N» на несколько секунд при смене дня
-  const [banner, setBanner] = useState<{ day: number; night: boolean } | null>(null);
-  useEffect(() => {
-    if (state.day === 1) return;
-    setBanner({ day: state.day, night: state.isNight });
-    if (state.day === NIGHT_START) {
-      sound.playNightfall();
-    } else {
-      sound.playDayChange();
-    }
-    const timer = window.setTimeout(() => setBanner(null), 1800);
-    return () => window.clearTimeout(timer);
-  }, [state.day, state.isNight]);
-
-  // Новые задания от экипажа: карточка с портретом на несколько секунд
-  const [toastIds, setToastIds] = useState<string[]>([]);
-  useEffect(() => {
-    const fresh = state.tasks.filter((x) => x.issuedDay === state.day && x.status === "open").map((x) => x.id);
-    setToastIds(fresh);
-    if (fresh.length === 0) return;
-    sound.playTaskToast();
-    const timer = window.setTimeout(() => setToastIds([]), 9000);
-    return () => window.clearTimeout(timer);
-  }, [state.tasks, state.day]);
-
-  // Звуковое оповещение о завершении стройки
-  const prevBuildingCount = useRef(state.modules.filter((m) => m.build).length);
-  useEffect(() => {
-    const currentBuildingCount = state.modules.filter((m) => m.build).length;
-    if (prevBuildingCount.current > currentBuildingCount) {
-      sound.playBuildComplete();
-    }
-    prevBuildingCount.current = currentBuildingCount;
-  }, [state.modules]);
-
-  // Сирена при наступлении опасных событий (вспышка, поломка, болезнь)
-  const prevEvent = useRef<string | null>(null);
-  useEffect(() => {
-    if (state.activeEvent && state.activeEvent !== prevEvent.current) {
-      sound.playAlarm(state.activeEvent as "flare" | "breakdown" | "illness");
-    }
-    prevEvent.current = state.activeEvent;
-  }, [state.activeEvent]);
-
-  // Окончание миссии (победа или поражение)
-  const prevStatus = useRef(state.status);
-  useEffect(() => {
-    if (prevStatus.current === "playing" && state.status !== "playing") {
-      sound.stopAmbient();
-      if (state.status === "won") sound.playVictory();
-      else if (state.status === "lost") sound.playDefeat();
-    }
-    prevStatus.current = state.status;
-  }, [state.status]);
-
-  // Фоновый космический эмбиент станции
-  useEffect(() => {
-    sound.setNightMode(state.isNight);
-  }, [state.isNight]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      sound.startAmbient();
-    } else if (!isPlaying) {
-      sound.stopAmbient();
-    }
-    return () => sound.stopAmbient();
-  }, [isPlaying]);
-
-  // Esc отменяет постройку
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setBuildType(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  function handleSelectTile(tile: TileInfo) {
-    if (surveyingIce) {
-      dispatch({ type: "research", id: "iceScout", answer: tile.terrain === "ice" ? "ice" : "rock" });
-      setSurveyingIce(false);
-      return;
-    }
-    if (!buildType || !hasFreeCrew(state) || !canPlace(state, buildType, tile.row, tile.col)) return;
-    sound.playBuildStart();
-    dispatch({ type: "build", slot: slotOf(tile.row, tile.col), module: buildType });
-    setBuildType(null);
-  }
-
-  return (
-    <div className={`game ${state.isNight ? "game--night" : ""}`}>
-      <LunarMap
-        modules={state.modules}
-        defs={MODULES}
-        isNight={state.isNight}
-        buildType={buildType}
-        surveyingIce={surveyingIce}
-        crewActive={isPlaying && event === null}
-        canPlaceAt={(row, col) => buildType !== null && canPlace(state, buildType, row, col)}
-        canAffordRepair={canAfford(state.resources, REPAIR_COST)}
-        onRepairModule={(slot) => {
-          sound.playRepair();
-          dispatch({ type: "repair", slot });
-        }}
-        onSelectTile={handleSelectTile}
-      />
-
-      <header className="topbar">
-        <div className="hud-panel base-badge">
-          <MoonLogo />
-          <div className="base-badge__text">
-            <strong>{t("app.base")}</strong>
-            <span>
-              {t("app.dayOf", { day: state.day, total: MISSION_DAYS })} ·{" "}
-              {state.isNight
-                ? t("app.night")
-                : daysToNight > 0
-                  ? t("app.toNight", { days: days(daysToNight) })
-                  : t("app.lunarDay")}
-            </span>
-            {online && (
-              <span className="online-badge">
-                {t("online.badge", { room: online.room, role: t(`role.${online.role}`) })} ·{" "}
-                {t("online.players", { n: players.length })}
-              </span>
-            )}
-          </div>
-          <DayClock running={clockRunning} progress={state.clockMs / DAY_MS} onTick={handleTick}>
-            <button
-              type="button"
-              className="btn btn--ghost btn--small btn--icon"
-              onClick={() => sound.toggleMute()}
-              aria-label={muted ? t("app.soundOff") : t("app.soundOn")}
-              title={muted ? t("app.soundOff") : t("app.soundOn")}
-            >
-              {muted ? <SoundOffIcon size={18} /> : <SoundOnIcon size={18} />}
-            </button>
-            <button className="btn btn--ghost btn--small btn--help" onClick={() => { sound.playClick(); setRulesOpen(true); }}>
-              <BookIcon size={18} />
-              <span>{t("app.rules")}</span>
-            </button>
-            <button className="btn btn--ghost btn--small" onClick={() => { sound.playClick(); toMenu(); }}>
-              {t("app.menu")}
-            </button>
-          </DayClock>
-        </div>
-        <ResourceBar resources={state.resources} delta={delta} capacity={capacityOf(state.modules)} />
-      </header>
-
-      <CrewPanel health={state.resources.health} crew={state.crew} />
-      <SidePanel
-        state={state}
-        surveyingIce={surveyingIce}
-        onCancelIceSurvey={() => setSurveyingIce(false)}
-        onStartIceSurvey={() => { setBuildType(null); setSurveyingIce(true); }}
-        onResearch={(answer) => dispatch({ type: "research", id: "moonDust", answer })}
-      />
-
-      <BuildMenu
-        defs={MODULES}
-        selected={selectedType}
-        placing={buildType !== null}
-        disabled={!isPlaying}
-        crewBusy={!hasFreeCrew(state)}
-        isAffordable={(def) => canAfford(state.resources, def.cost)}
-        lockedBy={lockedBy}
-        onSelect={(type) => {
-          sound.playClick();
-          setSelectedType(type);
-          setBuildType(null);
-        }}
-        onStartBuild={(type) => {
-          sound.playClick();
-          setBuildType(type);
-        }}
-        onCancel={() => {
-          sound.playClick();
-          setBuildType(null);
-        }}
-      />
-
-      {event && (
-        <div className="overlay">
-          <div className="modal modal--event" role="dialog" aria-labelledby="event-title">
-            {event.id !== "illness" && <div className="modal__badge" aria-hidden="true">⚠️</div>}
-            {event.id === "illness" && state.illness && (() => {
-              // Кто заболел: портрет и имя, как при просьбе о задании
-              const person = CREW.find((c) => c.id === state.illness!.crewId)!;
-              return (
-                <div className="modal__portrait">
-                  <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
-                </div>
-              );
-            })()}
-            <h2 id="event-title">{t(`ev.${event.id}.title`)}</h2>
-            <p>{t(`ev.${event.id}.text`, { name: state.illness ? t(`crew.n${state.illness.crewId}`) : "" })}</p>
-            {event.id === "flare" && state.flare && (
-              <p className="muted source">
-                {t("ev.flare.source", { flare: describeFlare(state.flare) })}{" "}
-                <a href={state.flare.link} target="_blank" rel="noreferrer">
-                  {state.flare.source}
-                </a>
-              </p>
-            )}
-            <div className="modal__choices">
-              {event.choices.map((choice, i) => (
-                <button
-                  key={choice.id}
-                  className={`btn btn--choice${i === 0 ? " btn--choice-main" : ""}`}
-                  onClick={() => {
-                    sound.playDecisionConfirm();
-                    dispatch({ type: "resolveEvent", choice: choice.id });
-                  }}
-                >
-                  <strong>{t(`ev.${event.id}.${choice.id}.label`)}</strong>
-                  <span className="muted">{t(`ev.${event.id}.${choice.id}.hint`)}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!isPlaying && !endingSeen && <Ending won={state.status === "won"} onDone={() => setEndingSeen(true)} />}
-
-      {!isPlaying && endingSeen && (
-        <ResultsScreen
-          state={state}
-          online={!!online}
-          record={record}
-          onRestart={() => {
-            sound.playClick();
-            onRestart();
-          }}
-          onMenu={() => {
-            sound.playClick();
-            toMenu();
-          }}
-          onSources={() => {
-            sound.playClick();
-            onSources();
-          }}
-        />
-      )}
-
-      {summary && isPlaying && <DaySummary summary={summary} onClose={() => setSummary(null)} />}
-
-      {banner && isPlaying && !event && !summary && (
-        <div key={banner.day} className={`day-banner ${banner.night ? "day-banner--night" : ""}`} aria-live="polite">
-          {t("app.dayOf", { day: banner.day, total: MISSION_DAYS })}
-          {banner.night ? ` · ${t("app.night")}` : ""}
-        </div>
-      )}
-
-      {wrapUp && !banner && (
-        <div className="wrapup" role="status" aria-live="polite">
-          {t("app.allDone")}
-        </div>
-      )}
-
-      <TaskToast tasks={state.tasks.filter((x) => toastIds.includes(x.id))} onClose={() => setToastIds([])} />
-
-      {rulesOpen && <Intro rulesOnly onStart={() => setRulesOpen(false)} />}
-      {online && !connected && <div className="online-lost" role="alert">{t("online.lost")}</div>}
-      <RotateHint />
-    </div>
-  );
-}
+import "./styles/index.css";
 
 type Stage = "menu" | "prologue" | "intro" | "game";
 
@@ -484,11 +26,14 @@ function restoreLang(): Lang | null {
   return lang;
 }
 
+// Какие экраны и в каком порядке: меню, пролог, правила, игра. Саму игру ведёт сессия
 export default function App() {
   const [stage, setStage] = useState<Stage>("menu");
-  const [mode, setMode] = useState<Mode>({ kind: "solo", resume: null, difficulty: "normal" });
-  // Новый ключ пересоздаёт Game с чистым состоянием, поэтому restart не нужен в движке
+  const [session, setSession] = useState<GameSession | null>(null);
+  // Новый ключ пересоздаёт экран игры с чистым интерфейсом (баннеры, выбранный модуль), когда начинается новая игра
   const [runId, setRunId] = useState(0);
+  // Режим сложности текущей одиночной игры: «Заново» начинает в том же режиме
+  const [difficulty, setDifficulty] = useState<GameMode>("normal");
   // Экран «Данные NASA» открывается из меню и из итогов
   const [sourcesOpen, setSourcesOpen] = useState(false);
   // Нужен только чтобы перерисовать дерево после смены языка: сам язык хранится в i18n
@@ -502,8 +47,9 @@ export default function App() {
     setLangState(lang);
   }
 
-  function start(next: Mode, from: Stage) {
-    setMode(next);
+  function startSolo(resume: GameState | null, from: Stage, mode: GameMode = difficulty) {
+    setDifficulty(mode);
+    setSession(createSoloSession(resume, mode));
     setRunId((id) => id + 1);
     setStage(from);
   }
@@ -515,12 +61,16 @@ export default function App() {
         <MainMenu
           savedDay={saved?.day ?? null}
           onLang={pickLang}
-          onNewGame={(difficulty) => {
+          onNewGame={(mode) => {
             clearSave();
-            start({ kind: "solo", resume: null, difficulty }, "prologue");
+            startSolo(null, "prologue", mode);
           }}
-          onContinue={() => saved && start({ kind: "solo", resume: saved, difficulty: saved.mode ?? "normal" }, "game")}
-          onJoined={(session) => start({ kind: "online", session }, "game")}
+          onContinue={() => saved && startSolo(saved, "game", saved.mode ?? "normal")}
+          onJoined={(room) => {
+            setSession(createOnlineSession(room));
+            setRunId((id) => id + 1);
+            setStage("game");
+          }}
           onSources={() => setSourcesOpen(true)}
         />
         {sourcesOpen && <SourcesPanel onClose={() => setSourcesOpen(false)} />}
@@ -529,21 +79,19 @@ export default function App() {
     );
   }
 
-  if (stage === "game") {
+  if (stage === "game" && session) {
     return (
-      <>
-        <Game
-          key={runId}
-          mode={mode}
+      <SessionProvider key={runId} session={session}>
+        <GameScreen
           onRestart={() => {
             clearSave();
-            start({ kind: "solo", resume: null, difficulty: mode.kind === "solo" ? mode.difficulty : "normal" }, "game");
+            startSolo(null, "game");
           }}
           onMenu={() => setStage("menu")}
           onSources={() => setSourcesOpen(true)}
         />
         {sourcesOpen && <SourcesPanel onClose={() => setSourcesOpen(false)} />}
-      </>
+      </SessionProvider>
     );
   }
 

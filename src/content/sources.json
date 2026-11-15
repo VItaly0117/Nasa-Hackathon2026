@@ -1,0 +1,8 @@
+[
+  {"id": "donki", "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/", "provider": "NASA CCMC", "file": "src/content/nasa/flares.json", "inGame": true},
+  {"id": "nasa-open-apis", "url": "https://api.nasa.gov/", "provider": "NASA", "file": "scripts/fetch-donki.mjs", "inGame": false},
+  {"id": "radlab", "url": "https://visualization.osdr.nasa.gov/radlab/gui/data-api/", "provider": "NASA OSDR", "file": "src/content/nasa/radiation.json", "inGame": true},
+  {"id": "osdr", "url": "https://osdr.nasa.gov/bio/repo/", "provider": "NASA OSDR", "file": "src/content/nasa/health.json", "inGame": true},
+  {"id": "csa-food", "url": "https://www.asc-csa.gc.ca/eng/youth-educators/toolkits/food-production/", "provider": "Canadian Space Agency (CSA)", "file": "src/content/hints.json", "inGame": true},
+  {"id": "eclss", "url": "https://www.nasa.gov/wp-content/uploads/2023/07/eclss-technical-brief-ochmo.pdf", "provider": "NASA OCHMO", "file": "src/content/nasa/consumption.json", "inGame": true}
+]

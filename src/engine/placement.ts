@@ -1,6 +1,6 @@
-import type { GameState, ModuleType, PlacedModule } from "../types";
-import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
-import type { Terrain } from "../data/map";
+import type { GameState, ModuleType } from "@/types";
+import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "@/content/map";
+import type { Terrain } from "@/content/map";
 
 export type { Terrain };
 export { MAP_LAYOUT, MAP_ROWS, MAP_COLS };
@@ -73,7 +73,7 @@ export function cellDistance(a: { row: number; col: number }, b: { row: number; 
   return Math.max(Math.abs(p.i - q.i), Math.abs(p.j - q.j));
 }
 
-export function isNearBase(modules: PlacedModule[], row: number, col: number): boolean {
+export function isNearBase(modules: { slot: number }[], row: number, col: number): boolean {
   return modules.some((m) => cellDistance(cellOf(m.slot), { row, col }) <= BUILD_RADIUS);
 }
 

@@ -1,0 +1,41 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 17px; overflow: hidden; }
+button { font-family: inherit; }
+
+/* Вся игра — один экран: небо, карта и панели поверх неё */
+.game { position: relative; height: 100vh; height: 100dvh; overflow: hidden; }
+
+/* ---------- Фон меню: та сама картинка, що й на карті ---------- */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: #0a0d24 url("../assets/moon_bg.svg") center top / cover no-repeat;
+}
+
+
+/* ---------- Общий вид панелей ---------- */
+.hud-panel {
+  background: var(--panel);
+  border: 1.5px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(6px);
+}
+.hud-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 19px; font-weight: 800; }
+.muted { opacity: 0.7; }
+
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.collapse-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1.5px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+}
+.collapse-btn:hover { background: rgba(255, 255, 255, 0.16); }
