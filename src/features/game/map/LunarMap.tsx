@@ -5,7 +5,7 @@ import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } fro
 import type { Terrain, TileInfo } from "@/engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/map";
 import { moduleName, t, tDynamic } from "@/i18n";
-import { ArtDefs, ModuleArt } from "./art";
+import { ArtDefs, Ice, ModuleArt } from "./art";
 import { ART_HEIGHT } from "./art-size";
 import moonBg from "@/assets/moon-bg.webp";
 import { Walkers } from "./Walkers";
@@ -484,7 +484,17 @@ export default function LunarMap({
               );
             })()}
 
-            {/* Слой 5: здания и «призрак» строящегося модуля, от дальних к ближним */}
+            {/* Слой 5: поклади льоду, будівлі та «призрак» модуля */}
+            {TILES.map((tile) => {
+              if (tile.terrain !== "ice" || moduleAt(tile.row, tile.col)) return null;
+              const { x, y } = getPosition(tile.row, tile.col);
+              return (
+                <g key={`ice-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} pointerEvents="none">
+                  <Ice />
+                </g>
+              );
+            })}
+
             {TILES.map((tile) => {
               const module = moduleAt(tile.row, tile.col);
               const isGhost =
@@ -526,7 +536,7 @@ export default function LunarMap({
             })}
 
             {/* Слой 6: астронавты ходят между модулями */}
-            <Walkers targets={walkTargets} active={crewActive} />
+            <Walkers targets={walkTargets} active={crewActive} k={k} />
 
             {/* Слой 7: облачко-подпись над выбранным объектом, поверх всего */}
             {bubble && <Bubble {...bubble} k={k} />}

@@ -4,7 +4,7 @@ import { createOnlineSession } from "@/session/online";
 import { SessionProvider } from "@/session/react";
 import { createSoloSession } from "@/session/solo";
 import type { GameSession } from "@/session/types";
-import type { GameState } from "./types";
+import type { GameMode, GameState } from "./types";
 import { LANGS, setLang } from "@/i18n";
 import type { Lang } from "@/i18n";
 import { GameScreen } from "@/features/game/GameScreen";
@@ -32,6 +32,8 @@ export default function App() {
   const [session, setSession] = useState<GameSession | null>(null);
   // Новый ключ пересоздаёт экран игры с чистым интерфейсом (баннеры, выбранный модуль), когда начинается новая игра
   const [runId, setRunId] = useState(0);
+  // Режим сложности текущей одиночной игры: «Заново» начинает в том же режиме
+  const [difficulty, setDifficulty] = useState<GameMode>("normal");
   // Экран «Данные NASA» открывается из меню и из итогов
   const [sourcesOpen, setSourcesOpen] = useState(false);
   // Нужен только чтобы перерисовать дерево после смены языка: сам язык хранится в i18n
@@ -45,8 +47,9 @@ export default function App() {
     setLangState(lang);
   }
 
-  function startSolo(resume: GameState | null, from: Stage) {
-    setSession(createSoloSession(resume));
+  function startSolo(resume: GameState | null, from: Stage, mode: GameMode = difficulty) {
+    setDifficulty(mode);
+    setSession(createSoloSession(resume, mode));
     setRunId((id) => id + 1);
     setStage(from);
   }
@@ -58,11 +61,11 @@ export default function App() {
         <MainMenu
           savedDay={saved?.day ?? null}
           onLang={pickLang}
-          onNewGame={() => {
+          onNewGame={(mode) => {
             clearSave();
-            startSolo(null, "prologue");
+            startSolo(null, "prologue", mode);
           }}
-          onContinue={() => saved && startSolo(saved, "game")}
+          onContinue={() => saved && startSolo(saved, "game", saved.mode ?? "normal")}
           onJoined={(room) => {
             setSession(createOnlineSession(room));
             setRunId((id) => id + 1);

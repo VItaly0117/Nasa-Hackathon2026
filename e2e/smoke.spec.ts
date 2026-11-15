@@ -18,7 +18,7 @@ test("игра запускается, идёт время, модуль стр�
   expect(await timer.textContent()).not.toBe(before);
 
   // строим: открыть меню, выбрать модуль, нажать «Построить», коснуться клетки
-  await page.getByRole("region", { name: "Строительство" }).getByRole("button", { name: "Показать" }).click();
+  await page.getByRole("button", { name: "Строительство", expanded: false }).click();
   await page.getByRole("button", { name: /^Солнечные панели/ }).click();
   await page.getByRole("button", { name: "Построить" }).click();
   await page.mouse.click(368, 528);

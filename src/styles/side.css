@@ -3,7 +3,7 @@
   position: absolute;
   right: 18px;
   top: 118px;
-  bottom: 18px;
+  bottom: 92px;
   width: 350px;
   display: flex;
   flex-direction: column;
@@ -11,11 +11,22 @@
   z-index: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 140, 230, 0.4) transparent;
 }
 .side::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+.side::-webkit-scrollbar-track {
+  background: transparent;
+}
+.side::-webkit-scrollbar-thumb {
+  background: rgba(110, 140, 230, 0.4);
+  border-radius: 3px;
+}
+.side::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 170, 255, 0.7);
 }
 .alert { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
 .alert p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; }
@@ -49,29 +60,18 @@
   line-height: 1.4;
   max-height: 280px;
   overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 140, 230, 0.4) transparent;
 }
 .tasks ul::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+.tasks ul::-webkit-scrollbar-thumb {
+  background: rgba(110, 140, 230, 0.4);
+  border-radius: 3px;
 }
 .task { display: flex; gap: 12px; align-items: flex-start; }
 .task strong { display: block; margin-bottom: 3px; }
 .task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
 .task__why { opacity: 0.8; font-size: 14px; display: block; line-height: 1.35; }
 .task--late .task__mark, .task--late strong { color: #ff9b9b; }
-
-.journal { padding: 16px 18px; }
-.journal ul {
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  font-size: 15px;
-  line-height: 1.45;
-}
-.journal li {
-  padding-bottom: 2px;
-}

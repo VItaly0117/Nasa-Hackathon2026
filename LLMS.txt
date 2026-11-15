@@ -13,7 +13,7 @@
    - ID 4: Daniel / Даниил / Данило (Technician)
    *(The crew size has changed twice, always re-check `CREW_ROLES` in `src/engine/state.ts`. Shelter and medbay are built by the Doctor.)*
 4. **Time & Clocks:**
-   - `DAY_MS = 120000` (2 minutes).
+   - `DAY_MS = 90000` (1:30 / 90 seconds).
    - `BUILD_MS = 60000` (1 minute / 0.5 day).
    - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
 5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts`; `t(key)` is typed by `MessageKey`. The game state and log hold no text (`Msg = {key, params}`), `formatMsg` translates on display. Keys built from data ids use `tDynamic`.

@@ -7,12 +7,14 @@ import { LangSelect } from "./LangSelect";
 import { MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
 import { sound } from "@/audio/audio";
 import "@/features/story/Intro.css";
+import { MODE_IDS } from "@/engine";
+import type { GameMode } from "@/types";
 import "./MainMenu.css";
 
 type Props = {
   savedDay: number | null; // день сохранённой миссии или null, если продолжать нечего
   onLang: (lang: Lang) => void;
-  onNewGame: () => void;
+  onNewGame: (mode: GameMode) => void;
   onContinue: () => void;
   onJoined: (session: Session) => void;
   onSources: () => void; // открыть экран «Данные NASA»
@@ -20,7 +22,7 @@ type Props = {
 
 // Начальный экран: название игры и кнопки. Выбор языка и вход на сервер открываются здесь же
 export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, onSources }: Props) {
-  const [view, setView] = useState<"main" | "lang" | "server">("main");
+  const [view, setView] = useState<"main" | "lang" | "server" | "modes">("main");
   const [room, setRoom] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
@@ -110,6 +112,32 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
     );
   }
 
+  if (view === "modes") {
+    return (
+      <div className="overlay">
+        <div className="modal intro menu" role="dialog" aria-labelledby="modes-title">
+          <h2 id="modes-title">{t("menu.modeTitle")}</h2>
+          <div className="menu__buttons">
+            {MODE_IDS.map((id) => (
+              <button
+                key={id}
+                className="btn btn--primary menu__btn"
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}
+                onClick={() => { sound.playClick(); onNewGame(id); }}
+              >
+                <strong>{t(`mode.${id}.name`)}</strong>
+                <span style={{ fontSize: "0.8em", fontWeight: 600, opacity: 0.8 }}>{t(`mode.${id}.desc`)}</span>
+              </button>
+            ))}
+            <button className="btn btn--ghost menu__btn" onClick={() => setView("main")}>
+              {t("menu.back")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="overlay">
       <div className="modal intro menu" role="dialog" aria-labelledby="menu-title">
@@ -129,7 +157,7 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
             {muted ? <SoundOffIcon size={20} /> : <SoundOnIcon size={20} />}
             <span>{muted ? t("app.soundOff") : t("app.soundOn")}</span>
           </button>
-          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); onNewGame(); }}>
+          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); setView("modes"); }}>
             {t("menu.newGame")}
           </button>
           <button

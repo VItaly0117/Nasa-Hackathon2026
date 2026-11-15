@@ -74,7 +74,8 @@ try {
 
   // Проекция состояния, не зависящая от языка: без журнала и без текстов причин отложенных эффектов
   const project = (s) => {
-    const { log: _log, ...rest } = s;
+    // mode добавили коллеги (режимы сложности): в обычном режиме его не считаем, чтобы снимок остался сравнимым
+    const { log: _log, mode: _mode, ...rest } = s;
     return { ...rest, pending: s.pending.map(({ reason: _r, ...p }) => p) };
   };
   const hash = (v) => createHash("sha256").update(JSON.stringify(v)).digest("hex").slice(0, 16);

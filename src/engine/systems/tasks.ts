@@ -51,6 +51,13 @@ const defOf = (id: string) => TASK_DEFS.find((d) => d.id === id)!;
 
 export const tasksPerDay = (day: number) => (day <= TASKS_BUSY_UNTIL ? TASKS_BUSY : TASKS_CALM);
 
+// Есть открытые задания, и все они уже выполнены по состоянию базы: можно не ждать конца дня.
+// Пустой список не считается: в день без заданий день идёт как обычно
+export function allTasksDone(state: GameState): boolean {
+  const open = state.tasks.filter((task) => task.status === "open");
+  return open.length > 0 && open.every((task) => defOf(task.id).done(state));
+}
+
 // Выдаёт сегодняшние задания: сколько положено на этот день, но так, чтобы открытых не стало больше MAX_OPEN
 export function issueTasks(state: GameState): GameState {
   const open = state.tasks.filter((task) => task.status === "open").length;

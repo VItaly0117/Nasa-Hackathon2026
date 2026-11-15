@@ -5,6 +5,7 @@ import { describeFlare } from "@/i18n/messages";
 import { sound } from "@/audio/audio";
 import { useGame, useSend } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
+import { useGameUi } from "./ui-state";
 import { Avatar } from "./CrewPanel";
 import { CREW } from "@/ui/crewData";
 
@@ -15,7 +16,9 @@ const EVENTS = eventsData as EventDef[];
 export function EventModal() {
   const { activeEvent, illness, flare } = useGame((s) => ({ activeEvent: s.activeEvent, illness: s.illness, flare: s.flare }), shallowEqual);
   const send = useSend();
-  const event = EVENTS.find((e) => e.id === activeEvent) ?? null;
+  const ui = useGameUi();
+  // Пока открыты итоги дня, событие ждёт: сначала итоги, потом новое решение
+  const event = ui.summary ? null : (EVENTS.find((e) => e.id === activeEvent) ?? null);
   if (!event) return null;
 
   // Кто заболел: портрет и имя, как при просьбе о задании

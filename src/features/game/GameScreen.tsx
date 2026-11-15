@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { sound } from "@/audio/audio";
 import { t } from "@/i18n";
 import { useGame, useMeta, useSession } from "@/session/hooks";
 import { Intro } from "@/features/story/Intro";
 import { ResultsScreen } from "@/features/results/ResultsScreen";
 import { RotateHint } from "@/ui/RotateHint";
+import { Ending } from "@/features/results/Ending";
+import { DaySummary } from "./DaySummary";
+import { WrapUp } from "./WrapUp";
 import { DayBanner } from "./DayBanner";
 import { EventModal } from "./EventModal";
 import { MapView } from "./MapView";
@@ -18,8 +22,12 @@ type Props = { onRestart: () => void; onMenu: () => void; onSources: () => void 
 
 function Results({ onRestart, onMenu, onSources }: Props) {
   const session = useSession();
+  // Финальный ролик показывается один раз за игру, потом итоговый экран
+  const [endingSeen, setEndingSeen] = useState(false);
+  const won = useGame((s) => s.status === "won");
   const state = useGame((s) => s);
   const record = useMeta((m) => m.record);
+  if (!endingSeen) return <Ending won={won} onDone={() => setEndingSeen(true)} />;
   return (
     <ResultsScreen
       state={state}
@@ -30,6 +38,12 @@ function Results({ onRestart, onMenu, onSources }: Props) {
       onSources={() => { sound.playClick(); onSources(); }}
     />
   );
+}
+
+function Summary() {
+  const ui = useGameUi();
+  const playing = useGame((s) => s.status === "playing");
+  return ui.summary && playing ? <DaySummary summary={ui.summary} onClose={ui.closeSummary} /> : null;
 }
 
 function Rules() {
@@ -58,7 +72,9 @@ function Layout(props: Props) {
       <BuildContainer />
       <EventModal />
       {!playing && <Results {...props} />}
+      <Summary />
       <DayBanner />
+      <WrapUp />
       <TaskToasts />
       <Rules />
       <ConnectionLost />

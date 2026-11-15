@@ -20,6 +20,45 @@
   box-shadow: var(--panel-shadow);
 }
 
+.resource { position: relative; }
+.resource__tip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, -4px);
+  width: 210px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1.5px solid var(--panel-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 50;
+}
+.resource__tip strong { display: block; font-size: 16px; margin-bottom: 4px; }
+.resource__tip p { margin: 0 0 6px; }
+.resource__tip p:last-child { margin-bottom: 0; }
+.resource__tipnote { opacity: 0.7; font-size: 13px; }
+.resource:hover .resource__tip,
+.resource:focus-visible .resource__tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+/* Крайние карточки: окно не должно уезжать за экран */
+.resource:first-child .resource__tip { left: 0; transform: translate(0, -4px); }
+.resource:first-child:hover .resource__tip,
+.resource:first-child:focus-visible .resource__tip { transform: translate(0, 0); }
+.resource:last-child .resource__tip { left: auto; right: 0; transform: translate(0, -4px); }
+.resource:last-child:hover .resource__tip,
+.resource:last-child:focus-visible .resource__tip { transform: translate(0, 0); }
+
 .resource__body { display: flex; flex-direction: column; line-height: 1.15; }
 .resource__value { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .resource__delta { font-size: 15px; opacity: 0.9; }

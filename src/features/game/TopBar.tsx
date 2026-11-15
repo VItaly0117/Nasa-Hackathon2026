@@ -8,18 +8,15 @@ import { shallowEqual } from "@/session/store";
 import { DayClock } from "./DayClock";
 import { BookIcon, MoonLogo, SoundOffIcon, SoundOnIcon } from "@/ui/icons";
 import { ResourcesContainer } from "./Panels";
+import { useClockRunning } from "./useClockRunning";
 import { useGameUi } from "./ui-state";
 
 // Часы: единственное, что перерисовывается на каждый tick. Время дня идёт, пока игрок ничем не занят:
 // ни события, ни правил, ни выбора места. В совместной игре время общее: его двигает только ведущий
 function GameClock({ children }: { children: ReactNode }) {
   const session = useSession();
-  const ui = useGameUi();
   const clockMs = useGame((s) => s.clockMs);
-  const playing = useGame((s) => s.status === "playing");
-  const noEvent = useGame((s) => s.activeEvent === null);
-  const canTick = useMeta((m) => (session.online ? m.hostId === session.online.playerId && m.connected : true));
-  const running = session.online ? canTick && playing && noEvent : playing && noEvent && !ui.rulesOpen && ui.buildType === null;
+  const running = useClockRunning();
   return (
     <DayClock running={running} progress={clockMs / DAY_MS} onTick={session.tick}>
       {children}

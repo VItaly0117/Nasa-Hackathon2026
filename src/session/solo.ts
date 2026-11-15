@@ -1,5 +1,5 @@
 import { initialState, reduce } from "@/engine";
-import type { GameState } from "@/types";
+import type { GameMode, GameState } from "@/types";
 import { clearSave, loadRecords, recordFrom, saveGame, saveRecord } from "./storage";
 import { createStore, createValueStore } from "./store";
 import type { GameSession, SessionMeta } from "./types";
@@ -8,8 +8,8 @@ import type { GameSession, SessionMeta } from "./types";
 const SAVE_EVERY_MS = 2000;
 
 // Одиночная игра: новая или продолженная из сохранения. Сохраняет ход игры и записывает рекорд в конце
-export function createSoloSession(resume: GameState | null): GameSession {
-  const store = createStore(resume ?? initialState(), reduce);
+export function createSoloSession(resume: GameState | null, difficulty: GameMode = "normal"): GameSession {
+  const store = createStore(resume ?? initialState(undefined, difficulty), reduce);
   const meta = createValueStore<SessionMeta>({ connected: true, players: [], hostId: null, record: null });
 
   const save = () => {

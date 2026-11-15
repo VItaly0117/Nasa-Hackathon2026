@@ -1,5 +1,6 @@
 import modulesData from "@/content/modules.json";
 import type { GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources } from "@/types";
+import { MODES } from "./constants";
 
 // Чтение состояния и таблиц модулей: чистые функции без изменений
 
@@ -8,6 +9,12 @@ const MODULES = modulesData as ModuleDef[];
 export const RESOURCE_KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
 // Что экипаж тратит каждый день
 export const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
+
+// Расход экипажа за день с поправкой на режим игры
+export function crewNeeds(state: GameState): Partial<Resources> {
+  const need = MODES[state.mode ?? "normal"].need;
+  return Object.fromEntries(Object.entries(CREW_PER_DAY).map(([key, v]) => [key, Math.round((v ?? 0) * need)]));
+}
 
 export function getDef(type: ModuleType): ModuleDef {
   return MODULES.find((m) => m.type === type)!;
@@ -48,7 +55,7 @@ export function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Re
 // Сколько каждого ресурса прибавится или убавится за следующий день
 export function dailyDelta(state: GameState): Partial<Resources> {
   const total: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
-  addTo(total, CREW_PER_DAY);
+  addTo(total, crewNeeds(state));
   for (const module of state.modules) addTo(total, moduleOutput(module, state.isNight));
   return total;
 }

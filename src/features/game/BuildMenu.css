@@ -10,44 +10,44 @@
   z-index: 1;
 }
 
-.build--collapsed {
-  padding: 10px 14px;
-}
-
-.build__tabs {
+/* Квадратная кнопка «Будівництво» справа внизу */
+.build-dock {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  margin-bottom: 8px;
+  gap: 10px;
 }
-
-.build--collapsed .build__tabs {
-  margin-bottom: 0;
-}
-
-.build__tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
+.build-dock__hint {
+  padding: 8px 12px;
   border-radius: 10px;
+  background: rgba(20, 26, 56, 0.85);
+  font-size: 14px;
+}
+.build-toggle {
+  width: 350px;
+  height: 64px;
+  padding: 0 24px;
+  gap: 12px;
+  border-radius: 16px;
+  border: 0;
   background: var(--accent);
   color: #3b2a00;
+  font: inherit;
   font-weight: 800;
-  font-size: 16px;
-  line-height: 1.2;
-}
-.build__hint {
-  flex: 1;
-  min-width: 120px;
-  font-size: 15px;
-  opacity: 0.9;
+  font-size: 18px;
   display: flex;
   align-items: center;
-  line-height: 1.2;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.1s, filter 0.2s;
 }
-.build__tabs .collapse-btn { margin-left: auto; }
+.build-toggle:hover { filter: brightness(1.08); }
+.build-toggle:active { transform: scale(0.95); }
+.build-toggle--open { outline: 3px solid rgba(255, 255, 255, 0.55); }
 
 .build__list {
   margin: 0;
@@ -96,7 +96,7 @@
 .detail {
   position: absolute;
   right: 18px;
-  bottom: 18px;
+  bottom: 96px;
   width: 440px;
   height: auto;
   min-height: auto;
@@ -225,19 +225,16 @@
 }
 
 @media (max-width: 1100px) {
-  .build { right: 18px; }
+  .build { right: 226px; }
   .build__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .detail { bottom: auto; top: 118px; right: 18px; }
 }
 
 /* Телефоны и низкие экраны: карточки в один ряд, подробности над картой */
 @media (max-height: 620px), (max-width: 900px) {
-  .build { left: 66px; right: 10px; bottom: 10px; padding: 8px 10px 10px; }
-  .build--collapsed { padding: 8px 10px; }
-  .build__tabs { margin-bottom: 8px; gap: 8px 10px; }
-  .build--collapsed .build__tabs { margin-bottom: 0; }
-  .build__tab { padding: 5px 12px; font-size: 15px; }
-  .build__hint { font-size: 13px; }
+  .build { left: 66px; right: 170px; bottom: 10px; padding: 8px 10px 10px; }
+  .build-dock { right: 10px; bottom: 10px; }
+  .build-toggle { width: auto; min-width: 175px; height: 56px; padding: 0 18px; font-size: 16px; }
   .build__list { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
   .card { min-height: 0; padding: 6px 2px; gap: 2px; }
   .card__name { font-size: 11px; min-height: 26px; }

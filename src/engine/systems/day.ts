@@ -1,7 +1,7 @@
 import type { GameState, ResourceKey } from "@/types";
 import { MISSION_DAYS, NIGHT_START, SHORTAGE_DAMAGE } from "@/engine/constants";
 import { msg } from "@/engine/msg";
-import { addTo, capacityOf, clamp, CREW_PER_DAY, moduleOutput, RESOURCE_KEYS } from "@/engine/selectors";
+import { addTo, capacityOf, clamp, crewNeeds, moduleOutput, RESOURCE_KEYS } from "@/engine/selectors";
 import { applyEventStart, eventForDay } from "./events";
 import { issueTasks, reviewTasks } from "./tasks";
 
@@ -27,7 +27,7 @@ export function nextDay(state: GameState): GameState {
     log.push({ day: stamp, ...msg("log.noPower") });
     history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
-  addTo(resources, CREW_PER_DAY);
+  addTo(resources, crewNeeds(state));
   const capacity = capacityOf(state.modules);
   for (const key of RESOURCE_KEYS) resources[key] = clamp(resources[key], capacity[key]);
 

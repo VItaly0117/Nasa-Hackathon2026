@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { ModuleType } from "@/types";
+import { summarizeDay } from "@/engine";
+import type { DaySummary } from "@/engine";
+import type { GameState, ModuleType } from "@/types";
+import { useSession } from "@/session/hooks";
 import { GameUiContext } from "./ui-state";
 import type { GameUi } from "./ui-state";
 
@@ -9,6 +12,21 @@ export function GameUiProvider({ children }: { children: ReactNode }) {
   const [buildType, setBuildType] = useState<ModuleType | null>(null);
   const [surveyingIce, setSurveyingIce] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [summary, setSummary] = useState<DaySummary | null>(null);
+  const { store } = useSession();
+
+  // Итоги дня: состояние на начало дня запоминаем, а при смене дня сравниваем с ним.
+  // Последний день не показываем: вместо него итог всей миссии
+  useEffect(() => {
+    let dayStart: GameState = store.getState();
+    return store.subscribe(() => {
+      const state = store.getState();
+      if (state.day === dayStart.day) return;
+      const before = dayStart;
+      dayStart = state;
+      if (state.status === "playing") setSummary(summarizeDay(before, state));
+    });
+  }, [store]);
 
   // Esc отменяет постройку
   useEffect(() => {
@@ -25,6 +43,7 @@ export function GameUiProvider({ children }: { children: ReactNode }) {
       buildType,
       surveyingIce,
       rulesOpen,
+      summary,
       selectType: (type) => {
         setSelectedType(type);
         setBuildType(null);
@@ -36,8 +55,9 @@ export function GameUiProvider({ children }: { children: ReactNode }) {
         if (on) setBuildType(null);
       },
       setRulesOpen,
+      closeSummary: () => setSummary(null),
     }),
-    [selectedType, buildType, surveyingIce, rulesOpen],
+    [selectedType, buildType, surveyingIce, rulesOpen, summary],
   );
 
   return <GameUiContext.Provider value={value}>{children}</GameUiContext.Provider>;
