@@ -78,6 +78,27 @@ export function BuildMenu({
     wasPlacing.current = placing;
   }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Бейдж: сколько модулей можно построить прямо сейчас
+  const buildable = disabled || crewBusy ? 0 : defs.filter((d) => isAffordable(d) && !(lockedBy && lockedBy(d))).length;
+  // Пульсация кнопки, если игрок долго ничего не делает, а построить уже можно
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    let timer = window.setTimeout(() => setIdle(true), IDLE_MS);
+    const reset = () => {
+      setIdle(false);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setIdle(true), IDLE_MS);
+    };
+    window.addEventListener("pointerdown", reset);
+    window.addEventListener("keydown", reset);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", reset);
+      window.removeEventListener("keydown", reset);
+    };
+  }, []);
+  const nudge = collapsed && !placing && buildable > 0 && idle;
+
   // B открывает и закрывает меню, Esc закрывает его, если поверх нет окна (правила, событие)
   const keyRef = useRef({ closed, placing, toggle, disabled });
   useEffect(() => {
