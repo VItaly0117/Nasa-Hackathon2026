@@ -274,10 +274,13 @@
   top: 0; left: 0; right: 0;
   height: 6px;
   background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
 }
 .daysum__bar span {
   display: block;
   height: 100%;
+  border-radius: 999px;
   background: linear-gradient(90deg, var(--orange-2, #ffb347), var(--accent));
   transform-origin: left center;
   animation: daysum-timer var(--dur) linear forwards;

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import sourcesData from "@/content/sources.json";
 import { t, tDynamic } from "@/i18n";
 import { sound } from "@/audio/audio";
@@ -9,6 +10,14 @@ const SOURCES = sourcesData as Source[];
 
 // «Данные NASA»: откуда взяты цифры и факты в игре. Оформление как у главного экрана; каждая карточка — ссылка на источник
 export function SourcesPanel({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div className="mm mm--sources">
       <div className="mm__box mm__box--sources" role="dialog" aria-labelledby="sources-title">

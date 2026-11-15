@@ -47,7 +47,7 @@ export function capacityOf(modules: PlacedModule[]): Resources {
   const cap: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
   for (const key of RESOURCE_KEYS) cap[key] = BASE_CAPACITY;
   for (const module of modules) {
-    if (module.broken || module.build) continue;
+    if (module.broken || module.build || module.paused) continue;
     const extra = getDef(module.type).capacity;
     if (extra) for (const key of RESOURCE_KEYS) cap[key] += extra[key] ?? 0;
   }
@@ -66,7 +66,7 @@ export function addTo(target: Resources, delta: Partial<Resources>) {
 export const isWorking = (m: PlacedModule) => !m.build;
 
 export function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources> {
-  if (module.broken || module.build) return {};
+  if (module.broken || module.build || module.paused) return {};
   const def = getDef(module.type);
   return isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
 }

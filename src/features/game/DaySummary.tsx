@@ -58,6 +58,13 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
   useEffect(() => {
     closeRef.current = onClose;
   });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [secLeft, setSecLeft] = useState(seconds);
   useEffect(() => {
     const end = Date.now() + seconds * 1000;

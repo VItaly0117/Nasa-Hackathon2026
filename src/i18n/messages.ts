@@ -12,6 +12,8 @@ const KINDS: Record<string, Record<string, ParamKind>> = {
   "log.vitalOut": { what: "resource" },
   "log.vitalHealth": { what: "resource" },
   "log.built": { name: "module" },
+  "log.demolished": { name: "module" },
+  "log.buildCancelled": { name: "module" },
   "log.buildStarted": { who: "crew", name: "module" },
   "log.illness": { name: "crew" },
   "log.treated": { name: "crew" },

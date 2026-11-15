@@ -4,10 +4,11 @@ import type { ModuleDef, ModuleType } from "@/types";
 import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, inBuildZone, slotOf, cellOf } from "@/engine";
 import type { Terrain, TileInfo } from "@/engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/map";
-import { moduleName, t, tDynamic } from "@/i18n";
+import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ArtDefs, Ice, ModuleArt } from "./art";
 import { ART_HEIGHT } from "./art-size";
 import { MapBackground } from "./MapBackground";
+import { SkyFx } from "./SkyFx";
 import { Walkers } from "./Walkers";
 import type { WalkTarget } from "./Walkers";
 import "./LunarMap.css";
@@ -23,6 +24,9 @@ interface LunarMapProps {
   canPlaceAt: (row: number, col: number) => boolean;
   canAffordRepair?: boolean;
   onRepairModule?: (slot: number) => void;
+  onPauseModule?: (slot: number) => void;
+  onDemolishModule?: (slot: number) => void;
+  onCancelBuild?: (slot: number) => void;
   onSelectTile?: (tile: TileInfo) => void;
   // Живые части стройки (полоска и проценты). Отдельно от modules: прогресс меняется 10 раз в секунду,
   // а карта при этом не должна перерисовываться. Эти части подписываются на время сами
@@ -30,7 +34,7 @@ interface LunarMapProps {
 }
 
 // Что карте нужно знать о модуле. Время стройки (leftMs) сюда намеренно не входит
-export type MapModule = { slot: number; type: ModuleType; broken: boolean; building: boolean; waiting: boolean };
+export type MapModule = { slot: number; type: ModuleType; broken: boolean; paused: boolean; building: boolean; waiting: boolean };
 
 const OK_COLOR = "#4ADE80";
 const BAD_COLOR = "#FF6B6B";
@@ -38,7 +42,7 @@ const BAD_COLOR = "#FF6B6B";
 // Рисунки модулей по размеру подобраны под ракету на фоновой картинке
 const ART_SCALE = 1.7;
 const BUBBLE_W = 300;
-const BUBBLE_H = 140;
+const BUBBLE_H = 330;
 const DRAG_THRESHOLD = 6;
 
 const MIN_ZOOM = 0.3;
@@ -75,24 +79,39 @@ function Bubble({
   x,
   y,
   title,
+  dot,
   text,
   onRepair,
   canRepair,
+  onPause,
+  paused,
+  onDemolish,
+  onCancelBuild,
 }: {
   x: number;
   y: number;
   title: string;
+  dot?: string; // цвет индикатора состояния рядом с названием
   text: ReactNode;
   onRepair?: () => void;
   canRepair?: boolean;
+  onPause?: () => void;
+  paused?: boolean;
+  onDemolish?: () => void;
+  onCancelBuild?: () => void;
 }) {
+  const [sure, setSure] = useState(false);
+  const interactive = !!(onRepair || onPause || onDemolish || onCancelBuild);
   return (
-    <g style={{ transform: `translate(${x}px, ${y}px) scale(var(--inv-k, 1))` }} pointerEvents={onRepair ? "auto" : "none"}>
+    <g style={{ transform: `translate(${x}px, ${y}px) scale(var(--inv-k, 1))` }} pointerEvents={interactive ? "auto" : "none"}>
       <foreignObject x={-BUBBLE_W / 2} y={-BUBBLE_H} width={BUBBLE_W} height={BUBBLE_H}>
         <div className="bubble">
           <div className="bubble__body" role="status">
-            <div className="bubble__title">{title}</div>
-            <div>{text}</div>
+            <div className="bubble__title">
+              {dot && <span className="bubble__dot" style={{ background: dot }} aria-hidden="true" />}
+              {title}
+            </div>
+            <div className="bubble__text">{text}</div>
             {onRepair && (
               <button
                 className="bubble__repair-btn"
@@ -104,6 +123,41 @@ function Bubble({
               >
                 {t("map.repair")} (💧10 ⚡10)
               </button>
+            )}
+            {onCancelBuild && (
+              <div className="bubble__actions">
+                <button
+                  className="bubble__repair-btn bubble__repair-btn--danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (sure) onCancelBuild();
+                    else setSure(true);
+                  }}
+                >
+                  {t(sure ? "map.cancelBuildSure" : "map.cancelBuild")}
+                </button>
+              </div>
+            )}
+            {(onPause || onDemolish) && (
+              <div className="bubble__actions">
+                {onPause && (
+                  <button className="bubble__repair-btn" onClick={(e) => { e.stopPropagation(); onPause(); }}>
+                    {t(paused ? "map.resume" : "map.pause")}
+                  </button>
+                )}
+                {onDemolish && (
+                  <button
+                    className="bubble__repair-btn bubble__repair-btn--danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (sure) onDemolish();
+                      else setSure(true);
+                    }}
+                  >
+                    {t(sure ? "map.demolishSure" : "map.demolish")}
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <div className="bubble__tail" />
@@ -155,11 +209,16 @@ export default function LunarMap({
   canPlaceAt,
   canAffordRepair = true,
   onRepairModule,
+  onPauseModule,
+  onDemolishModule,
+  onCancelBuild,
   onSelectTile,
   renderBuild,
 }: LunarMapProps) {
   const [selected, setSelected] = useState<TileInfo | null>(null);
   const [hovered, setHovered] = useState<TileInfo | null>(null);
+  const [hoverMod, setHoverMod] = useState<number | null>(null);
+  const [hoverIce, setHoverIce] = useState<TileInfo | null>(null);
 
   const frameRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef<Size>({ w: 0, h: 0 });
@@ -364,28 +423,66 @@ export default function LunarMap({
   );
 
   // Что написать в облачке над выбранной клеткой
+  const hoverModule = !buildType && hoverMod !== null ? modules.find((m) => m.slot === hoverMod) : undefined;
+  const hoverTile = hoverModule ? TILES.find((tl) => slotOf(tl.row, tl.col) === hoverModule.slot) : undefined;
+  const bubbleTile = selected ?? hoverTile ?? (!buildType ? hoverIce : null) ?? null;
   const bubble = (() => {
-    if (!selected) return null;
-    const { x, y } = getPosition(selected.row, selected.col);
-    const module = moduleAt(selected.row, selected.col);
+    if (!bubbleTile) return null;
+    const { x, y } = getPosition(bubbleTile.row, bubbleTile.col);
+    const module = moduleAt(bubbleTile.row, bubbleTile.col);
     const def = defs.find((d) => d.type === module?.type);
+    const isSelected = selected !== null;
 
     if (module && def) {
       const isBroken = module.broken;
+      const solarDark = isNight && module.type === "solar";
+      const active = !module.building && !isBroken && !module.paused && !solarDark;
+      const dot = module.building ? "#fbbf24" : isBroken ? "#ff6b6b" : active ? "#4ade80" : "#9aa3b8";
+      const status = module.building
+        ? t("map.statusBuilding")
+        : isBroken
+          ? t("map.statusBroken")
+          : module.paused
+            ? t("map.statusPaused")
+            : t("map.statusWorking");
       return {
         x,
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
         title: moduleName(def.type),
-        text: module.building
-          ? module.waiting
-            ? t("map.waiting")
-            : renderBuild?.percent(module)
-          : isBroken
-            ? t("map.broken")
-            : perDayText(def, isNight),
-        onRepair: isBroken && onRepairModule ? () => onRepairModule(module.slot) : undefined,
+        dot,
+        text: (
+          <>
+            <div className="bubble__desc">{moduleDesc(def.type)}</div>
+            <div className="bubble__row">
+              <div className="bubble__status" style={{ background: dot }}>{status}</div>
+              <div className="bubble__stats">
+                {module.building
+                  ? module.waiting
+                    ? t("map.waiting")
+                    : renderBuild?.percent(module)
+                  : isBroken
+                    ? t("map.broken")
+                    : module.paused
+                      ? t("map.nothing")
+                      : perDayText(def, isNight)}
+              </div>
+            </div>
+            {solarDark && !isBroken && !module.building && <div className="bubble__desc">{t("map.hintSolarNight")}</div>}
+          </>
+        ),
+        onRepair: isSelected && isBroken && onRepairModule ? () => onRepairModule(module.slot) : undefined,
         canRepair: isBroken ? canAffordRepair : undefined,
+        onPause: isSelected && !module.building && !isBroken && onPauseModule ? () => onPauseModule(module.slot) : undefined,
+        paused: module.paused,
+        onDemolish: isSelected && !module.building && onDemolishModule ? () => onDemolishModule(module.slot) : undefined,
+        onCancelBuild: isSelected && module.building && onCancelBuild ? () => onCancelBuild(module.slot) : undefined,
       };
+    }
+    const target = selected ?? bubbleTile;
+    if (!selected) {
+      // Без выбора облачко показываем только над залежью льда: это ресурс, а не пустая земля
+      if (target.terrain !== "ice") return null;
+      return { x, y: y - TILE_H / 2, title: getTerrainName("ice"), dot: "#56d8ff", text: t("map.ice") };
     }
 
     const near = inBuildZone(modules, selected.row, selected.col);
@@ -403,6 +500,38 @@ export default function LunarMap({
 
     return { x, y: y - TILE_H / 2 - lift, title: getTerrainName(selected.terrain), text };
   })();
+
+  // Облачко не должно уходить под панели интерфейса: при выборе клетки сдвигаем камеру так, чтобы оно целиком
+  // попало в свободную область (ниже верхней панели, правее панели экипажа)
+  const bubbleX = bubble?.x;
+  const bubbleY = bubble?.y;
+  const bubbleKey = selected ? `${selected.row}-${selected.col}` : "";
+  useEffect(() => {
+    if (!bubbleKey || bubbleX === undefined || bubbleY === undefined) return;
+    const { w, h } = sizeRef.current;
+    if (w < 700) return;
+    const v = viewRef.current;
+    const TOP_SAFE = 210; // верхняя панель с таймером и ресурсами
+    const LEFT_SAFE = 390; // панель экипажа
+    const RIGHT_SAFE = 20;
+    const BOTTOM_SAFE = 110;
+    const bh = 300; // реальная высота облачка с кнопками
+    const sx = v.x + bubbleX * v.k;
+    const sy = v.y + bubbleY * v.k;
+    let dx = 0;
+    let dy = 0;
+    if (sy - bh < TOP_SAFE) dy = TOP_SAFE - (sy - bh);
+    else if (sy > h - BOTTOM_SAFE) dy = h - BOTTOM_SAFE - sy;
+    const underCrew = sy - bh + dy < 720; // панель экипажа занимает левую колонку до этой высоты
+    const left = underCrew ? LEFT_SAFE : RIGHT_SAFE;
+    if (sx - BUBBLE_W / 2 < left) dx = left - (sx - BUBBLE_W / 2);
+    else if (sx + BUBBLE_W / 2 > w - RIGHT_SAFE) dx = w - RIGHT_SAFE - (sx + BUBBLE_W / 2);
+    if (dx || dy) {
+      animate();
+      apply({ ...v, x: v.x + dx, y: v.y + dy });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bubbleKey]);
 
   const handleSelectImpl = (tile: TileInfo) => {
     if (gesture.current.moved) return;
@@ -432,7 +561,8 @@ export default function LunarMap({
             stroke={buildType ? "#ffffff" : "none"}
             strokeOpacity="0.14"
             onClick={() => handleSelect(tile)}
-            onMouseEnter={buildType ? () => setHovered(tile) : undefined}
+            onMouseEnter={buildType ? () => setHovered(tile) : tile.terrain === "ice" ? () => setHoverIce(tile) : undefined}
+            onMouseLeave={tile.terrain === "ice" ? () => setHoverIce((h) => (h === tile ? null : h)) : undefined}
             style={{ cursor: buildType ? "crosshair" : "pointer" }}
           />
         );
@@ -474,21 +604,26 @@ export default function LunarMap({
               key={`o-${row}-${col}`}
               transform={`translate(${x} ${y}) scale(${ART_SCALE})`}
               onClick={() => handleSelect(tile)}
+              onMouseEnter={() => setHoverMod(module.slot)}
+              onMouseLeave={() => setHoverMod((h) => (h === module.slot ? null : h))}
               style={{ cursor: "pointer" }}
               pointerEvents={buildType ? "none" : "auto"}
             >
-              <g className="module-art" opacity={module.building ? 0.45 : 1}>
+              <g className={`module-art${isNight ? (module.type === "solar" ? " module-art--night-solar" : " module-art--night") : ""}`} opacity={module.building ? 0.45 : 1}>
                 {/* при смене «строится → готово» ключ пересоздаёт группу и играет появление */}
                 <g key={module.building ? "building" : "ready"} className={module.building ? undefined : "module-pop"}>
                   <ModuleArt type={module.type} broken={module.broken} />
                 </g>
               </g>
+              {isNight && !module.building && !module.broken && module.type !== "solar" && (
+                <ellipse className="night-glow" cx="0" cy={-ART_HEIGHT[module.type] * 0.45} rx="26" ry="18" fill="url(#gNightGlow)" pointerEvents="none" />
+              )}
               {!module.building && <ellipse className="build-pulse" cx="0" cy="0" rx="34" ry="17" fill="none" stroke="#ffd166" strokeWidth="3" />}
               {module.building && renderBuild?.progress(module)}
             </g>
           );
         }),
-    [modules, buildType, handleSelect, renderBuild]
+    [modules, buildType, handleSelect, renderBuild, isNight]
   );
 
   const ghost =
@@ -510,11 +645,12 @@ export default function LunarMap({
       >
         <div
           ref={stageRef}
-          className={`map-stage ${smooth ? "map-stage--smooth" : ""}`}
+          className={`map-stage ${smooth ? "map-stage--smooth" : ""}${isNight ? " map-stage--night" : ""}`}
           style={{ width: MAP_W, height: MAP_H }}
         >
           {/* Слой 1: фоновая картинка — небо, Земля, горы, кратеры, лёд, площадка с ракетой */}
           <MapBackground imageWidth={IMAGE_SIZE.width} imageHeight={IMAGE_SIZE.height} width={MAP_W} height={MAP_H} />
+          <SkyFx width={MAP_W} height={MAP_H} />
           <svg
             viewBox={`0 0 ${MAP_W} ${MAP_H}`}
             width={MAP_W}
@@ -541,7 +677,7 @@ export default function LunarMap({
 
             {/* Слой 3: лунная ночь затемняет поверхность, огни зданий остаются яркими */}
             {isNight && (
-              <rect width={MAP_W} height={MAP_H} fill="#050a1a" opacity="0.5" pointerEvents="none" />
+              <rect width={MAP_W} height={MAP_H} fill="#040922" opacity="0.62" pointerEvents="none" />
             )}
 
             {/* Слой 4: зелёные клетки, где можно строить выбранный модуль */}
@@ -597,7 +733,7 @@ export default function LunarMap({
             <Walkers targets={walkTargets} active={crewActive} sickIds={sickCrewIds} />
 
             {/* Слой 7: облачко-подпись над выбранным объектом, поверх всего */}
-            {bubble && <Bubble {...bubble} />}
+            {bubble && <Bubble key={`${bubble.x}-${bubble.y}`} {...bubble} />}
           </svg>
         </div>
       </div>

@@ -19,6 +19,7 @@
 .map-svg { display: block; position: absolute; left: 0; top: 0; }
 /* will-change: фон остаётся отдельным слоем, даже когда у сцены карты will-change включается и выключается при движении (иначе возможно мигание) */
 .map-bg { display: block; position: absolute; left: 0; top: 0; pointer-events: none; transition: opacity 0.3s; will-change: transform; }
+.map-sky-fx { display: block; position: absolute; left: 0; top: 0; pointer-events: none; }
 .map-frame--dragging .map-svg { pointer-events: none; }
 
 /* Пока камера движется, бесконечные анимации на карте стоят: меньше перерисовок */
@@ -39,21 +40,66 @@
 }
 
 .bubble__body {
-  background: #7FA6F5;
-  color: #0E1A3A;
-  border-radius: 16px;
-  padding: 10px 18px;
+  box-sizing: border-box;
+  max-width: 100%;
+  background: linear-gradient(180deg, #2c3f86 0%, #1b2a63 100%);
+  color: #eaf0ff;
+  border: 3px solid #7FA6F5;
+  border-radius: 20px;
+  padding: 14px 18px 16px;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.35;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 0 rgba(8, 14, 40, 0.55), 0 10px 24px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
-.bubble__title { font-weight: 800; font-size: 18px; }
+.bubble__title {
+  font-weight: 900;
+  font-size: 18px;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  padding-bottom: 8px;
+  border-bottom: 2px dashed rgba(127, 166, 245, 0.35);
+  width: 100%;
+}
+
+.bubble__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.bubble__desc { color: #c9d6ff; text-wrap: balance; }
+.bubble__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.bubble__status {
+  font-weight: 800;
+  font-size: 13px;
+  color: #0e1a2a;
+  background: #6fe39b;
+  padding: 3px 12px;
+  border-radius: 999px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+.bubble__stats {
+  font-weight: 800;
+  font-size: 13px;
+  background: rgba(8, 14, 40, 0.45);
+  border: 2px solid rgba(127, 166, 245, 0.35);
+  border-radius: 999px;
+  padding: 2px 12px;
+  color: #ffe9a8;
+}
 
 .bubble__repair-btn {
   pointer-events: auto;
@@ -64,9 +110,9 @@
   font-family: inherit;
   font-weight: 800;
   font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  padding: 7px 16px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
   transition: transform 0.1s, background 0.15s;
   margin-top: 2px;
 }
@@ -82,12 +128,16 @@
   cursor: not-allowed;
 }
 
+.bubble__actions { display: flex; gap: 12px; margin-top: 2px; }
+.bubble__repair-btn--danger { background: #ff6b6b; color: #2a0505; }
+.bubble__repair-btn--danger:hover:not(:disabled) { background: #ff8a8a; }
+
 .bubble__tail {
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-top: 10px solid #7FA6F5;
+  border-top: 12px solid #7FA6F5;
 }
 
 /* Бейджи з іменами астронавтів на карті */
@@ -142,3 +192,13 @@
   .tile-ok { animation: none; }
   .map-stage--smooth { transition: none; }
 }
+
+.bubble__dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; vertical-align: 1px; box-shadow: 0 0 6px currentColor; }
+
+/* Ночь: здания темнеют, окна светятся тёплым, блики на панелях гаснут */
+.module-art { transition: filter 0.6s; }
+.module-art--night { filter: brightness(0.55) saturate(0.8); }
+.module-art--night-solar { filter: brightness(0.35) saturate(0.6); }
+.map-stage--night .panel-glare { display: none; }
+.map-stage--night .art-window { fill: #ffd86b; }
+.night-glow { mix-blend-mode: screen; }

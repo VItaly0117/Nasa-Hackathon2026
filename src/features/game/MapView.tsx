@@ -15,7 +15,7 @@ const MODULES = modulesData as ModuleDef[];
 
 const sameMapModules = (a: MapModule[], b: MapModule[]) =>
   a.length === b.length &&
-  a.every((m, i) => m.slot === b[i].slot && m.type === b[i].type && m.broken === b[i].broken && m.building === b[i].building && m.waiting === b[i].waiting);
+  a.every((m, i) => m.slot === b[i].slot && m.type === b[i].type && m.broken === b[i].broken && m.paused === b[i].paused && m.building === b[i].building && m.waiting === b[i].waiting);
 
 const sameIds = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 
@@ -47,7 +47,7 @@ export function MapView() {
   const ui = useGameUi();
   const modules = useGame(
     (s): MapModule[] =>
-      s.modules.map((m) => ({ slot: m.slot, type: m.type, broken: m.broken, building: !!m.build, waiting: !!m.build && m.build.crewId === null })),
+      s.modules.map((m) => ({ slot: m.slot, type: m.type, broken: m.broken, paused: !!m.paused, building: !!m.build, waiting: !!m.build && m.build.crewId === null })),
     sameMapModules,
   );
   const isNight = useGame((s) => s.isNight);
@@ -83,6 +83,18 @@ export function MapView() {
       onRepairModule={(slot) => {
         sound.playRepair();
         send({ type: "repair", slot });
+      }}
+      onPauseModule={(slot) => {
+        sound.playClick();
+        send({ type: "pause", slot });
+      }}
+      onCancelBuild={(slot) => {
+        sound.playClick();
+        send({ type: "cancelBuild", slot });
+      }}
+      onDemolishModule={(slot) => {
+        sound.playClick();
+        send({ type: "demolish", slot });
       }}
       onSelectTile={handleSelectTile}
       renderBuild={RENDER_BUILD}

@@ -1,9 +1,7 @@
-import { useState } from "react";
-import { sound } from "@/audio/audio";
+import { useEffect } from "react";
 import { t } from "@/i18n";
 import { useGame, useMeta, useSession } from "@/session/hooks";
 import { Intro } from "@/features/story/Intro";
-import { ResultsScreen } from "@/features/results/ResultsScreen";
 import { RotateHint } from "@/ui/RotateHint";
 import { Ending } from "@/features/results/Ending";
 import { DaySummary } from "./DaySummary";
@@ -20,24 +18,11 @@ import { useSoundEffects } from "./useSoundEffects";
 
 type Props = { onRestart: () => void; onMenu: () => void; onSources: () => void };
 
-function Results({ onRestart, onMenu, onSources }: Props) {
+// Финальный ролик; итогового экрана нет — по кнопке возвращаемся в меню
+function Results({ onMenu }: Props) {
   const session = useSession();
-  // Финальный ролик показывается один раз за игру, потом итоговый экран
-  const [endingSeen, setEndingSeen] = useState(false);
   const won = useGame((s) => s.status === "won");
-  const state = useGame((s) => s);
-  const record = useMeta((m) => m.record);
-  if (!endingSeen) return <Ending won={won} onDone={() => setEndingSeen(true)} />;
-  return (
-    <ResultsScreen
-      state={state}
-      online={!!session.online}
-      record={record}
-      onRestart={() => { sound.playClick(); onRestart(); }}
-      onMenu={() => { sound.playClick(); session.save(); onMenu(); }}
-      onSources={() => { sound.playClick(); onSources(); }}
-    />
-  );
+  return <Ending won={won} onDone={() => { session.save(); onMenu(); }} />;
 }
 
 function Summary() {
@@ -48,6 +33,15 @@ function Summary() {
 
 function Rules() {
   const ui = useGameUi();
+  const { rulesOpen, setRulesOpen } = ui;
+  useEffect(() => {
+    if (!rulesOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRulesOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [rulesOpen, setRulesOpen]);
   return ui.rulesOpen ? <Intro rulesOnly onStart={() => ui.setRulesOpen(false)} /> : null;
 }
 
