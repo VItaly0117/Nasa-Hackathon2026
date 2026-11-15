@@ -48,6 +48,10 @@
 .build-toggle:hover { filter: brightness(1.08); }
 .build-toggle:active { transform: scale(0.95); }
 .build-toggle--open { outline: 3px solid rgba(255, 255, 255, 0.55); }
+.build-toggle--placing {
+  background: #e53935;
+  color: #ffffff;
+}
 
 .build__list {
   margin: 0;
