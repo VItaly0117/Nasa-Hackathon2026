@@ -10,7 +10,7 @@
   touch-action: none;
 }
 .map-frame:active { cursor: grabbing; }
-
+background: #0a0d24 url("./assets/menu_bg.png") center / cover no-repeat;
 .map-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .map-stage--smooth { transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.3, 1); }
 
