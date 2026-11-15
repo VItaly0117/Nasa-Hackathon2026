@@ -1,6 +1,7 @@
 .resources {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
   justify-content: flex-end;
   gap: 18px;
   margin: 0;
@@ -12,7 +13,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  min-width: 140px;
+  flex: 0 0 auto;
   padding: 12px 18px;
   border-radius: 16px;
   background: var(--panel);
@@ -61,7 +62,7 @@
 .resource:last-child:hover .resource__tip,
 .resource:last-child:focus-visible .resource__tip { transform: translate(0, 0); }
 
-.resource__body { display: flex; flex-direction: column; line-height: 1.15; }
+.resource__body { white-space: nowrap; display: flex; flex-direction: column; line-height: 1.15; }
 .resource__value { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .resource__delta { font-size: 15px; opacity: 0.9; }
 /* «/100 л» мельче, чтобы главное число читалось сразу */
@@ -72,9 +73,16 @@
 /* Шесть ресурсов должны влезать в одну строку рядом с плашкой базы */
 @media (max-width: 1700px) {
   .resources { gap: 8px; }
-  .resource { min-width: 0; gap: 8px; padding: 8px 12px; }
+  .resource { gap: 8px; padding: 8px 12px; }
   .resource__value { font-size: 22px; }
   .resource__delta { font-size: 13px; }
+}
+
+@media (max-width: 1500px) {
+  .resources { gap: 5px; }
+  .resource { gap: 6px; padding: 6px 8px; }
+  .resource__value { font-size: 19px; }
+  .resource__delta { font-size: 12px; }
 }
 
 @media (max-height: 620px), (max-width: 900px) {

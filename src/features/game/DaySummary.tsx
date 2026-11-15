@@ -99,32 +99,26 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
         </section>
 
         {care.length > 0 && (
-          <section className="daysum__care" aria-label={t("sum.care.title")}>
-            <h3>{t("sum.care.title")}</h3>
+          <ul className="daysum__care" role="alert">
+            {care.map((text, i) => (
+              <li key={i}>{text}</li>
+            ))}
+          </ul>
+        )}
+
+        {shownDone.length > 0 && (
+          <section className="daysum__list daysum__did">
+            <h3>{t("sum.done.title")}</h3>
             <ul>
-              {care.map((text, i) => (
-                <li key={i}>{text}</li>
+              {shownDone.map((d, i) => (
+                <li key={i}><i aria-hidden="true">✓</i>{d.text}</li>
               ))}
             </ul>
           </section>
         )}
 
-        <div className="daysum__cols">
-        <section className="daysum__card daysum__did">
-          <h3>{t("sum.done.title")}</h3>
-          {shownDone.length > 0 ? (
-            <ul>
-              {shownDone.map((d, i) => (
-                <li key={i} className="is-done"><i aria-hidden="true" />{d.text}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="daysum__quiet">{t("sum.done.none")}</p>
-          )}
-        </section>
-
         {(left.length > 0 || heads.length > 0) && (
-          <section className="daysum__card daysum__next">
+          <section className="daysum__list daysum__next">
             <h3>{t("sum.left.title")}</h3>
             <ul>
               {left.map(({ task, late }) => (
@@ -133,13 +127,10 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                   {tDynamic(`task.${task.id}`)}
                 </li>
               ))}
-              {heads.map((h) => (
-                <li key={h} className="daysum__head-up">{h}</li>
-              ))}
             </ul>
+            {heads.length > 0 && <p className="daysum__heads">{heads.join(" · ")}</p>}
           </section>
         )}
-        </div>
 
         <button className="btn btn--primary daysum__go" autoFocus onClick={onClose}>
           {t("sum.continue")}
