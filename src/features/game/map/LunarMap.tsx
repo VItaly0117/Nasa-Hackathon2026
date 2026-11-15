@@ -7,7 +7,7 @@ import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/
 import { moduleName, t, tDynamic } from "@/i18n";
 import { ArtDefs, Ice, ModuleArt } from "./art";
 import { ART_HEIGHT } from "./art-size";
-import moonBg from "@/assets/moon-bg.webp";
+import moonBg from "@/assets/moon_bg.svg";
 import { Walkers } from "./Walkers";
 import type { WalkTarget } from "./Walkers";
 import "./LunarMap.css";
