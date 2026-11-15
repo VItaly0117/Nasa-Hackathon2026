@@ -67,6 +67,11 @@ export function Astronaut({ suit, name }: { suit: string; name: string }) {
         <ellipse cx="8.2" cy="-50" rx="2.6" ry="1.7" fill="#ffffff" opacity="0.75" transform="rotate(-25 8.2 -50)" />
         <circle cx="-4.8" cy="-47" r="3" fill={suit} stroke="#3a3358" strokeWidth="0.8" />
         <circle className="astro__spark" cx="17" cy="-22" r="3.2" fill={suit} />
+        {/* значок «болеет» над головой (показывается, пока астронавт отдыхает) */}
+        <g className="astro__sick" display="none" transform="translate(12 -62)">
+          <circle r="7" fill="#ffffff" stroke="#3a3358" strokeWidth="1" />
+          <path d="M -1.8 -4.4 h 3.6 v 2.6 h 2.6 v 3.6 h -2.6 v 2.6 h -3.6 v -2.6 h -2.6 v -3.6 h 2.6 Z" fill="#e0243a" />
+        </g>
       </g>
     </g>
   );
@@ -75,11 +80,12 @@ export function Astronaut({ suit, name }: { suit: string; name: string }) {
 type Props = {
   targets: WalkTarget[];
   active: boolean; // false: игра на паузе или идёт событие, астронавты стоят
+  sickIds?: number[]; // кто болеет: стоит на месте, не работает, над головой значок
 };
 
 // Маленькие астронавты ходят от модуля к модулю и «работают». Положение меняем напрямую в SVG,
 // без перерисовки React на каждом кадре
-export function Walkers({ targets, active }: Props) {
+export function Walkers({ targets, active, sickIds = [] }: Props) {
   const roots = useRef<(SVGGElement | null)[]>([]);
   // Над кем сейчас курсор (или кого коснулись): у него показываем подсказку
   const [hovered, setHovered] = useState<number | null>(null);
@@ -89,9 +95,11 @@ export function Walkers({ targets, active }: Props) {
   });
   const targetsRef = useRef(targets);
   const activeRef = useRef(active);
+  const sickRef = useRef(sickIds);
   useEffect(() => {
     targetsRef.current = targets;
     activeRef.current = active;
+    sickRef.current = sickIds;
   });
 
   useEffect(() => {
@@ -105,6 +113,7 @@ export function Walkers({ targets, active }: Props) {
         arm: root?.querySelector<SVGGElement>(".astro__arm") ?? null,
         spark: root?.querySelector<SVGElement>(".astro__spark") ?? null,
         tip: root?.querySelector<SVGGElement>(".astro__tip") ?? null,
+        sick: root?.querySelector<SVGGElement>(".astro__sick") ?? null,
       };
     });
     const st = CREW.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, ready: false, wait: 0, dir: 1, phase: Math.random() * 6, type: "", tip: "" }));
@@ -148,6 +157,13 @@ export function Walkers({ targets, active }: Props) {
           s.ready = true;
         }
 
+        // Больной не дееспособен: стоит на месте, новых целей не выбирает, не «работает»
+        const sick = sickRef.current.includes(CREW[i].id);
+        if (sick) {
+          s.tx = s.x;
+          s.ty = s.y;
+          s.wait = 1;
+        }
         const dx = s.tx - s.x;
         const dy = s.ty - s.y;
         const dist = Math.hypot(dx, dy);
@@ -180,8 +196,11 @@ export function Walkers({ targets, active }: Props) {
         p.legL?.setAttribute("transform", `rotate(${walking ? swing * 34 : 0} -3.5 -15)`);
         p.legR?.setAttribute("transform", `rotate(${walking ? -swing * 34 : 0} 3.5 -15)`);
         // при ходьбе рука машет в такт ногам, на работе поднята и «стучит»
-        p.arm?.setAttribute("transform", walking ? `rotate(${-swing * 38} 0 -31)` : `rotate(${-115 + swing * 18} 0 -31)`);
-        p.spark?.setAttribute("opacity", walking ? "0" : (0.35 + 0.65 * Math.abs(Math.sin(s.phase * 1.5))).toFixed(2));
+        // больной: руки опущены, работы нет
+        p.arm?.setAttribute("transform", sick ? "rotate(-8 0 -31)" : walking ? `rotate(${-swing * 38} 0 -31)` : `rotate(${-115 + swing * 18} 0 -31)`);
+        p.spark?.setAttribute("opacity", walking || sick ? "0" : (0.35 + 0.65 * Math.abs(Math.sin(s.phase * 1.5))).toFixed(2));
+        p.sick?.setAttribute("display", sick ? "inline" : "none");
+        p.flip?.setAttribute("opacity", sick ? "0.8" : "1");
 
         // Подсказка при наведении: куда идёт и над чем работает. Обновляем только у того, на кого навели
         if (p.tip && hoverRef.current === i) {
