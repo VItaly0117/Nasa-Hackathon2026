@@ -1,0 +1,249 @@
+/* Финал игры. Размеры в vmin, чтобы сцена выглядела одинаково на любом экране.
+   Победа: экипаж идёт к ракетам, садится, ракеты взлетают и летят к Земле.
+   Поражение: ракеты стоят, огни на базе гаснут, экипаж остаётся на Луне. */
+.ending-scene {
+  --bar-h: clamp(180px, 28vh, 260px);
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  color: #fff;
+  background: radial-gradient(ellipse at 50% 20%, #0e1640 0%, #050818 65%, #02030a 100%);
+}
+
+/* ---------- Звёзды ---------- */
+.end-stars { position: absolute; inset: 0; }
+.end-stars i {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.8;
+  animation: end-twinkle 3.4s ease-in-out infinite;
+}
+@keyframes end-twinkle { 50% { opacity: 0.25; } }
+
+.end-world { position: absolute; inset: 0 0 var(--bar-h) 0; overflow: hidden; }
+
+/* ---------- Земля в небе ---------- */
+.end-earth {
+  position: absolute;
+  left: 80%;
+  top: 22%;
+  width: 11vmin;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 34% 30%, #6dbbff, #2c6ccc 55%, #12397e 100%);
+  box-shadow: 0 0 3vmin rgba(120, 185, 255, 0.4);
+  transition: left 6.5s ease-in-out, top 6.5s ease-in-out, width 6.5s ease-in-out;
+}
+.end-earth__land { position: absolute; background: #5aae6c; border-radius: 45% 55% 50% 50%; }
+.end-earth__land--a { left: 22%; top: 16%; width: 30%; height: 18%; }
+.end-earth__land--b { left: 60%; top: 30%; width: 24%; height: 16%; border-radius: 55% 45% 50% 50%; }
+.end-earth__land--c { left: 34%; top: 56%; width: 22%; height: 14%; }
+
+.end--win.end--s2 .end-earth { width: 15vmin; left: 74%; top: 26%; }
+.end--win.end--s3 .end-earth { width: 40vmin; left: 66%; top: 44%; }
+.end--win.end--s4 .end-earth { width: 74vmin; left: 50%; top: 100%; }
+
+/* ---------- Поверхность ---------- */
+.end-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24vmin;
+  background: linear-gradient(#a4a49f, #6f6f6a 70%, #55554f);
+  border-top: 0.5vmin solid #c4c4be;
+  box-shadow: 0 -1vmin 4vmin rgba(130, 180, 255, 0.18);
+}
+/* Дальние холмы на горизонте */
+.end-ground::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 7vmin;
+  background:
+    radial-gradient(ellipse 22% 100% at 14% 100%, #7c7c78 96%, transparent 100%),
+    radial-gradient(ellipse 30% 70% at 62% 100%, #6e6e6a 96%, transparent 100%),
+    radial-gradient(ellipse 18% 85% at 92% 100%, #777773 96%, transparent 100%);
+}
+.end-rock { position: absolute; border-radius: 50%; background: rgba(0, 0, 0, 0.17); }
+.end-rock--a { left: 12%; top: 12vmin; width: 11vmin; height: 3vmin; }
+.end-rock--b { left: 78%; top: 8vmin; width: 15vmin; height: 3.4vmin; }
+
+/* База: купол с двумя окнами */
+.end-habitat {
+  position: absolute;
+  left: 6%;
+  bottom: calc(100% - 1.6vmin);
+  width: 20vmin;
+  height: 10vmin;
+  border-radius: 20vmin 20vmin 0.6vmin 0.6vmin;
+  background: linear-gradient(#e6ebf7, #a9b4d2);
+  border: 0.4vmin solid #8591b6;
+}
+.end-habitat__win {
+  position: absolute;
+  top: 36%;
+  width: 3vmin;
+  height: 3vmin;
+  border-radius: 50%;
+  background: #ffd98a;
+  border: 0.3vmin solid #6a76a6;
+  box-shadow: 0 0 1.6vmin rgba(255, 210, 120, 0.7);
+  transition: background 1.6s ease, box-shadow 1.6s ease;
+}
+.end-habitat__win--a { left: 26%; }
+.end-habitat__win--b { left: 58%; }
+
+/* ---------- Экипаж ---------- */
+.end-crew { position: absolute; inset: 0; pointer-events: none; }
+.end-walker {
+  --from: calc(6% + 16vmin);
+  --to: 40%;
+  --in: 50%;
+  --d: 0s;
+  position: absolute;
+  bottom: 19vmin;
+  left: var(--to);
+  z-index: 2;
+}
+.end-walker--1 { --to: calc(50% - 7vmin); --in: calc(50% - 1.7vmin); --d: 0s; --stay: calc(6% + 24vmin); }
+.end-walker--2 { --to: calc(50% - 3.6vmin); --in: calc(50% - 1.7vmin); --d: 0.5s; --stay: calc(6% + 33vmin); }
+.end-walker--3 { --to: calc(66% - 7vmin); --in: calc(66% - 1.7vmin); --d: 1s; --stay: calc(6% + 42vmin); }
+.end-walker--4 { --to: calc(66% - 3.6vmin); --in: calc(66% - 1.7vmin); --d: 1.5s; --stay: calc(6% + 51vmin); }
+
+.end-man { display: block; width: 4.4vmin; transform-origin: 50% 100%; transition: transform 1.4s ease; }
+.end-man__bob { display: flex; flex-direction: column; align-items: center; }
+.end-man__head {
+  width: 3.2vmin;
+  height: 3.2vmin;
+  border-radius: 50%;
+  background: linear-gradient(var(--hair) 34%, var(--skin) 34%);
+  border: 0.35vmin solid #eef2fb;
+  box-sizing: border-box;
+}
+.end-man__body { width: 4.4vmin; height: 4.4vmin; margin-top: -0.2vmin; border-radius: 1.2vmin 1.2vmin 0.5vmin 0.5vmin; background: var(--suit); border: 0.3vmin solid rgba(255, 255, 255, 0.7); box-sizing: border-box; }
+.end-man__legs { width: 2.8vmin; height: 1.5vmin; background: #cfd5ea; border-radius: 0 0 0.5vmin 0.5vmin; }
+
+/* Победа, кадр 1: идут от базы к ракетам */
+.end--win.end--s0 .end-walker { animation: end-walk 5.2s ease-in-out var(--d) both; }
+.end--win.end--s0 .end-man__bob { animation: end-bob 0.5s ease-in-out infinite alternate; }
+@keyframes end-walk { from { left: var(--from); } to { left: var(--to); } }
+@keyframes end-bob { from { transform: translateY(0); } to { transform: translateY(-0.5vmin); } }
+
+/* Кадр 2: подходят вплотную и скрываются за корпусом ракеты */
+.end--win.end--s1 .end-walker,
+.end--win.end--s2 .end-walker,
+.end--win.end--s3 .end-walker,
+.end--win.end--s4 .end-walker { left: var(--in); opacity: 0; transition: left 1.4s ease-in-out calc(var(--d) * 0.6), opacity 0.4s ease calc(1.4s + var(--d) * 0.6); }
+
+/* Поражение: стоят у базы, потом ложатся */
+.end--lose .end-walker { left: var(--stay); }
+.end--lose.end--s1 .end-man, .end--lose.end--s2 .end-man { transform: rotate(90deg); }
+.end--lose.end--s1 .end-walker--2 .end-man, .end--lose.end--s2 .end-walker--2 .end-man { transition-delay: 0.8s; }
+.end--lose.end--s1 .end-walker--3 .end-man, .end--lose.end--s2 .end-walker--3 .end-man { transition-delay: 1.6s; }
+.end--lose.end--s1 .end-walker--4 .end-man, .end--lose.end--s2 .end-walker--4 .end-man { transition-delay: 2.4s; }
+.end--lose.end--s0 .end-man__bob { animation: end-bob 1.6s ease-in-out infinite alternate; }
+
+/* ---------- Ракеты ---------- */
+.end-rk {
+  position: absolute;
+  width: 9vmin;
+  top: calc(100% - 39vmin);
+  z-index: 3;
+}
+.end-rk--a { left: calc(50% - 4.5vmin); }
+.end-rk--b { left: calc(66% - 4.5vmin); }
+.end-rk .rocket-svg { transform-origin: 50% 70%; }
+
+/* Победа, кадр 3: старт. Сначала дрожь, потом разгон. Земля уходит вниз */
+.end--win.end--s2 .end-rk { top: 6%; transition: top 5.6s cubic-bezier(0.55, 0, 0.85, 0.5); animation: end-shake 0.09s linear 14; }
+.end--win.end--s2 .end-rk--b { transition-delay: 0.5s; animation-delay: 0.5s; }
+.end--win.end--s2 .end-ground,
+.end--win.end--s2 .end-crew { transform: translateY(46vmin); transition: transform 6s cubic-bezier(0.5, 0, 0.9, 0.6) 0.8s; }
+@keyframes end-shake { 0% { margin-left: -0.25vmin; } 50% { margin-left: 0.25vmin; } 100% { margin-left: -0.25vmin; } }
+
+/* Кадр 4: ракеты поворачивают к Земле */
+.end--win.end--s3 .end-ground,
+.end--win.end--s4 .end-ground,
+.end--win.end--s3 .end-crew,
+.end--win.end--s4 .end-crew { transform: translateY(60vmin); }
+.end--win.end--s3 .end-rk,
+.end--win.end--s4 .end-rk { transition: top 7s ease-in-out, left 7s ease-in-out, transform 7s ease-in-out, opacity 1.6s ease 5.6s; }
+.end--win.end--s3 .end-rk { top: 24%; transform: rotate(42deg) scale(0.8); }
+.end--win.end--s3 .end-rk--a { left: 56%; }
+.end--win.end--s3 .end-rk--b { left: 63%; top: 32%; }
+
+/* Финал: Земля большая, ракеты заходят на посадку и растворяются в атмосфере */
+.end--win.end--s4 .end-rk { top: 40%; transform: rotate(168deg) scale(0.28); opacity: 0; }
+.end--win.end--s4 .end-rk--a { left: 47%; }
+.end--win.end--s4 .end-rk--b { left: 52%; transition-delay: 0.6s; }
+
+/* Дым при старте */
+.end-puff {
+  position: absolute;
+  left: 50%;
+  bottom: -1.5vmin;
+  width: 18vmin;
+  height: 6vmin;
+  margin-left: -9vmin;
+  border-radius: 50%;
+  background: radial-gradient(rgba(240, 240, 236, 0.85), transparent 70%);
+  opacity: 0;
+  animation: end-puff 3s ease-out 0.3s forwards;
+}
+.end-puff--late { animation-delay: 0.8s; }
+@keyframes end-puff { 0% { opacity: 0.95; transform: scale(0.3); } 100% { opacity: 0; transform: scale(2) translateY(1.5vmin); } }
+
+/* ---------- Поражение: свет гаснет ---------- */
+.end-dark { position: absolute; inset: 0; background: #02030a; opacity: 0; transition: opacity 3.5s ease; z-index: 4; pointer-events: none; }
+.end--lose.end--s1 .end-dark { opacity: 0.45; }
+.end--lose.end--s2 .end-dark { opacity: 0.72; }
+.end--lose .end-earth { z-index: 5; }
+.end--lose.end--s1 .end-habitat__win--a { background: #34395a; box-shadow: none; }
+.end--lose.end--s1 .end-habitat__win--b { background: #34395a; box-shadow: none; transition-delay: 1.4s; }
+.end--lose.end--s2 .end-habitat__win { background: #34395a; box-shadow: none; }
+.end--lose .end-rk { filter: brightness(0.7); }
+
+/* ---------- Субтитры ---------- */
+.end-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bar-h);
+  padding: 22px clamp(16px, 6vw, 90px) 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(rgba(2, 3, 10, 0.72), rgba(2, 3, 10, 0.96));
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.end-text {
+  margin: 0;
+  max-width: 920px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: clamp(18px, 2.5vw, 28px);
+  line-height: 1.5;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  animation: end-sub 0.9s ease both;
+}
+.end-sub { margin: -6px 0 0; color: var(--accent, #f5b83d); font-weight: 800; letter-spacing: 0.04em; }
+.end-actions { display: flex; gap: 16px; min-height: 48px; }
+@keyframes end-sub { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .end-earth, .end-rk, .end-ground, .end-crew, .end-man, .end-dark, .end-habitat__win, .end-walker { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .end-walker, .end-rk, .end-man__bob, .end-puff, .end-stars i { animation: none !important; }
+}

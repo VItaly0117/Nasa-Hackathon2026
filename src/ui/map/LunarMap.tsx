@@ -531,7 +531,7 @@ export default function LunarMap({
             })}
 
             {/* Слой 6: астронавты ходят между модулями */}
-            <Walkers targets={walkTargets} active={crewActive} />
+            <Walkers targets={walkTargets} active={crewActive} k={k} />
 
             {/* Слой 7: облачко-подпись над выбранным объектом, поверх всего */}
             {bubble && <Bubble {...bubble} k={k} />}

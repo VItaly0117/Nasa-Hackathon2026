@@ -12,6 +12,8 @@ export type Setback = "shortage" | "blackout" | "missed" | "health" | "lowStock"
 
 const RESOURCES: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "materials"];
 const VITAL: ResourceKey[] = ["oxygen", "water", "food"];
+export type VitalKey = "oxygen" | "water" | "food" | "energy";
+const SHOWN_VITAL: VitalKey[] = ["oxygen", "water", "food", "energy"];
 // Меньше стольких дней запаса: уже тревожно
 const LOW_STOCK_DAYS = 3;
 
@@ -27,6 +29,7 @@ export type DaySummary = {
   shortages: ResourceKey[];                      // что закончилось
   blackout: boolean;                             // база оставалась без энергии
   deltas: Record<ResourceKey, number>;           // как изменились запасы за день
+  runway: Record<VitalKey, number | null>;       // на сколько целых дней хватит запаса (null — не убывает)
   left: { task: Task; isNew: boolean; late: boolean }[]; // что ещё осталось сделать, срочное сверху
   tomorrow: {
     night: boolean;                              // следующий день уже ночь
@@ -54,6 +57,12 @@ export function summarizeDay(before: GameState, after: GameState): DaySummary {
 
   const deltas = {} as Record<ResourceKey, number>;
   for (const key of RESOURCES) deltas[key] = Math.round(after.resources[key] - before.resources[key]);
+
+  const runway = {} as Record<VitalKey, number | null>;
+  for (const key of SHOWN_VITAL) {
+    const d = runwayDays(after, key);
+    runway[key] = Number.isFinite(d) ? Math.max(0, Math.floor(d)) : null;
+  }
 
   const lowStock = VITAL.flatMap((key) => {
     const days = runwayDays(after, key);
@@ -90,6 +99,7 @@ export function summarizeDay(before: GameState, after: GameState): DaySummary {
     shortages,
     blackout,
     deltas,
+    runway,
     left,
     tomorrow: {
       night: after.isNight,

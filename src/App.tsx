@@ -15,7 +15,7 @@ import { canPlace, slotOf } from "./engine/placement";
 import type { TileInfo } from "./engine/placement";
 import modulesData from "./data/modules.json";
 import eventsData from "./data/events.json";
-import type { Action, EventDef, GameState, ModuleDef, ModuleType, Resources } from "./types";
+import type { Action, EventDef, GameMode, GameState, ModuleDef, ModuleType, Resources } from "./types";
 import { days, LANGS, setLang, t } from "./i18n";
 import type { Lang } from "./i18n";
 import LunarMap from "./ui/map/LunarMap";
@@ -25,6 +25,7 @@ import { SidePanel } from "./ui/SidePanel";
 import { BuildMenu } from "./ui/BuildMenu";
 import { Intro } from "./ui/Intro";
 import { Prologue } from "./ui/Prologue";
+import { Ending } from "./ui/Ending";
 import { DayClock } from "./ui/DayClock";
 import { DaySummary } from "./ui/DaySummary";
 import { TaskToast } from "./ui/TaskToast";
@@ -61,7 +62,7 @@ function RotateHint() {
 }
 
 // Одиночная игра (новая или продолженная из сохранения) или совместная на сервере
-type Mode = { kind: "solo"; resume: GameState | null } | { kind: "online"; session: Session };
+type Mode = { kind: "solo"; resume: GameState | null; difficulty: GameMode } | { kind: "online"; session: Session };
 
 // Время дня ведущий отправляет на сервер пачками, а не 10 раз в секунду
 const ONLINE_TICK_MS = 500;
@@ -76,7 +77,7 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
   const [state, apply] = useReducer(reduce, undefined, () =>
     online
       ? online.actions.reduce(reduce, initialState(online.seed))
-      : (mode.kind === "solo" && mode.resume) || initialState()
+      : (mode.kind === "solo" && mode.resume) || initialState(undefined, mode.kind === "solo" ? mode.difficulty : "normal")
   );
   // В одиночной игре действие применяется сразу. В совместной уходит на сервер и применяется,
   // когда сервер разошлёт его всем: так у всех игроков один и тот же порядок действий
@@ -170,6 +171,11 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
   const event = summary ? null : (EVENTS.find((e) => e.id === state.activeEvent) ?? null);
   const daysToNight = NIGHT_START - state.day;
   const isPlaying = state.status === "playing";
+  // Финальный ролик показывается один раз за игру, потом итоговый экран
+  const [endingSeen, setEndingSeen] = useState(false);
+  useEffect(() => {
+    if (isPlaying) setEndingSeen(false);
+  }, [isPlaying]);
   // Одиночная миссия закончилась: записываем результат один раз и запоминаем, лучший ли он
   const [record, setRecord] = useState<{ best: GameRecord; isNew: boolean } | null>(null);
   const recorded = useRef(false);
@@ -421,7 +427,9 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
         </div>
       )}
 
-      {!isPlaying && (
+      {!isPlaying && !endingSeen && <Ending won={state.status === "won"} onDone={() => setEndingSeen(true)} />}
+
+      {!isPlaying && endingSeen && (
         <ResultsScreen
           state={state}
           online={!!online}
@@ -477,7 +485,7 @@ function restoreLang(): Lang | null {
 
 export default function App() {
   const [stage, setStage] = useState<Stage>("menu");
-  const [mode, setMode] = useState<Mode>({ kind: "solo", resume: null });
+  const [mode, setMode] = useState<Mode>({ kind: "solo", resume: null, difficulty: "normal" });
   // Новый ключ пересоздаёт Game с чистым состоянием, поэтому restart не нужен в движке
   const [runId, setRunId] = useState(0);
   // Экран «Данные NASA» открывается из меню и из итогов
@@ -506,11 +514,11 @@ export default function App() {
         <MainMenu
           savedDay={saved?.day ?? null}
           onLang={pickLang}
-          onNewGame={() => {
+          onNewGame={(difficulty) => {
             clearSave();
-            start({ kind: "solo", resume: null }, "prologue");
+            start({ kind: "solo", resume: null, difficulty }, "prologue");
           }}
-          onContinue={() => saved && start({ kind: "solo", resume: saved }, "game")}
+          onContinue={() => saved && start({ kind: "solo", resume: saved, difficulty: saved.mode ?? "normal" }, "game")}
           onJoined={(session) => start({ kind: "online", session }, "game")}
           onSources={() => setSourcesOpen(true)}
         />
@@ -528,7 +536,7 @@ export default function App() {
           mode={mode}
           onRestart={() => {
             clearSave();
-            start({ kind: "solo", resume: null }, "game");
+            start({ kind: "solo", resume: null, difficulty: mode.kind === "solo" ? mode.difficulty : "normal" }, "game");
           }}
           onMenu={() => setStage("menu")}
           onSources={() => setSourcesOpen(true)}

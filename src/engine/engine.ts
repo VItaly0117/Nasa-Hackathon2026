@@ -1,9 +1,9 @@
 import modulesData from "../data/modules.json";
-import type { Action, CrewMember, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
+import type { Action, CrewMember, GameMode, GameState, ModuleDef, ModuleType, PlacedModule, ResourceKey, Resources, Role } from "../types";
 import { applyEventStart, choiceCost, eventForDay, pickFlare, resolveEvent } from "./events";
 import { canPlace, cellOf, nearestGroundSlot } from "./placement";
 import { moduleName, t } from "../i18n";
-import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, NIGHT_START } from "./constants";
+import { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, MODES, NIGHT_START } from "./constants";
 import { assignWaiting, hasFreeCrew, pickBuilder, restCrew } from "./crew";
 import { issueTasks, MORALE_START, reviewTasks } from "./tasks";
 
@@ -31,6 +31,11 @@ const KEYS: ResourceKey[] = ["oxygen", "water", "food", "energy", "health", "mat
 const CREW_PER_DAY: Partial<Resources> = { oxygen: -5, water: -3, food: -4 };
 // Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
 export const SHORTAGE_DAMAGE = 25;
+// Расход экипажа за день с поправкой на режим игры
+function crewNeeds(state: GameState): Partial<Resources> {
+  const need = MODES[state.mode ?? "normal"].need;
+  return Object.fromEntries(Object.entries(CREW_PER_DAY).map(([key, v]) => [key, Math.round((v ?? 0) * need)]));
+}
 const VITAL: ResourceKey[] = ["oxygen", "water", "food"];
 const vitalName = (key: ResourceKey) => t(`vital.${key}`);
 
@@ -70,10 +75,11 @@ function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Resources
   return isNight && def.nightPerDay ? def.nightPerDay : def.perDay;
 }
 
-export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0): GameState {
+export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0, mode: GameMode = "normal"): GameState {
   // Вспышка тоже выбирается по seed: одна и та же игра повторяется целиком
   const [flareRoll, seed] = nextRandom(startSeed);
   const state: GameState = {
+    mode,
     seed,
     illness: null,
     sickCount: 0,
@@ -86,7 +92,7 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
     isNight: false,
     // еды с ракеты хватает на 10 дней из 20: без теплицы миссию не пройти.
     // материалов 10, а убежище стоит 25: сначала нужен карьер
-    resources: { oxygen: 80, water: 70, food: 40, energy: 60, health: 100, materials: 10 },
+    resources: { ...MODES[mode].start },
     modules: [
       // На Луне есть только жилой модуль и жизнеобеспечение рядом с ракетой на фоновой картинке
       // (координаты в её пикселях). Энергию, воду, еду и укрытие игрок строит сам
@@ -106,7 +112,7 @@ export function initialState(startSeed: number = (Math.random() * 2 ** 32) >>> 0
 // Сколько каждого ресурса прибавится или убавится за следующий день
 export function dailyDelta(state: GameState): Partial<Resources> {
   const total: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
-  addTo(total, CREW_PER_DAY);
+  addTo(total, crewNeeds(state));
   for (const module of state.modules) addTo(total, moduleOutput(module, state.isNight));
   return total;
 }
@@ -130,7 +136,7 @@ function nextDay(state: GameState): GameState {
     log.push({ day: stamp, text: t("log.noPower") });
     history.push({ day: stamp, kind: "blackout", night: state.isNight });
   }
-  addTo(resources, CREW_PER_DAY);
+  addTo(resources, crewNeeds(state));
   const capacity = capacityOf(state.modules);
   for (const key of KEYS) resources[key] = clamp(resources[key], capacity[key]);
 

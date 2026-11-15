@@ -45,7 +45,7 @@ export function ResourceBar({ resources, delta, capacity }: Props) {
           <li
             key={key}
             className={`resource resource--${level}`}
-            title={left !== null ? t("res.leftTitle", { label, days: daysShort(left) }) : label}
+            tabIndex={0}
             data-full={!PERCENT.includes(key) && value >= capacity[key] ? "" : undefined}
           >
             <ResourceIcon type={key} />
@@ -65,6 +65,14 @@ export function ResourceBar({ resources, delta, capacity }: Props) {
                   ? t("res.forDays", { days: daysShort(left) })
                   : t("res.perDay", { delta: formatDelta(perDay) })}
               </span>
+            </div>
+            <div className="resource__tip" role="tooltip">
+              <strong>{label}</strong>
+              <p>{t(`res.tip.${key}.what`)}</p>
+              <p>{t(`res.tip.${key}.use`)}</p>
+              {left !== null && (
+                <p className="resource__tipnote">{t("res.tip.left", { days: daysShort(left) })}</p>
+              )}
             </div>
           </li>
         );

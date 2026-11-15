@@ -81,7 +81,11 @@ export type Task = {
   status: "open" | "done" | "missed";
 };
 
+// Режим игры: меняет стартовые запасы и расход экипажа (engine/constants.ts → MODES)
+export type GameMode = "easy" | "normal" | "hard";
+
 export type GameState = {
+  mode?: GameMode; // нет в старых сохранениях и в совместной игре: это "normal"
   seed: number; // для детерминированных случайностей (болезни): одна и та же игра повторяется
   illness: { crewId: number; slot: number } | null; // кто заболел, пока открыто событие
   sickCount: number;

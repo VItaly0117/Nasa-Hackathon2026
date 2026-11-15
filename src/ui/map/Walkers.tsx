@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CREW } from "../crewData";
-import { t } from "../../i18n";
+import { moduleName, t } from "../../i18n";
+import type { ModuleType } from "../../types";
 
 // Место у модуля, куда астронавт идёт работать (координаты карты)
 export type WalkTarget = { type: string; x: number; y: number };
@@ -49,12 +50,17 @@ function Astronaut({ suit, name }: { suit: string; name: string }) {
 type Props = {
   targets: WalkTarget[];
   active: boolean; // false: игра на паузе или идёт событие, астронавты стоят
+  k: number;       // масштаб карты: подсказка держит один размер на экране
 };
 
 // Маленькие астронавты ходят от модуля к модулю и «работают». Положение меняем напрямую в SVG,
 // без перерисовки React на каждом кадре
-export function Walkers({ targets, active }: Props) {
+export function Walkers({ targets, active, k }: Props) {
   const roots = useRef<(SVGGElement | null)[]>([]);
+  // Над кем сейчас курсор (или кого коснулись): у него показываем подсказку
+  const [hovered, setHovered] = useState<number | null>(null);
+  const hoverRef = useRef<number | null>(null);
+  hoverRef.current = hovered;
   const targetsRef = useRef(targets);
   const activeRef = useRef(active);
   targetsRef.current = targets;
@@ -70,9 +76,10 @@ export function Walkers({ targets, active }: Props) {
         legR: root?.querySelector<SVGGElement>(".astro__legR") ?? null,
         arm: root?.querySelector<SVGGElement>(".astro__arm") ?? null,
         spark: root?.querySelector<SVGElement>(".astro__spark") ?? null,
+        tip: root?.querySelector<SVGGElement>(".astro__tip") ?? null,
       };
     });
-    const st = CREW.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, ready: false, wait: 0, dir: 1, phase: Math.random() * 6 }));
+    const st = CREW.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, ready: false, wait: 0, dir: 1, phase: Math.random() * 6, type: "", tip: "" }));
 
     const choose = (i: number) => {
       const list = targetsRef.current;
@@ -80,7 +87,7 @@ export function Walkers({ targets, active }: Props) {
       const mine = list.filter((t) => CREW[i].jobs.includes(t.type));
       const pool = mine.length > 0 && Math.random() < 0.75 ? mine : list;
       const target = pool[Math.floor(Math.random() * pool.length)];
-      return { x: target.x + (i - 1.5) * SPREAD, y: target.y };
+      return { x: target.x + (i - 1.5) * SPREAD, y: target.y, type: target.type };
     };
 
     let last = performance.now();
@@ -98,6 +105,7 @@ export function Walkers({ targets, active }: Props) {
           if (!first) return;
           s.x = s.tx = first.x;
           s.y = s.ty = first.y;
+          s.type = first.type;
           s.wait = Math.random() * 3;
           s.ready = true;
         }
@@ -121,6 +129,7 @@ export function Walkers({ targets, active }: Props) {
             if (next) {
               s.tx = next.x;
               s.ty = next.y;
+              s.type = next.type;
             }
             s.wait = 2.5 + Math.random() * 3.5;
           }
@@ -135,6 +144,20 @@ export function Walkers({ targets, active }: Props) {
         // при ходьбе рука машет в такт ногам, на работе поднята и «стучит»
         p.arm?.setAttribute("transform", walking ? `rotate(${-swing * 38} 0 -31)` : `rotate(${-115 + swing * 18} 0 -31)`);
         p.spark?.setAttribute("opacity", walking ? "0" : (0.35 + 0.65 * Math.abs(Math.sin(s.phase * 1.5))).toFixed(2));
+
+        // Подсказка при наведении: куда идёт и над чем работает. Обновляем только у того, на кого навели
+        if (p.tip && hoverRef.current === i) {
+          const text = t(walking ? "walker.going" : "walker.working", { where: moduleName(s.type as ModuleType) });
+          if (text !== s.tip) {
+            s.tip = text;
+            const label = p.tip.querySelector("text");
+            const bg = p.tip.querySelector("rect");
+            if (label) label.textContent = text;
+            const w = Math.max(90, text.length * 7 + 22);
+            bg?.setAttribute("x", String(-w / 2));
+            bg?.setAttribute("width", String(w));
+          }
+        }
       });
 
       raf = requestAnimationFrame(tick);
@@ -144,7 +167,7 @@ export function Walkers({ targets, active }: Props) {
   }, []);
 
   return (
-    <g pointerEvents="none">
+    <g>
       {CREW.map((c, i) => (
         <g
           key={c.id}
@@ -154,6 +177,28 @@ export function Walkers({ targets, active }: Props) {
           transform="translate(-9999 -9999)"
         >
           <Astronaut suit={c.suit} name={t(`crew.n${c.id}`)} />
+          {/* Невидимая зона над астронавтом: на неё наводят курсор или касаются */}
+          <rect
+            x="-24"
+            y="-112"
+            width="48"
+            height="116"
+            fill="transparent"
+            pointerEvents="all"
+            style={{ cursor: "help" }}
+            onPointerEnter={() => setHovered(i)}
+            onPointerLeave={() => setHovered((h) => (h === i ? null : h))}
+            onClick={() => setHovered((h) => (h === i ? null : i))}
+          />
+          <g
+            className="astro__tip"
+            transform={`translate(0 -124) scale(${1 / k})`}
+            display={hovered === i ? undefined : "none"}
+            pointerEvents="none"
+          >
+            <rect className="astro__name-bg" x="-45" y="-26" width="90" height="26" rx="8" />
+            <text className="astro__name-tag" y="-13" style={{ fontSize: 13 }} />
+          </g>
         </g>
       ))}
     </g>
