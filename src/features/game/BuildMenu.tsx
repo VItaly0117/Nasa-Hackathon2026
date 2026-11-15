@@ -65,7 +65,7 @@ export function BuildMenu({
   onCancel,
 }: Props) {
   const [hovered, setHovered] = useState<ModuleType | null>(null);
-  const [closed, toggle] = useCollapsed(startsCollapsed());
+  const [closed, toggle] = useCollapsed(startsCollapsed(), "build");
   // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
   const collapsed = closed || placing;
   const wasPlacing = useRef(false);

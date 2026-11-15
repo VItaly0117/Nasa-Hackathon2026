@@ -11,7 +11,7 @@ export { BASE_CAPACITY, capacityOf, clamp, dailyDelta, dailyDeltaFor, getDef, is
 export { REPAIR_COST } from "@/engine/actions/repair";
 export { hasFreeCrew, pickBuilder } from "@/engine/systems/crew";
 export { choiceCost, dayOfEvent, nextScheduledEvent } from "@/engine/systems/events";
-export { allTasksDone } from "@/engine/systems/tasks";
+export { allTasksDone, lockedTasks } from "@/engine/systems/tasks";
 export { summarizeDay } from "./daySummary";
 export type { DaySummary, Setback, Verdict, VitalKey } from "./daySummary";
 

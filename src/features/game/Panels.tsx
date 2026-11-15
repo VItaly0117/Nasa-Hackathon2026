@@ -1,6 +1,7 @@
 import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
-import { capacityOf, dailyDelta, dailyDeltaFor, hasFreeCrew } from "@/engine";
+import { capacityOf, dailyDelta, dailyDeltaFor, hasFreeCrew, lockedTasks } from "@/engine";
+import { goalHint } from "./goal-hint";
 import type { ModuleDef, Role } from "@/types";
 import { sound } from "@/audio/audio";
 import { useGame, useMeta, useSend, useSession } from "@/session/hooks";
@@ -45,11 +46,15 @@ export function SideContainer() {
     (s) => ({ day: s.day, isNight: s.isNight, pending: s.pending, tasks: s.tasks, research: s.research, log: s.log }),
     shallowEqual,
   );
+  const locked = useGame(lockedTasks, shallowEqual);
+  const hint = useGame(goalHint);
   const send = useSend();
   const ui = useGameUi();
   return (
     <SidePanel
       state={view}
+      locked={locked}
+      hint={hint}
       surveyingIce={ui.surveyingIce}
       onCancelIceSurvey={() => ui.setSurveyingIce(false)}
       onStartIceSurvey={() => ui.setSurveyingIce(true)}

@@ -43,9 +43,9 @@
 .research-card small { display: block; font-size: 12px; }
 .research-card a { color: inherit; }
 
-.tasks { padding: 16px 18px; }
-.tasks ul {
-  margin: 14px 0 0;
+.goal__steps { margin: 16px 0 0; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.tasks__list {
+  margin: 10px 0 0;
   padding: 0;
   list-style: none;
   display: flex;
@@ -58,7 +58,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.tasks ul::-webkit-scrollbar {
+.tasks__list::-webkit-scrollbar {
   display: none;
 }
 .task { display: flex; gap: 12px; align-items: flex-start; }
@@ -66,3 +66,5 @@
 .task__mark { width: 18px; flex-shrink: 0; text-align: center; font-weight: 800; color: var(--accent); }
 .task__why { opacity: 0.8; font-size: 14px; display: block; line-height: 1.35; }
 .task--late .task__mark, .task--late strong { color: #ff9b9b; }
+.task--more { font-size: 14px; opacity: 0.8; }
+.task--empty .task__hint { color: var(--accent); opacity: 1; margin-top: 6px; }

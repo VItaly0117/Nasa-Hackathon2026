@@ -43,7 +43,7 @@ const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >=
 
 export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
-  const [collapsed, toggle] = useCollapsed(startsCollapsed());
+  const [collapsed, toggle] = useCollapsed(startsCollapsed(), "crew");
 
   return (
     <section className="hud-panel crew" aria-label={t("crew.aria")}>
