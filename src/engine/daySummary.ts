@@ -1,7 +1,7 @@
-import type { GameState, ModuleType, ResourceKey, Task } from "../types";
+import type { GameState, ModuleType, ResourceKey, Task } from "@/types";
 import { MISSION_DAYS, NIGHT_START } from "./constants";
-import { dailyDelta } from "./engine";
-import { nextScheduledEvent } from "./events";
+import { dailyDelta } from "./selectors";
+import { nextScheduledEvent } from "./systems/events";
 
 // Итоги дня. Считаются как разница между состоянием в начале дня (before) и в его конце (after),
 // поэтому движок не меняется, а совместная игра у всех игроков показывает одно и то же.

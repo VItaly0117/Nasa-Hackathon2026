@@ -1,5 +1,5 @@
 // Числа, на которые опираются и движок, и задания. Отдельный файл, чтобы они не импортировали друг друга по кругу
-import type { GameMode, Resources } from "../types";
+import type { GameMode, Resources } from "@/types";
 
 export const MISSION_DAYS = 20;
 export const NIGHT_START = 14;
@@ -20,3 +20,6 @@ export const MODE_IDS: GameMode[] = ["easy", "normal", "hard"];
 export const MAX_ILLNESS = 3;
 export const ILLNESS_GAP = 5;
 export const ILLNESS_CHANCE = 0.4;
+
+// Сколько здоровья отнимает нехватка воздуха, воды или еды. Бьёт с задержкой в 2 дня и повторяется, пока ресурс на нуле
+export const SHORTAGE_DAMAGE = 25;

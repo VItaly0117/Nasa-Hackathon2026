@@ -3,9 +3,9 @@
 > **Научно-образовательная стратегия выживания лунной базы с реальными данными NASA о космической погоде (DONKI), биологическими исследованиями NASA OSDR и многопользовательским кооперативным режимом.**
 
 [![CI Checks](https://github.com/kalinicenkovitalijmikolajovic/Qcold-team-Nasa-Hackathon2026/actions/workflows/ci.yml/badge.svg)](https://github.com/kalinicenkovitalijmikolajovic/Qcold-team-Nasa-Hackathon2026/actions/workflows/ci.yml)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-brightgreen)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-brightgreen)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.x-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -25,7 +25,7 @@
 ### 🌟 Ключевые особенности
 1. **Реальная космическая погода NASA:** На 9-й день базу накрывает солнечная вспышка с параметрами и датой из каталога **NASA DONKI** (Space Weather Database Of Notifications, Knowledge, Information).
 2. **Научная база NASA OSDR и CSA:** Итоговый разбор полета знакомит игроков с влиянием невесомости на кости и мышцы, дозиметрией базы RadLab и системами гидропоники Канадского космического агентства.
-3. **Экипаж со специализацией:** Три астронавта (Инженер, Ученый, Техник) строят базу своими руками, выдают задания, болеют и реагируют на успехи миссии изменением морали.
+3. **Экипаж со специализацией:** Четыре астронавта (Инженер, Ученый, Врач, Техник) строят базу своими руками, выдают задания, болеют и реагируют на успехи миссии изменением морали.
 4. **Выживание в лунную ночь:** С 14-го по 20-й день солнечные панели обесточиваются — выживание зависит от накопленного заряда в аккумуляторах.
 5. **Кооперативный мультиплеер:** Встроенный легковесный сервер совместной игры (SSE + детерминированный движок) позволяет играть нескольким участникам одновременно без задержек и расхождений.
 6. **Процедурный ретро-звуковой движок:** Аудио на чистом Web Audio API без внешних аудио-файлов (радиосигналы квиндар-тона Apollo, тревожные сирены вспышек, звуки стройки и фоновый эмбиент станции).
@@ -47,7 +47,7 @@
 ## 🛠️ Быстрый старт
 
 ### Требования
-- Node.js версии **20+**
+- Node.js версии **22+** (см. `.nvmrc`)
 - npm версии **10+**
 
 ### Установка зависимостей
@@ -69,9 +69,11 @@ npm run server
 
 ### Запуск тестов и проверок
 ```bash
-npm run check
+npm run check      # проверки баланса и механик, комната совместной игры, границы слоёв
+npm run golden     # «золотой прогон»: 60 игр, поведение не должно меняться при рефакторинге
+npm run typecheck  # типы
 ```
-Запускает 48 автоматических тестов баланса игрового движка (`scripts/run-checks.mjs`) и интеграционные тесты сетевых комнат (`scripts/run-online-checks.mjs`).
+Подробнее о том, что проверяет каждая команда, в [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ### Сборка для продакшена
 ```bash
@@ -93,19 +95,17 @@ npm run lint
 .
 ├── PROJECT_DOCUMENTATION.md  # 📘 Полная техническая документация для ИИ и разработчиков
 ├── LLMS.txt                  # 🤖 Инструкция и указатель для AI-агентов
-├── server/index.mjs          # Сервер совместной игры (HTTP + Server-Sent Events)
-├── scripts/
-│   ├── run-checks.mjs        # Автоматическое тестирование 48 сценариев баланса
-│   ├── run-online-checks.mjs # Тестирование мультиплеера
-│   └── fetch-donki.mjs       # Скрипт синхронизации вспышек с NASA API
-├── src/
-│   ├── engine/               # Детерминированный игровой движок (чистый TypeScript)
-│   ├── data/                 # JSON-конфигурации модулей, событий и фактов NASA
-│   ├── ui/                   # React-интерфейс, HUD, изометрическая SVG-карта
-│   ├── net/                  # Сетевой клиент комнат совместной игры
-│   ├── i18n/                 # Словари локализации (UK, EN, RU)
-│   ├── types.ts              # Все структуры данных и типы TypeScript
-│   └── App.tsx               # Главный компонент и стейт-машина UI
+├── docs/ARCHITECTURE.md      # Слои, правила импортов, как добавлять новое
+├── server/index.ts          # Сервер совместной игры (HTTP + Server-Sent Events)
+├── scripts/                  # проверки, золотой прогон, отчёт по балансу, загрузка вспышек DONKI
+└── src/
+    ├── engine/               # Детерминированный игровой движок (чистый TypeScript)
+    ├── content/              # JSON-конфигурации модулей, событий, фактов NASA и карта
+    ├── session/              # Хранилище, одиночная и совместная игра, сохранения
+    ├── features/             # Экраны: game, menu, story, results
+    ├── ui/                   # Общие примитивы интерфейса
+    ├── net/, i18n/, audio/   # Сетевой клиент, словари (UK, EN, RU), звук
+    └── App.tsx, types.ts     # Порядок экранов и типы
 ```
 
 ---
@@ -116,7 +116,7 @@ npm run lint
 - **NASA OSDR** (Open Science Data Repository) & **RadLab** — биологические исследования и радиационный мониторинг.
 - **CSA (Canadian Space Agency)** — материалы о космическом растениеводстве и технологиях закрытых экосистем.
 
-Подробные ссылки и манифест использования данных доступны в [`src/data/sources.json`](./src/data/sources.json).
+Подробные ссылки и манифест использования данных доступны в [`src/content/sources.json`](./src/content/sources.json).
 
 ---
 

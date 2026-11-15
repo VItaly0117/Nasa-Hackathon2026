@@ -1,17 +1,21 @@
-import type { GameState, ModuleType, PlacedModule } from "../types";
-import { buildReport, missionFact, validateDebriefData } from "./debrief";
-import { t } from "../i18n";
-import { BUILD_MS, capacityOf, dailyDelta, DAY_MS, getDef, initialState, MISSION_DAYS, reduce, REPAIR_COST } from "./engine";
-import { ILLNESS_GAP, MAX_ILLNESS } from "./constants";
-import eventsData from "../data/events.json";
-import sourcesData from "../data/sources.json";
-import { en } from "../i18n/en";
-import { ru } from "../i18n/ru";
-import { uk } from "../i18n/uk";
-import type { EventDef } from "../types";
-import { choiceCost, dayOfEvent } from "./events";
-import { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "./placement";
-import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "./tasks";
+import type { GameState, ModuleType, PlacedModule } from "@/types";
+import { DEBRIEF_DATA, FACT_NAMES, HINT_IDS, MISSION_FACTS, missionFact } from "./debrief";
+import { buildReport } from "@/features/results/report";
+import { days, getLang, setLang, t } from "@/i18n";
+import type { Lang } from "@/i18n";
+import { formatMsg } from "@/i18n/messages";
+import { loadGame, saveGame } from "@/session/storage";
+import { BUILD_MS, canPlace, capacityOf, choiceCost, dailyDelta, DAY_MS, dayOfEvent, getDef, ILLNESS_GAP, initialState, MAP_COLS, MAP_ROWS, MAX_ILLNESS, MISSION_DAYS, reduce, REPAIR_COST, slotOf } from "./index";
+import eventsData from "@/content/events.json";
+import sourcesData from "@/content/sources.json";
+import consumptionData from "@/content/nasa/consumption.json";
+import radiationData from "@/content/nasa/radiation.json";
+import flaresData from "@/content/nasa/flares.json";
+import { en } from "@/i18n/en";
+import { ru } from "@/i18n/ru";
+import { uk } from "@/i18n/uk";
+import type { EventDef } from "@/types";
+import { MAX_OPEN, MORALE_START, MORALE_STEP, reviewTasks, TASK_DEFS, tasksPerDay } from "@/engine/systems/tasks";
 
 // Сценарии проверки баланса: «игрок-робот» проходит миссию по заданному плану.
 // Запуск: node scripts/run-checks.mjs
@@ -23,6 +27,34 @@ type Strategy = {
   // событие → выбор игрока
   choices: Record<string, string>;
 };
+
+// Проверка debrief.json: опечатка в имени факта или id подсказки не должна пройти молча (это про данные и словари, поэтому живёт в проверках, а не в ядре)
+export function validateDebriefData(): string[] {
+  const problems: string[] = [];
+  const DATA = DEBRIEF_DATA;
+  const FACTS = MISSION_FACTS;
+  const known = new Set<string>(FACT_NAMES);
+  for (const item of [...DATA.verdicts, ...DATA.rules]) {
+    for (const c of item.when) {
+      if (!known.has(c.replace(/^!/, ""))) problems.push(`${item.id}: неизвестный факт "${c}"`);
+    }
+  }
+  for (const rule of DATA.rules) {
+    if (rule.hint && !HINT_IDS.includes(rule.hint)) problems.push(`${rule.id}: нет подсказки "${rule.hint}" в hints.json`);
+  }
+  // У каждого правила и вердикта должен быть текст. ru.ts базовый: uk.ts и en.ts сверяет с ним TypeScript
+  const keys = [
+    ...DATA.rules.map((r) => `debrief.rule.${r.id}`),
+    ...DATA.verdicts.flatMap((v) => ["title", "summary", "rating"].map((f) => `debrief.verdict.${v.id}.${f}`)),
+  ];
+  for (const key of keys) if (!(key in ru)) problems.push(`нет текста "${key}" в словарях i18n`);
+  // Тексты подсказок и фактов лежат в словарях: hint.<id> и fact.<id>
+  for (const id of HINT_IDS) if (!(`hint.${id}` in ru)) problems.push(`нет текста "hint.${id}" в словарях i18n`);
+  for (const f of FACTS) if (!(`fact.${f.id}` in ru)) problems.push(`нет текста "fact.${f.id}" в словарях i18n`);
+  const ids = [...DATA.verdicts, ...DATA.rules].map((x) => x.id);
+  for (const id of new Set(ids)) if (ids.filter((x) => x === id).length > 1) problems.push(`повтор id "${id}"`);
+  return problems;
+}
 
 export type CheckResult = { name: string; ok: boolean; detail: string };
 
@@ -174,6 +206,64 @@ export function runChecks(): CheckResult[] {
   const halfDay = reduce(initialState(), { type: "tick", ms: DAY_MS / 2 });
   check("Полдня по часам день не меняет", halfDay.day === 1 && halfDay.clockMs === DAY_MS / 2, `день ${halfDay.day}, часы ${halfDay.clockMs}`);
 
+  // Ядро не зависит от языка: журнал и состояние одинаковы, на каком бы языке ни играл игрок
+  const savedLang = getLang();
+  const stateIn = (lang: Lang) => {
+    setLang(lang);
+    return JSON.stringify(playMission(PREPARED, 3));
+  };
+  const inRu = stateIn("ru");
+  const inEn = stateIn("en");
+  const inUk = stateIn("uk");
+  setLang(savedLang);
+  check("Состояние игры целиком (с журналом) не зависит от языка: ru, en и uk дают одно и то же", inRu === inEn && inEn === inUk, `совпало: ${inRu === inEn && inEn === inUk}, размер ${inRu.length}`);
+  const entries = [prepared, idle, noShelter].flatMap((s) => [...s.log, ...s.pending.map((p) => ({ day: 0, ...p.reason }))]);
+  const keys = [...new Set(entries.map((e) => e.key))];
+  const broken: string[] = [];
+  for (const lang of ["ru", "uk", "en"] as Lang[]) {
+    setLang(lang);
+    for (const e of entries) {
+      const text = formatMsg(e);
+      if (/[{}]/.test(text) || text === e.key) broken.push(`${lang}:${e.key}`);
+    }
+  }
+  setLang(savedLang);
+  check("Каждое сообщение журнала переводится на ru, uk и en без «дыр» в тексте", broken.length === 0, broken.length ? [...new Set(broken)].join(", ") : `${keys.length} видов сообщений`);
+
+  // Склонение «дней» идёт от правил языка (Intl.PluralRules), а не от ручных остатков
+  const expected: Record<Lang, string[]> = {
+    ru: ["1 день", "2 дня", "5 дней", "11 дней", "21 день", "22 дня", "25 дней"],
+    uk: ["1 день", "2 дні", "5 днів", "11 днів", "21 день", "22 дні", "25 днів"],
+    en: ["1 day", "2 days", "5 days", "11 days", "21 days", "22 days", "25 days"],
+  };
+  const wrong: string[] = [];
+  for (const lang of ["ru", "uk", "en"] as Lang[]) {
+    setLang(lang);
+    [1, 2, 5, 11, 21, 22, 25].forEach((n, i) => {
+      if (days(n) !== expected[lang][i]) wrong.push(`${lang}:${n}=${days(n)}`);
+    });
+  }
+  setLang(savedLang);
+  check("Склонение «день/дня/дней» верно в ru, uk и en", wrong.length === 0, wrong.length ? wrong.join(", ") : "7 чисел × 3 языка");
+
+  // Старые сохранения (до журнала на ключах) мигрируют и не теряют текст
+  const memory = new Map<string, string>();
+  (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => memory.get(k) ?? null, setItem: (k: string, v: string) => void memory.set(k, v), removeItem: (k: string) => void memory.delete(k) };
+  const modern = initialState(9);
+  saveGame(modern);
+  check("Сохранение текущей версии загружается без изменений", JSON.stringify(loadGame()) === JSON.stringify(modern), "совпало");
+  const old = { ...modern, log: [{ day: 1, text: "Старая запись" }], pending: [{ inDays: 1, key: "health", amount: -25, reason: "Старая причина" }] };
+  memory.set("moonbase:save", JSON.stringify({ version: 6, state: old }));
+  const migrated = loadGame();
+  check(
+    "Сохранение версии 6 мигрирует: текст журнала и причин остаётся как есть",
+    !!migrated && migrated.log[0].key === "log.legacy" && formatMsg(migrated.log[0]) === "Старая запись" && formatMsg(migrated.pending[0].reason) === "Старая причина",
+    migrated ? `${migrated.log[0].key}` : "не загрузилось",
+  );
+  memory.set("moonbase:save", JSON.stringify({ version: 99, state: modern }));
+  check("Сохранение из будущей версии не загружается", loadGame() === null, "null");
+  delete (globalThis as { localStorage?: unknown }).localStorage;
+
   // Поломка и починка
   const breakdownOpen = (): GameState => {
     let s = initialState(1);
@@ -254,6 +344,14 @@ export function runChecks(): CheckResult[] {
   // Итоговый экран: факты NASA и источники
   const noSourceText = (sourcesData as { id: string }[]).flatMap((x) => [`source.${x.id}.name`, `source.${x.id}.usedFor`]).filter((k) => !(k in ru));
   check("У каждого источника на экране «Данные NASA» есть название и описание", noSourceText.length === 0, noSourceText.join(", ") || `${(sourcesData as unknown[]).length} источников`);
+  // Настоящие нормы NASA на человека: только числа из брифа, с источником и ссылкой
+  const real = consumptionData.perCrewmemberPerDay;
+  const realOk = Object.values(real).every((v) => typeof v === "number" && v > 0) && real.oxygenKgWithExercise > real.oxygenKgResting && consumptionData.url.startsWith("https://www.nasa.gov/");
+  check("Нормы расхода NASA на человека заполнены (кислород, вода, еда) со ссылкой на источник", realOk, `кислород ${real.oxygenKgResting}–${real.oxygenKgWithExercise} кг, вода от ${real.potableWaterLitersMin} л, еда ${real.foodKcalAverage} ккал в сутки`);
+  // Настоящие измерения RadLab: у каждого дня есть показания, средняя в разумных пределах, дата совпадает с вспышкой из DONKI
+  const flareDates = new Set((flaresData as { date: string }[]).map((f) => f.date));
+  const badRadiation = radiationData.days.filter((d) => !(d.samples > 0 && d.meanDoseRate > 0 && d.meanDoseRate < 1000 && d.maxDoseRate >= d.meanDoseRate && flareDates.has(d.date)));
+  check("Данные RadLab: у каждого дня есть показания, и он совпадает со вспышкой DONKI", radiationData.days.length > 0 && badRadiation.length === 0, `${radiationData.days.length} дней, средняя ${radiationData.meanOfDailyMeans} мкГр/ч`);
   const facts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => missionFact(initialState(seed)).id);
   check(
     "Факт NASA в итогах выбирается по seed: один seed даёт один факт, и текст у него есть",
@@ -354,7 +452,7 @@ export function runChecks(): CheckResult[] {
   const recovered = reduce(ignored, { type: "tick", ms: 2 * DAY_MS });
   check(
     "Через 2 дня больной выздоравливает и снова свободен",
-    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.text.includes(t("crew.n" + patient))),
+    recovered.crew.find((c) => c.id === patient)!.status.kind === "free" && recovered.log.some((e) => e.key === "log.recovered" && e.params?.name === patient),
     `статус ${recovered.crew.find((c) => c.id === patient)!.status.kind}`,
   );
 

@@ -23,7 +23,7 @@ try {
 
   if (process.argv.includes("--report")) {
     const { playMission } = await server.ssrLoadModule("/src/engine/checks.ts");
-    const { buildReport } = await server.ssrLoadModule("/src/engine/debrief.ts");
+    const { buildReport } = await server.ssrLoadModule("/src/features/results/report.ts");
     const scenarios = {
       "без построек": { builds: {}, choices: { breakdown: "repair", flare: "hide" } },
       "риск": { builds: {}, choices: { breakdown: "ignore", flare: "work" } },

@@ -1,13 +1,19 @@
-import type { Action, Role } from "../types";
+import type { Action } from "@/types";
+import { ROOM_NAME } from "../../shared/protocol";
+import type { JoinResponse, Player, Role } from "../../shared/protocol";
 
-// Связь с сервером совместной игры (server/index.mjs).
+// Протокол (роли, правило имени комнаты, ответ входа) общий с сервером: shared/protocol.ts
+export { ROOM_NAME };
+export type { Player };
+
+// Связь с сервером совместной игры (server/index.ts).
 // В разработке Vite перенаправляет /api на сервер (vite.config.ts). Если сервер живёт по другому адресу,
 // его можно задать при сборке: VITE_SERVER_URL=https://... npm run build
 const BASE = `${import.meta.env.VITE_SERVER_URL ?? ""}/api/rooms`;
 
-export const ROOM_NAME = /^[A-Za-z]{1,20}$/;
-
-export type Player = { id: string; role: Role };
+// Сервер есть при разработке (прокси Vite на npm run server) или если сборку собрали с адресом сервера.
+// Статическая страница (GitHub Pages) сервера не имеет: тогда кнопка «Сервер» объясняет это, а не ведёт в тупик
+export const SERVER_AVAILABLE = import.meta.env.DEV || Boolean(import.meta.env.VITE_SERVER_URL);
 
 export type Session = {
   room: string;
@@ -23,7 +29,7 @@ export async function joinRoom(name: string): Promise<Session> {
   const room = name.toUpperCase();
   const res = await fetch(`${BASE}/${room}/join`, { method: "POST" });
   if (!res.ok) throw new Error(`join ${res.status}`);
-  const data = await res.json();
+  const data = (await res.json()) as JoinResponse;
   return { room, ...data };
 }
 
