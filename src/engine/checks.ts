@@ -8,6 +8,7 @@ import { loadGame, saveGame } from "@/session/storage";
 import { BUILD_MS, canPlace, capacityOf, choiceCost, dailyDelta, DAY_MS, dayOfEvent, getDef, ILLNESS_GAP, initialState, MAP_COLS, MAP_ROWS, MAX_ILLNESS, MISSION_DAYS, reduce, REPAIR_COST, slotOf } from "./index";
 import eventsData from "@/content/events.json";
 import sourcesData from "@/content/sources.json";
+import consumptionData from "@/content/nasa/consumption.json";
 import { en } from "@/i18n/en";
 import { ru } from "@/i18n/ru";
 import { uk } from "@/i18n/uk";
@@ -341,6 +342,10 @@ export function runChecks(): CheckResult[] {
   // Итоговый экран: факты NASA и источники
   const noSourceText = (sourcesData as { id: string }[]).flatMap((x) => [`source.${x.id}.name`, `source.${x.id}.usedFor`]).filter((k) => !(k in ru));
   check("У каждого источника на экране «Данные NASA» есть название и описание", noSourceText.length === 0, noSourceText.join(", ") || `${(sourcesData as unknown[]).length} источников`);
+  // Настоящие нормы NASA на человека: только числа из брифа, с источником и ссылкой
+  const real = consumptionData.perCrewmemberPerDay;
+  const realOk = Object.values(real).every((v) => typeof v === "number" && v > 0) && real.oxygenKgWithExercise > real.oxygenKgResting && consumptionData.url.startsWith("https://www.nasa.gov/");
+  check("Нормы расхода NASA на человека заполнены (кислород, вода, еда) со ссылкой на источник", realOk, `кислород ${real.oxygenKgResting}–${real.oxygenKgWithExercise} кг, вода от ${real.potableWaterLitersMin} л, еда ${real.foodKcalAverage} ккал в сутки`);
   const facts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => missionFact(initialState(seed)).id);
   check(
     "Факт NASA в итогах выбирается по seed: один seed даёт один факт, и текст у него есть",

@@ -377,6 +377,8 @@ export const en: Record<keyof typeof ru, string> = {
   "source.osdr.usedFor": "Astronaut health facts used in tips and debrief",
   "source.csa-food.name": "CSA: food production in space",
   "source.csa-food.usedFor": "Greenhouse facts: how food is grown beyond Earth",
+  "source.eclss.name": "ECLSS: what a person needs in space",
+  "source.eclss.usedFor": "Real NASA per-person daily needs: oxygen, water, food (shown as a hint in the results)",
 
   // Единицы, склад, экипаж строит, задания (возвращено после слияния)
   "module.storage.name": "Storage",
@@ -447,6 +449,7 @@ export const en: Record<keyof typeof ru, string> = {
   "hint.science": "The open NASA OSDR archive holds real studies of how space affects astronauts' bones, muscles, immunity and sleep.",
   "hint.greenhouse": "The Canadian Space Agency (CSA) studies how to grow food on the Moon. A greenhouse on the base gives fresh food and helps the crew's health.",
   "hint.nutrition": "According to CSA, astronauts' nutrition is linked to their health, and technologies for growing food in space also help people on Earth.",
+  "hint.consumption": "NASA plans for about 0.77 kg of oxygen per astronaut per day (about 1.1 kg with exercise), at least 2.5 L of drinking water and about 3,000 kcal of food on average. For a crew of four that is over 4 kg of oxygen and 10 L of water every day. The numbers in the game are simplified, but the principle is the same: until the base systems refill a supply, it shrinks every day.",
   "fact.bones": "In weightlessness bones carry no load and lose density by about 1% a month. Studies of astronauts' bones, muscles, immunity and sleep are collected in the open NASA OSDR archive.",
   "fact.muscles": "Without gravity muscles weaken, so astronauts on the ISS exercise for about two hours a day. A base on the Moon, where gravity is six times weaker than on Earth, also needs a place to exercise.",
   "fact.immune": "OSDR data show that in space the immune system works differently and sleep gets disturbed. The crew needs rest, not only work.",
