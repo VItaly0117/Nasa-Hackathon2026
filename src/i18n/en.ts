@@ -274,6 +274,7 @@ export const en: Record<keyof typeof ru, string> = {
   "app.fast": "Faster",
   "app.dayTimer": "Time left in the day",
   "app.rotate": "Turn your device sideways",
+  "app.loading": "Preparing the base…",
   "error.title": "Something went wrong",
   "error.text": "The game stopped because of an error. Your progress is not lost: try restarting. If that does not help, reset the save.",
   "error.reload": "Restart",

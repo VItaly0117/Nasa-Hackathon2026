@@ -10,6 +10,7 @@ import "@/features/story/Intro.css";
 import { MODE_IDS } from "@/engine";
 import type { GameMode } from "@/types";
 import "./MainMenu.css";
+import "@/ui/Loader.css";
 
 type Props = {
   savedDay: number | null; // день сохранённой миссии или null, если продолжать нечего
@@ -18,10 +19,11 @@ type Props = {
   onContinue: () => void;
   onJoined: (session: Session) => void;
   onSources: () => void; // открыть экран «Данные NASA»
+  leaving?: boolean; // идёт анимация ухода меню: кнопки разъезжаются и не нажимаются
 };
 
 // Начальный экран: название игры и кнопки. Выбор языка и вход на сервер открываются здесь же
-export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, onSources }: Props) {
+export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, onSources, leaving = false }: Props) {
   const [view, setView] = useState<"main" | "lang" | "server" | "modes">("main");
   const [room, setRoom] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -116,9 +118,11 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
     );
   }
 
+  const mmClass = leaving ? "mm mm--leaving" : "mm";
+
   if (view === "modes") {
     return (
-      <div className="mm">
+      <div className={mmClass}>
         <div className="mm__box mm__box--modes" role="dialog" aria-labelledby="modes-title">
           <h1 id="modes-title" className="mm__title">{t("menu.modeTitle")}</h1>
           {MODE_IDS.map((id) => (
@@ -139,7 +143,7 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
   }
 
   return (
-    <div className="mm">
+    <div className={mmClass}>
       <div className="mm__box" role="dialog" aria-labelledby="menu-title">
         <MoonLogo size={96} />
         <h1 id="menu-title" className="mm__title">{t("app.title")}</h1>

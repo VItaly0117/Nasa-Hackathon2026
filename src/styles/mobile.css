@@ -378,3 +378,35 @@
   }
   .game .dayclock__time { font-size: 18px; }
 }
+
+/* Низкий ландшафт: раскрытая панель экипажа шире и до низа экрана, зум на это время прячется (иначе 160×110 и наезд на кнопки) */
+@media (max-height: 620px) and (orientation: landscape) {
+  .game .hud-panel.crew:not(.crew--collapsed) {
+    width: min(320px, 42vw);
+    bottom: auto;
+    max-height: calc(100dvh - 164px - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: calc(var(--z-hud) + 1);
+  }
+  .game:has(.hud-panel.crew:not(.crew--collapsed)) .zoom { display: none; }
+  /* раскрытая цель: шире и до кнопки «Будівництво» (она остаётся видна) */
+  .game .side:has(.goal__row) {
+    width: min(340px, 44vw);
+    bottom: auto;
+    max-height: calc(100dvh - 154px - 88px - env(safe-area-inset-bottom, 0px));
+    overscroll-behavior: contain;
+  }
+  /* меню строительства: до низа экрана, чтобы карточки с ценой влезали целиком */
+  .game .build {
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    height: auto;
+    max-height: calc(100dvh - 220px);
+  }
+  /* пока открыто строительство, зум скрыт: шторка занимает его место слева внизу */
+  .game:has(.build .build__list) .zoom { display: none; }
+  .game .build__list > li { flex: 0 0 100px; min-width: 0; }
+  .game .build .card { min-width: 0; }
+  .game .build .card__name { overflow-wrap: anywhere; hyphens: auto; }
+}

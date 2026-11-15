@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sound } from "@/audio/audio";
 import { clearSave, loadGame, loadLang, saveLang } from "@/session/storage";
 import { createOnlineSession } from "@/session/online";
@@ -13,11 +13,19 @@ import { Intro } from "@/features/story/Intro";
 import { MainMenu } from "@/features/menu/MainMenu";
 import { Prologue } from "@/features/story/Prologue";
 import { RotateHint } from "@/ui/RotateHint";
+import { Loader } from "@/ui/Loader";
+import { preloadGame } from "@/ui/preload";
 import { SourcesPanel } from "@/features/menu/SourcesPanel";
 import "./styles/tokens.css";
 import "./styles/index.css";
 
 type Stage = "menu" | "prologue" | "intro" | "game";
+
+const LEAVE_MS = 600; // сколько длится «отлёт» меню
+const MIN_LOAD_MS = 900; // загрузка не мигает, даже если всё уже в кэше
+const FADE_MS = 500; // плавное скрытие экрана загрузки
+
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Язык с прошлого раза. Если его нет или он неизвестен, остаётся язык по умолчанию из i18n
 function restoreLang(): Lang | null {
@@ -29,6 +37,30 @@ function restoreLang(): Lang | null {
 
 // Какие экраны и в каком порядке: меню, пролог, правила, игра. Саму игру ведёт сессия
 export default function App() {
+  const [leaving, setLeaving] = useState(false);
+  const [loader, setLoader] = useState<{ progress: number; out: boolean } | null>(null);
+  const busy = useRef(false);
+
+  // Переход с анимацией: меню отлетает (если нужно), идёт загрузка, затем действие и плавное появление экрана
+  async function transition(action: () => void, withLeave: boolean) {
+    if (busy.current) return;
+    busy.current = true;
+    if (withLeave) {
+      setLeaving(true);
+      await wait(LEAVE_MS);
+    }
+    setLoader({ progress: 0, out: false });
+    await Promise.all([preloadGame((progress) => setLoader({ progress, out: false })), wait(MIN_LOAD_MS)]);
+    setLoader({ progress: 1, out: false });
+    action();
+    setLeaving(false);
+    await wait(80);
+    setLoader({ progress: 1, out: true });
+    await wait(FADE_MS);
+    setLoader(null);
+    busy.current = false;
+  }
+
   useEffect(() => {
     sound.startSpaceDrone();
   }, []);
@@ -59,6 +91,15 @@ export default function App() {
     setStage(from);
   }
 
+  const screen = renderScreen();
+  return (
+    <>
+      {screen}
+      {loader && <Loader progress={loader.progress} leaving={loader.out} />}
+    </>
+  );
+
+  function renderScreen() {
   if (stage === "menu") {
     return (
       <div className="game">
@@ -66,15 +107,22 @@ export default function App() {
         <MainMenu
           savedDay={saved?.day ?? null}
           onLang={pickLang}
+          leaving={leaving}
           onNewGame={(mode) => {
-            clearSave();
-            startSolo(null, "prologue", mode);
+            void transition(() => {
+              clearSave();
+              startSolo(null, "prologue", mode);
+            }, true);
           }}
-          onContinue={() => saved && startSolo(saved, "game", saved.mode ?? "normal")}
+          onContinue={() => {
+            if (saved) void transition(() => startSolo(saved, "game", saved.mode ?? "normal"), true);
+          }}
           onJoined={(room) => {
-            setSession(createOnlineSession(room));
-            setRunId((id) => id + 1);
-            setStage("game");
+            void transition(() => {
+              setSession(createOnlineSession(room));
+              setRunId((id) => id + 1);
+              setStage("game");
+            }, false);
           }}
           onSources={() => setSourcesOpen(true)}
         />
@@ -114,8 +162,9 @@ export default function App() {
   return (
     <div className="game">
       <div className="backdrop" aria-hidden="true" />
-      <Intro onStart={() => setStage("game")} />
+      <Intro onStart={() => void transition(() => setStage("game"), false)} />
       <RotateHint />
     </div>
   );
+  }
 }
