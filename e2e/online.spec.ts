@@ -4,11 +4,12 @@ import { expect, test } from "@playwright/test";
 test("совместная игра: двое в одной комнате видят одно и то же время", async ({ browser }) => {
   test.setTimeout(90_000);
   const room = `QA${Math.random().toString(36).replace(/[^a-z]/g, "").slice(0, 8)}`;
-  const state = { cookies: [], origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
+  const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
+  const state = { cookies: [], origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const errors: string[] = [];
 
   async function join() {
-    const ctx = await browser.newContext({ storageState: state, viewport: { width: 1280, height: 800 } });
+    const ctx = await browser.newContext({ baseURL: appUrl, storageState: state, viewport: { width: 1280, height: 800 } });
     const page = await ctx.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto("/");
