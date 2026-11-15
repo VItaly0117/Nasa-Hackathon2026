@@ -3,7 +3,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test";
 
 const storageState = {
   cookies: [],
-  origins: [{ origin: "http://localhost:5173", localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }],
+  origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }],
 };
 
 const moduleByRole: Record<string, string> = {

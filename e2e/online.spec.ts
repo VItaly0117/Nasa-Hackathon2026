@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test("совместная игра: двое в одной комнате видят одно и то же время", async ({ browser }) => {
   test.setTimeout(90_000);
   const room = "CLOCKSYNCQA";
-  const state = { cookies: [], origins: [{ origin: "http://localhost:5173", localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
+  const state = { cookies: [], origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const errors: string[] = [];
 
   async function join() {
@@ -49,7 +49,7 @@ test("совместная игра: двое в одной комнате ви�
 test("совместная игра: после потери связи действия не применяются повторно", async ({ browser }) => {
   test.setTimeout(90_000);
   const room = "RECONNECTQA";
-  const state = { cookies: [], origins: [{ origin: "http://localhost:5173", localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
+  const state = { cookies: [], origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const ctx = await browser.newContext({ storageState: state, viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   const eventUrls: string[] = [];
