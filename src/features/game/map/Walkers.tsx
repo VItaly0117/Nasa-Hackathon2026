@@ -10,37 +10,62 @@ const SPEED = 70;      // единиц карты в секунду
 const SCALE = 1.6;     // размер астронавта относительно рисунка
 const SPREAD = 26;     // чтобы астронавты у одного модуля не стояли друг на друге
 
-function Astronaut({ suit, name }: { suit: string; name: string }) {
+// Астронавт сбоку, лицом вправо (влево его разворачивает scale в Walkers). Белый скафандр, большой синий визор,
+// цветные детали (воротник, пояс, манжеты, точка на шлеме) своего цвета у каждого. Части с классами astro__* двигает Walkers
+// напрямую в SVG на каждом кадре: ноги качаются вокруг бёдер (±3.5, -15), рука вокруг плеча (0, -31)
+const LINE = { stroke: "#3a3358", strokeWidth: 0.9, strokeLinejoin: "round", strokeLinecap: "round" } as const;
+
+function Leg({ x, boot, suit }: { x: number; boot: string; suit: string }) {
+  return (
+    <g {...LINE}>
+      <rect x={x - 3.5} y="-16" width="7" height="12.5" rx="3.2" fill="url(#gAstroWhite)" />
+      <rect x={x - 3.5} y="-7.5" width="7" height="2.6" fill={suit} />
+      <path d={`M ${x - 4} -4 H ${x + 5.5} Q ${x + 7.5} -4 ${x + 7.5} -1.5 V 0 H ${x - 4} Z`} fill={boot} />
+    </g>
+  );
+}
+
+export function Astronaut({ suit, name }: { suit: string; name: string }) {
   return (
     <g>
-      {/* Бейдж з іменем над головою */}
+      {/* Бейдж с именем над головой: рамка своего цвета, чтобы астронавтов различать издалека */}
       <g transform="translate(0, -96)">
-        <rect
-          className="astro__name-bg"
-          x="-34"
-          y="-13"
-          width="68"
-          height="22"
-          rx="11"
-        />
+        <rect className="astro__name-bg" x="-34" y="-13" width="68" height="22" rx="11" style={{ stroke: suit, strokeWidth: 2 }} />
         <text className="astro__name-tag" y="0">
           {name}
         </text>
       </g>
       <ellipse cx="0" cy="0" rx="13" ry="4.5" fill="#000" opacity="0.28" />
       <g className="astro">
-        <g className="astro__legL"><rect x="-6.5" y="-15" width="6" height="15" rx="3" fill="#e4e9f5" /></g>
-        <g className="astro__legR"><rect x="0.5" y="-15" width="6" height="15" rx="3" fill="#cfd6e8" /></g>
-        <rect x="-16" y="-36" width="8" height="18" rx="3" fill="#aab4cf" />
-        <rect x="-10" y="-36" width="20" height="24" rx="8" fill="#f4f7ff" />
-        <rect x="-10" y="-25" width="20" height="5" fill={suit} />
-        <circle cx="3" cy="-29" r="2" fill="#4a6fd0" />
-        <g className="astro__arm">
-          <rect x="-3" y="-3" width="6" height="15" rx="3" fill="#e4e9f5" transform="translate(0 -34)" />
+        <g className="astro__legL"><Leg x={-3.5} boot="#8f96b3" suit={suit} /></g>
+        {/* рюкзак за спиной */}
+        <rect x="-17" y="-39" width="10" height="23" rx="4" fill="#cfd4e8" {...LINE} />
+        <rect x="-15.5" y="-35" width="7" height="3" rx="1.5" fill={suit} opacity="0.9" />
+        <g className="astro__legR"><Leg x={3.5} boot="#a9afc8" suit={suit} /></g>
+        {/* туловище */}
+        <g {...LINE}>
+          <rect x="-10" y="-38" width="20" height="26" rx="8" fill="url(#gAstroWhite)" />
         </g>
-        <circle cx="0" cy="-43" r="11" fill="#f4f7ff" />
-        <ellipse cx="3.5" cy="-43" rx="7" ry="5.5" fill="#2a4fa8" />
-        <ellipse cx="5.5" cy="-45" rx="2.4" ry="1.6" fill="#ffffff" opacity="0.7" />
+        <rect x="-10" y="-21.5" width="20" height="4" fill={suit} stroke="#3a3358" strokeWidth="0.7" />
+        <rect x="2" y="-33" width="6" height="5" rx="1.4" fill="#cfd4e8" stroke="#3a3358" strokeWidth="0.7" />
+        <circle cx="4" cy="-30.5" r="0.8" fill="#6b7396" />
+        <circle cx="6.2" cy="-30.5" r="0.8" fill="#6b7396" />
+        {/* рука */}
+        <g className="astro__arm" {...LINE}>
+          <g transform="translate(0 -34)">
+            <rect x="-3.3" y="-3" width="6.6" height="15" rx="3.3" fill="url(#gAstroWhite)" />
+            <rect x="-3.3" y="7.4" width="6.6" height="2.4" fill={suit} />
+            <circle cx="0" cy="12.8" r="3.3" fill="#a9afc8" />
+          </g>
+        </g>
+        {/* шея и шлем */}
+        <ellipse cx="0.5" cy="-37" rx="7" ry="2.4" fill={suit} stroke="#3a3358" strokeWidth="0.8" />
+        <g {...LINE}>
+          <circle cx="0.5" cy="-47" r="11.8" fill="url(#gAstroWhite)" />
+        </g>
+        <ellipse cx="6" cy="-47" rx="7" ry="7.4" fill="url(#gAstroVisor)" stroke="#2a2b52" strokeWidth="0.9" />
+        <ellipse cx="8.2" cy="-50" rx="2.6" ry="1.7" fill="#ffffff" opacity="0.75" transform="rotate(-25 8.2 -50)" />
+        <circle cx="-4.8" cy="-47" r="3" fill={suit} stroke="#3a3358" strokeWidth="0.8" />
         <circle className="astro__spark" cx="17" cy="-22" r="3.2" fill={suit} />
       </g>
     </g>
