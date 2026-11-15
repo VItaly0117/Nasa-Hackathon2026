@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import consumption from "../../src/content/nasa/consumption.json";
 import { dailyDelta, initialState } from "../helpers/engine";
 import { crewNeeds } from "../../src/engine/selectors";
+import { MODES } from "../../src/engine/constants";
 import type { GameState } from "../../src/types";
 
 // Расход экипажа считается по нормам NASA (consumption.json), а не берётся «с потолка»
@@ -41,6 +42,52 @@ describe("расход экипажа по нормам NASA", () => {
     const sick = crewNeeds(withStatus(initialState(1), ["sick", "free", "free", "free"]));
     const rest = crewNeeds(initialState(1));
     expect(sick).toEqual(rest);
+  });
+
+  it("расход растёт линейно с числом астронавтов", () => {
+    const fourCrew = initialState(1);
+    const twoCrew = { ...fourCrew, crew: fourCrew.crew.slice(0, 2) };
+    const fourNeeds = crewNeeds(fourCrew);
+    const twoNeeds = crewNeeds(twoCrew);
+
+    for (const resource of ["oxygen", "water", "food"] as const) {
+      expect(fourNeeds[resource]).toBeLessThan(twoNeeds[resource]!);
+      expect(Math.abs(fourNeeds[resource]! - 2 * twoNeeds[resource]!)).toBeLessThanOrEqual(0.01);
+    }
+  });
+
+  it("все MODES.need масштабируют нормы NASA", () => {
+    const perPerson = {
+      oxygen: N.oxygenKgResting / G.oxygenKgPerUnit,
+      water: N.potableWaterLitersMin * G.waterScale,
+      food: N.foodKcalAverage / G.foodKcalPerUnit,
+    };
+
+    for (const mode of ["easy", "normal", "hard"] as const) {
+      const needs = crewNeeds(initialState(1, mode));
+
+      for (const resource of ["oxygen", "water", "food"] as const) {
+        const raw = 4 * perPerson[resource] * MODES[mode].need;
+        expect(needs[resource]).toBe(-Math.round(raw * 100) / 100);
+      }
+    }
+  });
+
+  it("возвращает отрицательные значения, округлённые до двух знаков", () => {
+    const needs = crewNeeds(initialState(1));
+
+    for (const value of Object.values(needs)) {
+      expect(value).toBeLessThan(0);
+      expect(value).toBe(Math.round(value! * 100) / 100);
+    }
+  });
+
+  it("совпадает с итоговыми значениями для четырёх свободных астронавтов в документации", () => {
+    expect(crewNeeds(initialState(1))).toEqual({
+      oxygen: -4.41,
+      water: -3,
+      food: -4,
+    });
   });
 
   it("лёгкий режим тратит меньше, сложный больше", () => {
