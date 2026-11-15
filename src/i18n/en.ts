@@ -206,6 +206,8 @@ export const en: Record<keyof typeof ru, string> = {
 
   "crew.title": "Crew ({n})",
   "crew.aria": "Crew",
+  "crew.healthLabel": "Health",
+  "crew.healthTip": "Shared health of the whole crew, the same for every astronaut. It drops from a lack of air, water or food, and from illness.",
   "crew.n1": "Alice",
   "crew.n2": "Max",
   "crew.n3": "Vitaliy",

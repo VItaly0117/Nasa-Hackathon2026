@@ -206,6 +206,8 @@ export const uk: Record<keyof typeof ru, string> = {
 
   "crew.title": "Екіпаж ({n})",
   "crew.aria": "Екіпаж",
+  "crew.healthLabel": "Здоров'я",
+  "crew.healthTip": "Спільна шкала здоров'я всього екіпажу, однакова для всіх астронавтів. Падає від нестачі повітря, води чи їжі та від хвороб.",
   "crew.n1": "Аліса",
   "crew.n2": "Максим",
   "crew.n3": "Віталій",
