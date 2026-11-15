@@ -184,7 +184,13 @@ export default function LunarMap({
     [flush]
   );
 
-  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    },
+    []
+  );
 
   // Центр стартовой базы: на него смотрим при запуске и по кнопке «До бази».
   // Считаем один раз, поэтому новые модули камеру не двигают
@@ -327,8 +333,6 @@ export default function LunarMap({
     if (pointers.current.size > 0) beginGesture();
   };
 
-  // Колесо вешаем вручную как не-passive не нужно, но событие может приходить чаще кадра — apply уже склеивает их в rAF
-
   const moduleAt = (row: number, col: number) =>
     modules.find((m) => m.slot === slotOf(row, col));
 
@@ -384,13 +388,94 @@ export default function LunarMap({
     return { x, y: y - TILE_H / 2 - lift, title: getTerrainName(selected.terrain), text };
   })();
 
-  const handleSelect = (tile: TileInfo) => {
+  const handleSelectImpl = (tile: TileInfo) => {
     if (gesture.current.moved) return;
     // повторный клик по той же клетке прячет облачко
     const same = selected?.row === tile.row && selected?.col === tile.col;
     setSelected(same && !buildType ? null : tile);
     onSelectTile?.(tile);
   };
+
+  const selectRef = useRef(handleSelectImpl);
+  selectRef.current = handleSelectImpl;
+  const handleSelect = useCallback((tile: TileInfo) => selectRef.current(tile), []);
+
+  // Тяжёлые слои считаются только при реальном изменении данных, а не при каждом наведении мыши
+  const tileLayer = useMemo(
+    () =>
+      TILES.map((tile) => {
+        const { x, y } = getPosition(tile.row, tile.col);
+        return (
+          <polygon
+            key={`t-${tile.row}-${tile.col}`}
+            points={diamond(x, y)}
+            fill="transparent"
+            stroke={buildType ? "#ffffff" : "none"}
+            strokeOpacity="0.14"
+            onClick={() => handleSelect(tile)}
+            onMouseEnter={() => setHovered(tile)}
+            style={{ cursor: buildType ? "crosshair" : "pointer" }}
+          />
+        );
+      }),
+    [buildType, handleSelect]
+  );
+
+  const iceLayer = useMemo(
+    () =>
+      TILES.map((tile) => {
+        if (tile.terrain !== "ice" || modules.some((m) => m.slot === slotOf(tile.row, tile.col))) return null;
+        const { x, y } = getPosition(tile.row, tile.col);
+        return (
+          <g key={`ice-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} pointerEvents="none">
+            <Ice />
+          </g>
+        );
+      }),
+    [modules]
+  );
+
+  const okTiles = useMemo(
+    () => (buildType ? TILES.filter((tile) => canPlaceAt(tile.row, tile.col)) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [buildType, modules]
+  );
+
+  const moduleLayer = useMemo(
+    () =>
+      [...modules]
+        .sort((a, b) => a.slot - b.slot)
+        .map((module) => {
+          const { row, col } = cellOf(module.slot);
+          const tile = TILES.find((t2) => t2.row === row && t2.col === col);
+          if (!tile) return null;
+          const { x, y } = getPosition(row, col);
+          return (
+            <g
+              key={`o-${row}-${col}`}
+              transform={`translate(${x} ${y}) scale(${ART_SCALE})`}
+              onClick={() => handleSelect(tile)}
+              style={{ cursor: "pointer" }}
+              pointerEvents={buildType ? "none" : "auto"}
+            >
+              <g className="module-art" opacity={module.building ? 0.45 : 1}>
+                {/* при смене «строится → готово» ключ пересоздаёт группу и играет появление */}
+                <g key={module.building ? "building" : "ready"} className={module.building ? undefined : "module-pop"}>
+                  <ModuleArt type={module.type} broken={module.broken} />
+                </g>
+              </g>
+              {!module.building && <ellipse className="build-pulse" cx="0" cy="0" rx="34" ry="17" fill="none" stroke="#ffd166" strokeWidth="3" />}
+              {module.building && renderBuild?.progress(module)}
+            </g>
+          );
+        }),
+    [modules, buildType, handleSelect, renderBuild]
+  );
+
+  const ghost =
+    buildType && hovered && !moduleAt(hovered.row, hovered.col) && canPlaceAt(hovered.row, hovered.col)
+      ? getPosition(hovered.row, hovered.col)
+      : null;
 
   return (
     <>
@@ -428,21 +513,7 @@ export default function LunarMap({
             />
 
             {/* Слой 2: невидимые клетки, по которым кликают. В режиме стройки видна сетка */}
-            {TILES.map((tile) => {
-              const { x, y } = getPosition(tile.row, tile.col);
-              return (
-                <polygon
-                  key={`t-${tile.row}-${tile.col}`}
-                  points={diamond(x, y)}
-                  fill="transparent"
-                  stroke={buildType ? "#ffffff" : "none"}
-                  strokeOpacity="0.14"
-                  onClick={() => handleSelect(tile)}
-                  onMouseEnter={() => setHovered(tile)}
-                  style={{ cursor: buildType ? "crosshair" : "pointer" }}
-                />
-              );
-            })}
+            {tileLayer}
 
             {surveyingIce && (
               <g pointerEvents="none" aria-hidden="true">
@@ -461,26 +532,25 @@ export default function LunarMap({
             {/* Слой 4: зелёные клетки, где можно строить выбранный модуль */}
             {buildType && (
               <g pointerEvents="none">
-                {TILES.map((tile) => {
-                  const ok = canPlaceAt(tile.row, tile.col);
-                  const isHovered = hovered?.row === tile.row && hovered?.col === tile.col;
-                  if (!ok && !isHovered) return null;
-
+                {okTiles.map((tile) => {
                   const { x, y } = getPosition(tile.row, tile.col);
-                  const color = ok ? OK_COLOR : BAD_COLOR;
-
+                  const isHovered = hovered?.row === tile.row && hovered?.col === tile.col;
                   return (
                     <polygon
                       key={`hl-${tile.row}-${tile.col}`}
-                      className={ok ? "tile-ok" : undefined}
+                      className="tile-ok"
                       points={diamond(x, y)}
-                      fill={color}
+                      fill={OK_COLOR}
                       fillOpacity={isHovered ? 0.55 : 0.3}
-                      stroke={color}
+                      stroke={OK_COLOR}
                       strokeWidth={isHovered ? 4 : 2}
                     />
                   );
                 })}
+                {hovered && !okTiles.includes(hovered) && (() => {
+                  const { x, y } = getPosition(hovered.row, hovered.col);
+                  return <polygon points={diamond(x, y)} fill={BAD_COLOR} fillOpacity={0.55} stroke={BAD_COLOR} strokeWidth={4} />;
+                })()}
               </g>
             )}
 
@@ -500,55 +570,13 @@ export default function LunarMap({
             })()}
 
             {/* Слой 5: поклади льоду, будівлі та «призрак» модуля */}
-            {TILES.map((tile) => {
-              if (tile.terrain !== "ice" || moduleAt(tile.row, tile.col)) return null;
-              const { x, y } = getPosition(tile.row, tile.col);
-              return (
-                <g key={`ice-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} pointerEvents="none">
-                  <Ice />
-                </g>
-              );
-            })}
-
-            {TILES.map((tile) => {
-              const module = moduleAt(tile.row, tile.col);
-              const isGhost =
-                !module &&
-                buildType !== null &&
-                hovered?.row === tile.row &&
-                hovered?.col === tile.col &&
-                canPlaceAt(tile.row, tile.col);
-              if (!module && !isGhost) return null;
-
-              const { x, y } = getPosition(tile.row, tile.col);
-
-              if (module) {
-                return (
-                  <g
-                    key={`o-${tile.row}-${tile.col}`}
-                    transform={`translate(${x} ${y}) scale(${ART_SCALE})`}
-                    onClick={() => handleSelect(tile)}
-                    style={{ cursor: "pointer" }}
-                    pointerEvents={buildType ? "none" : "auto"}
-                  >
-                    <g className="module-art" opacity={module.building ? 0.45 : 1}>
-                      {/* при смене «строится → готово» ключ пересоздаёт группу и играет появление */}
-                      <g key={module.building ? "building" : "ready"} className={module.building ? undefined : "module-pop"}>
-                        <ModuleArt type={module.type} broken={module.broken} />
-                      </g>
-                    </g>
-                    {!module.building && <ellipse className="build-pulse" cx="0" cy="0" rx="34" ry="17" fill="none" stroke="#ffd166" strokeWidth="3" />}
-                    {module.building && renderBuild?.progress(module)}
-                  </g>
-                );
-              }
-
-              return (
-                <g key={`o-${tile.row}-${tile.col}`} transform={`translate(${x} ${y}) scale(${ART_SCALE})`} opacity="0.6" pointerEvents="none">
-                  <ModuleArt type={buildType!} />
-                </g>
-              );
-            })}
+            {iceLayer}
+            {moduleLayer}
+            {ghost && (
+              <g transform={`translate(${ghost.x} ${ghost.y}) scale(${ART_SCALE})`} opacity="0.6" pointerEvents="none">
+                <ModuleArt type={buildType!} />
+              </g>
+            )}
 
             {/* Слой 6: астронавты ходят между модулями */}
             <Walkers targets={walkTargets} active={crewActive} />

@@ -78,22 +78,18 @@ export function BuildMenu({
   return (
     <>
       <div className="build-dock">
-        {placing && (
-          <>
-            <span className="build-dock__hint">{t("build.hintPlacing")}</span>
-            <button className="btn btn--solid btn--cancel btn--small" onClick={onCancel}>
-              {t("build.cancel")}
-            </button>
-          </>
-        )}
         <button
-          className={`build-toggle ${!collapsed ? "build-toggle--open" : ""}`}
-          onClick={toggle}
+          className={`build-toggle ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
+          onClick={placing ? onCancel : toggle}
           aria-expanded={!collapsed}
-          aria-label={collapsed ? t("build.tab") : t("build.close")}
-          title={collapsed ? t("build.tab") : t("build.close")}
+          aria-label={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
+          title={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
         >
-          {collapsed ? (
+          {placing ? (
+            <svg viewBox="0 0 20 20" width="24" height="24" aria-hidden="true">
+              <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          ) : collapsed ? (
             <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
@@ -102,7 +98,7 @@ export function BuildMenu({
               <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
           )}
-          <span className="build-toggle__label">{collapsed ? t("build.tab") : t("build.close")}</span>
+          <span className="build-toggle__label">{placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}</span>
         </button>
       </div>
       {!collapsed && (
