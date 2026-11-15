@@ -169,6 +169,7 @@ export const en: Record<keyof typeof ru, string> = {
   "sum.out.nightSoon": "Night in {days}",
   "sum.out.event": "In {days}: {title}",
   "sum.continue": "Continue",
+  "sum.next": "Start day {day}",
 
   "res.aria": "Base resources",
   "res.oxygen": "Oxygen",
@@ -232,6 +233,7 @@ export const en: Record<keyof typeof ru, string> = {
   "build.aria": "Construction",
   "build.tab": "Construction",
   "build.close": "Close",
+  "build.badge": "{n} can be built",
   "build.hintPlacing": "Pick a green tile on the map",
   "build.hintPick": "Pick a module",
   "build.night": "Works differently at night",

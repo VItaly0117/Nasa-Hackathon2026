@@ -126,3 +126,6 @@
   .mm__pill { min-height: 34px; font-size: 13px; }
   .mm__btn { min-height: 36px; font-size: 15px; border-radius: 14px; }
 }
+
+/* Заголовок вибору мови: довгий рядок трьома мовами */
+.mm__title--lang { font-size: 30px; line-height: 1.25; max-width: 18ch; }

@@ -6,12 +6,17 @@ import { useSession } from "@/session/hooks";
 
 const freshTaskIds = (s: GameState) => s.tasks.filter((x) => x.issuedDay === s.day && x.status === "open").map((x) => x.id);
 const buildingCount = (s: GameState) => s.modules.filter((m) => m.build).length;
+const isBuildingActive = (s: GameState) =>
+  s.status === "playing" && s.modules.some((m) => m.build && m.build.crewId !== null);
 
 // Звуки игры. Подписка на хранилище, а не React-состояние: звук не должен перерисовывать экран
 export function useSoundEffects() {
   const { store } = useSession();
 
   useEffect(() => {
+    // Включаем атмосферный фоновый космический гул
+    sound.startSpaceDrone();
+
     let prev = store.getState();
     let prevEvent: string | null = null;
     let prevFresh: string[] = [];
@@ -35,6 +40,7 @@ export function useSoundEffects() {
     announceDay(prev);
     announceTasks(prev);
     announceEvent(prev);
+    sound.setBuildingActive(isBuildingActive(prev));
 
     const unsubscribe = store.subscribe(() => {
       const s = store.getState();
@@ -42,6 +48,7 @@ export function useSoundEffects() {
       if (s.day !== prev.day) announceDay(s);
       if (s.tasks !== prev.tasks || s.day !== prev.day) announceTasks(s);
       if (buildingCount(prev) > buildingCount(s)) sound.playBuildComplete();
+      sound.setBuildingActive(isBuildingActive(s));
       announceEvent(s);
       if (prev.status === "playing" && s.status !== "playing") {
         if (s.status === "won") sound.playVictory();
@@ -51,6 +58,7 @@ export function useSoundEffects() {
     });
 
     return () => {
+      sound.setBuildingActive(false);
       unsubscribe();
     };
   }, [store]);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { DaySummary as Summary, VitalKey } from "@/engine";
+import { MISSION_DAYS, type DaySummary as Summary, type VitalKey } from "@/engine";
 import { days, moduleName, t, tDynamic } from "@/i18n";
+import { sound } from "@/audio/audio";
 import { ResourceIcon } from "@/ui/icons";
 
 const VITAL: VitalKey[] = ["oxygen", "water", "food", "energy"];
@@ -88,7 +89,12 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
     <div className="overlay">
       <div className={`modal daysum daysum--${verdict}`} role="dialog" aria-labelledby="daysum-title"
         style={{ "--dur": `${seconds}s` } as React.CSSProperties}>
-        <div className="daysum__bar" aria-hidden="true"><span /></div>
+        <div className="daysum__mission">
+          <div className="daysum__mission-bar" role="progressbar" aria-valuemin={0} aria-valuemax={MISSION_DAYS} aria-valuenow={summary.day}>
+            <span style={{ width: `${Math.min(100, (summary.day / MISSION_DAYS) * 100)}%` }} />
+          </div>
+          <p>{t("sum.progress", { day: summary.day, total: MISSION_DAYS })}</p>
+        </div>
         <header className="daysum__head">
           <h2 id="daysum-title">{t("sum.title", { day: summary.day })}</h2>
           <p className="daysum__verdict">{tDynamic(`sum.verdict.${verdict}`)}</p>
@@ -150,8 +156,8 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
           </section>
         )}
 
-        <button className="btn btn--primary daysum__go" autoFocus onClick={onClose}>
-          <span className="daysum__go-text">{t("sum.continue")}</span>
+        <button className="btn btn--primary daysum__go" autoFocus onClick={() => { sound.playClick(); onClose(); }}>
+          <span className="daysum__go-text">{summary.day < MISSION_DAYS ? t("sum.next", { day: summary.day + 1 }) : t("sum.continue")}</span>
           <span className="daysum__count" aria-hidden="true">{secLeft}</span>
         </button>
       </div>

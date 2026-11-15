@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
 import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
+import { sound } from "@/audio/audio";
 import { ResourceIcon } from "@/ui/icons";
 import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 import "./BuildMenu.css";
+
+const IDLE_MS = 30000;
 
 type Props = {
   defs: ModuleDef[];
@@ -98,8 +101,8 @@ export function BuildMenu({
     <>
       <div className="build-dock">
         <button
-          className={`build-toggle ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
-          onClick={placing ? onCancel : toggle}
+          className={`build-toggle ${nudge ? "build-toggle--nudge" : ""} ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
+          onClick={placing ? onCancel : () => { sound.playClick(); toggle(); }}
           aria-expanded={!collapsed}
           aria-label={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
           title={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
@@ -118,6 +121,11 @@ export function BuildMenu({
             </svg>
           )}
           <span className="build-toggle__label">{placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}</span>
+          {collapsed && !placing && buildable > 0 && (
+            <span className="build-toggle__badge" role="img" aria-label={t("build.badge", { n: buildable })} title={t("build.badge", { n: buildable })}>
+              {buildable}
+            </span>
+          )}
         </button>
       </div>
       {!collapsed && (

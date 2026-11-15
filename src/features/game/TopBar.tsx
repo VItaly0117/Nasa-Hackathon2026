@@ -47,21 +47,26 @@ function Badge() {
   );
 }
 
-function Buttons({ onMenu }: { onMenu: () => void }) {
-  const ui = useGameUi();
+function MuteButton() {
   const [muted, setMuted] = useState(() => sound.isMuted());
   useEffect(() => sound.subscribe(setMuted), []);
   return (
+    <button
+      type="button"
+      className="btn btn--ghost btn--small btn--icon base-badge__mute"
+      onClick={() => sound.toggleMute()}
+      aria-label={muted ? t("app.soundOff") : t("app.soundOn")}
+      title={muted ? t("app.soundOff") : t("app.soundOn")}
+    >
+      {muted ? <SoundOffIcon size={18} /> : <SoundOnIcon size={18} />}
+    </button>
+  );
+}
+
+function Buttons({ onMenu }: { onMenu: () => void }) {
+  const ui = useGameUi();
+  return (
     <>
-      <button
-        type="button"
-        className="btn btn--ghost btn--small btn--icon"
-        onClick={() => sound.toggleMute()}
-        aria-label={muted ? t("app.soundOff") : t("app.soundOn")}
-        title={muted ? t("app.soundOff") : t("app.soundOn")}
-      >
-        {muted ? <SoundOffIcon size={18} /> : <SoundOnIcon size={18} />}
-      </button>
       <button className="btn btn--ghost btn--small btn--help" onClick={() => { sound.playClick(); ui.setRulesOpen(true); }}>
         <BookIcon size={18} />
         <span>{t("app.rules")}</span>
@@ -79,6 +84,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
       <div className="hud-panel base-badge">
         <MoonLogo />
         <Badge />
+        <MuteButton />
         <GameClock>
           <Buttons onMenu={onMenu} />
         </GameClock>

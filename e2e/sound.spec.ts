@@ -50,7 +50,9 @@ test("все звуки в пределах громкости и без пис�
 
     const makers: Record<string, (ctx: OfflineAudioContext, master: GainNode) => void> = {
       click: effects.click, toggleSound: effects.toggleSound, radioChirp: effects.radioChirp, decisionConfirm: effects.decisionConfirm,
-      taskToast: effects.taskToast, buildStart: effects.buildStart, buildComplete: effects.buildComplete, repair: effects.repair,
+      taskToast: effects.taskToast, buildStart: effects.buildStart, constructionPulse: effects.constructionPulse, buildComplete: effects.buildComplete, repair: effects.repair,
+      timerTick: (c, m) => effects.timerTick(c, m, false, 10),
+      timerTickUrgent: (c, m) => effects.timerTick(c, m, false, 3),
       alarmFlare: (c, m) => effects.alarm(c, m, "flare"), alarmBreakdown: (c, m) => effects.alarm(c, m, "breakdown"), alarmIllness: (c, m) => effects.alarm(c, m, "illness"),
       dayChange: effects.dayChange, nightfall: effects.nightfall, victory: effects.victory, defeat: effects.defeat,
     };

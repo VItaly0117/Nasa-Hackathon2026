@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { sound } from "@/audio/audio";
 import { clearSave, loadGame, loadLang, saveLang } from "@/session/storage";
 import { createOnlineSession } from "@/session/online";
 import { SessionProvider } from "@/session/react";
@@ -28,6 +29,10 @@ function restoreLang(): Lang | null {
 
 // Какие экраны и в каком порядке: меню, пролог, правила, игра. Саму игру ведёт сессия
 export default function App() {
+  useEffect(() => {
+    sound.startSpaceDrone();
+  }, []);
+
   const [stage, setStage] = useState<Stage>("menu");
   const [session, setSession] = useState<GameSession | null>(null);
   // Новый ключ пересоздаёт экран игры с чистым интерфейсом (баннеры, выбранный модуль), когда начинается новая игра

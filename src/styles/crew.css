@@ -11,16 +11,22 @@
 }
 .crew__info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
 .crew__info strong { font-size: 18px; }
-.crew__role { font-size: 14px; opacity: 0.8; }
+.crew__role { font-size: 15px; color: #d6defa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crew__status { margin-top: 3px; min-width: 0; }
+.crew__badge { display: inline-block; max-width: 100%; box-sizing: border-box; padding: 1px 10px; border-radius: 999px; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.crew__badge--busy { background: rgba(245, 184, 61, 0.22); color: #ffd98a; }
+.crew__badge--sick { background: rgba(255, 122, 122, 0.22); color: #ffb3b3; }
 .crew__barrow { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .crew__baricon { flex: none; }
 .crew__bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
 .crew__bar > div { height: 100%; border-radius: 4px; transition: width 0.4s; }
 
 .crew__item { position: relative; flex-wrap: wrap; }
-.crew__free { font: inherit; color: #9fe7b4; background: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(159, 231, 180, 0.6); border-radius: 8px; padding: 0 8px; cursor: pointer; }
+.crew__free { font: inherit; color: #b5f0c7; font-weight: 800; background: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(159, 231, 180, 0.6); border-radius: 8px; padding: 0 8px; cursor: pointer; }
 .crew__free:hover, .crew__free[aria-expanded="true"] { background: rgba(159, 231, 180, 0.25); }
 .crew__menu { flex-basis: 100%; display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
 .crew__menu-item { font: inherit; font-size: 14px; text-align: left; padding: 6px 10px; border-radius: 10px; border: none; cursor: pointer; background: #f5b83d; color: #1a1505; font-weight: 800; }
 .crew__menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
 .crew__menu-empty { margin: 0; font-size: 13px; opacity: 0.8; }
+
+.crew__badge--free { background: rgba(159, 231, 180, 0.2); color: #b5f0c7; }

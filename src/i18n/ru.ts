@@ -176,6 +176,7 @@ export const ru = {
   "sum.out.nightSoon": "Ночь через {days}",
   "sum.out.event": "Через {days}: {title}",
   "sum.continue": "Продолжить",
+  "sum.next": "Начать день {day}",
 
   // Ресурсы
   "res.aria": "Ресурсы базы",
@@ -242,6 +243,7 @@ export const ru = {
   "build.aria": "Строительство",
   "build.tab": "Строительство",
   "build.close": "Закрыть",
+  "build.badge": "{n} можно построить",
   "build.hintPlacing": "Выбери зелёную клетку на карте",
   "build.hintPick": "Выбери модуль",
   "build.night": "Ночью работает иначе",
