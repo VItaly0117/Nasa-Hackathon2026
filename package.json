@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "server": "node server/index.mjs",
-    "check": "node scripts/run-checks.mjs && node scripts/run-online-checks.mjs",
+    "check": "npm run test:unit && node scripts/run-online-checks.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",

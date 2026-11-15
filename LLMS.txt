@@ -18,7 +18,7 @@
    - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
 5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts` (UI texts, hints, NASA facts, debrief texts). There are no translation files in the repository root.
 6. **Multiplayer:** the server only replays actions. Every new action type must be added to `Action` in `src/types.ts` AND to `ACTION_TYPES` in `server/index.mjs`; `npm run check` fails if they differ (`nextDay` is the only exception).
-7. **Testing:** Always run `npm run check` (`node scripts/run-checks.mjs && node scripts/run-online-checks.mjs`) to verify engine balance and room protocol after modifying code or JSON configs.
+7. **Testing:** Always run `npm run check` (Vitest engine suites plus online room checks) after modifying code or JSON configs.
 
 ## Key Files Reference
 - `PROJECT_DOCUMENTATION.md`: Master specification for human and AI developers.

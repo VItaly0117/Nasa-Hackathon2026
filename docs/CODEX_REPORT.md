@@ -2,9 +2,13 @@
 
 ## Status
 
-Work is paused before T1 test generation because the required `lcode` delegation route currently rejects every tested Codex model with `model_not_found`. `lcode --quota` reports the Gemini/Claude weekly pool at 99–100% used and the Codex 5-hour window at 7% used. The Codex CLI default (`gpt-6.1-sol`), the locally documented former default (`gpt-6-sol`), and `gpt-5.3-codex`, `gpt-5.2-codex`, and `gpt-5.4` were rejected by the ChatGPT account. No model generation was completed; no raw proxy, credential, or quota-guard bypass was used.
+T1 suites were generated through `lcode` after selecting `gpt-5.6-terra` from `codex debug models`. The first lcode attempt found a bad relative import in `content.test.ts`; its retry fixed it. No raw proxy, credentials, or quota-guard bypass were used.
 
-This branch remains based on `origin/main` and is named `codex/infra`. No files in `src/` were changed. T2, T3, and T4 have not started.
+This branch remains based on `origin/main` and is named `codex/infra`. No files in `src/` were changed. T1 is green; T2, T3, and T4 have not started.
+
+## Completed work
+
+- T1: 8 Vitest suites, 79 tests total. `npm run test:unit`, legacy `npm run check`, and `npm run build` pass. All 66 legacy checks have exact one-to-one named tests.
 
 ## Completed preparation
 
@@ -12,18 +16,86 @@ This branch remains based on `origin/main` and is named `codex/infra`. No files 
 - Added `vitest.config.ts` for `tests/**/*.test.ts`.
 - Added `tests/helpers/engine.ts` as the single import seam for engine modules.
 - Added `tests/helpers/scenarios.ts` for deterministic scripted mission scenarios.
-- Baseline and current `npm run check` pass, including all 66 legacy engine checks and the existing online checks.
-- `npm run build` passes.
-
-Vitest is intentionally not wired into `npm run check` yet: there are no generated Vitest suites, and the legacy runner remains the active protection until the full mapping is complete.
+- `npm run check` now runs Vitest and the existing online checks.
+- Removed `scripts/run-checks.mjs` after verifying one-to-one coverage; left `src/engine/checks.ts` untouched as required.
+- Updated the current developer documentation with the new test commands and suite location.
+- `npm run check` and `npm run build` pass after the T1 integration.
 
 ## Test mapping
 
-Not completed. No old check has yet been ported; therefore no mapping rows are claimed and `scripts/run-checks.mjs` remains in place. The baseline run captured 66 passing checks. T1 must create and verify a one-to-one mapping for every emitted legacy check before replacing the runner.
+| Старая проверка | Новый тест |
+|---|---|
+| debrief.json без опечаток | `tests/engine/content.test.ts` |
+| Без построек миссию не пройти | `tests/engine/economy.test.ts` |
+| Риск без построек заканчивается раньше, чем осторожность | `tests/engine/economy.test.ts` |
+| Подготовленная база проходит миссию | `tests/engine/economy.test.ts` |
+| Подготовленная база сохраняет здоровье (80+) | `tests/engine/economy.test.ts` |
+| Без убежища вспышка стоит здоровья | `tests/engine/economy.test.ts` |
+| Без батарей лунная ночь оставляет базу без энергии | `tests/engine/economy.test.ts` |
+| В экипаже ровно инженер, учёный, врач и техник | `tests/engine/build-and-crew.test.ts` |
+| Убежище и медпункт строит врач | `tests/engine/build-and-crew.test.ts` |
+| Каждую стройку ведёт отдельный член экипажа, и все члены заняты | `tests/engine/build-and-crew.test.ts` |
+| Когда все заняты, пятый модуль не ставится | `tests/engine/build-and-crew.test.ts` |
+| Стройка не списывает ресурсы повторно и модуль в стройке ничего не даёт | `tests/engine/build-and-crew.test.ts` |
+| За минуту без 0,1 с стройка ещё идёт | `tests/engine/build-and-crew.test.ts` |
+| Ровно за 60 с игрового времени модуль готов, а строитель свободен | `tests/engine/build-and-crew.test.ts` |
+| Полный день по часам = следующий день | `tests/engine/build-and-crew.test.ts` |
+| Полдня по часам день не меняет | `tests/engine/build-and-crew.test.ts` |
+| На 6-й день ломается жизнеобеспечение | `tests/engine/build-and-crew.test.ts` |
+| Починка кликом стоит столько же, сколько выбор «починить» в окне (цена из events.json) | `tests/engine/build-and-crew.test.ts` |
+| Починка при открытом окне поломки закрывает окно и списывает цену | `tests/engine/build-and-crew.test.ts` |
+| Починили сразу: в разборе «починили», без «не починили» | `tests/engine/build-and-crew.test.ts` |
+| Отложили, потом починили: в разборе «починили позже», без «не починили» и без «починили сразу» | `tests/engine/build-and-crew.test.ts` |
+| Отложили и не починили: в разборе только «не починили» | `tests/engine/build-and-crew.test.ts` |
+| После конца игры починка и исследование ничего не меняют | `tests/engine/build-and-crew.test.ts` |
+| Исследование: верный ответ даёт +24 энергии и +12 материалов, неверный только +8 энергии | `tests/engine/research.test.ts` |
+| Исследование выполняется один раз | `tests/engine/research.test.ts` |
+| Разведка льда: верный ответ даёт воду и энергию, неверный немного материалов; оба один раз и независимо от пыли | `tests/engine/research.test.ts` |
+| Награда за исследование не выходит за лимит хранения | `tests/engine/research.test.ts` |
+| Подсказки в окнах событий совпадают с ценами в events.json | `tests/engine/content.test.ts` |
+| У каждого источника на экране «Данные NASA» есть название и описание | `tests/engine/content.test.ts` |
+| Факт NASA в итогах выбирается по seed: один seed даёт один факт, и текст у него есть | `tests/engine/debrief.test.ts` |
+| «На отлично» только если экипаж не остался без ответа на большинство просьб | `tests/engine/debrief.test.ts` |
+| В начале экипаж даёт 2 задания | `tests/engine/tasks.test.ts` |
+| Задание просит член экипажа с подходящей ролью | `tests/engine/tasks.test.ts` |
+| Новых заданий в день не больше 2 до 10-го дня и не больше 1 после | `tests/engine/tasks.test.ts` |
+| Открытых заданий одновременно не больше 4 | `tests/engine/tasks.test.ts` |
+| Срок задания про убежище = день вспышки | `tests/engine/tasks.test.ts` |
+| Без построек задания просрочены, а настроение экипажа падает | `tests/engine/tasks.test.ts` |
+| Построили теплицу: задание выполнено, настроение растёт | `tests/engine/tasks.test.ts` |
+| Модуль в стройке задание ещё не закрывает | `tests/engine/tasks.test.ts` |
+| У каждого задания есть текст и объяснение | `tests/engine/content.test.ts` |
+| Во время стройки можно заболеть (нашёлся seed) | `tests/engine/illness.test.ts` |
+| Событие болезни: строитель отмечен, стройка и часы стоят | `tests/engine/illness.test.ts` |
+| Вылечить: −10 воды и −8 еды, стройка продолжается тем же человеком | `tests/engine/illness.test.ts` |
+| С медпунктом лечение вдвое дешевле | `tests/engine/illness.test.ts` |
+| Не лечить: больной выбывает на 2 дня, здоровье −5, стройку подхватывает другой | `tests/engine/illness.test.ts` |
+| С медпунктом больной выбывает на 1 день | `tests/engine/illness.test.ts` |
+| Через 2 дня больной выздоравливает и снова свободен | `tests/engine/illness.test.ts` |
+| Если некому подхватить, стройка стоит и время её не идёт | `tests/engine/illness.test.ts` |
+| Освободился человек: он подхватывает стройку, и она снова идёт | `tests/engine/illness.test.ts` |
+| В первый день никто не заболевает | `tests/engine/illness.test.ts` |
+| За миссию не больше 3 болезней и не чаще, чем раз в 5 дней (40 разных seed) | `tests/engine/illness.test.ts` |
+| Один seed даёт одну и ту же игру | `tests/engine/illness.test.ts` |
+| Разбор болезни: вылечил, не лечил, медпункт | `tests/engine/illness.test.ts` |
+| Без склада вода не больше 100 | `tests/engine/economy.test.ts` |
+| Со складом вода копится выше 100 | `tests/engine/economy.test.ts` |
+| Склад добавляет место воде, еде и материалам, батарея энергии; кислород и здоровье всегда 100 | `tests/engine/economy.test.ts` |
+| Разбор: подготовленная база | `tests/engine/debrief.test.ts` |
+| Разбор: без убежища | `tests/engine/debrief.test.ts` |
+| Разбор: без батарей | `tests/engine/debrief.test.ts` |
+| Разбор: без построек | `tests/engine/debrief.test.ts` |
+| Разбор: риск | `tests/engine/debrief.test.ts` |
+| Разбор (idle): тексты без незаполненных {скобок} | `tests/engine/debrief.test.ts` |
+| Разбор (careless): тексты без незаполненных {скобок} | `tests/engine/debrief.test.ts` |
+| Разбор (prepared): тексты без незаполненных {скобок} | `tests/engine/debrief.test.ts` |
+| Разбор (noShelter): тексты без незаполненных {скобок} | `tests/engine/debrief.test.ts` |
+| Разбор (noBattery): тексты без незаполненных {скобок} | `tests/engine/debrief.test.ts` |
+
+Все 66 legacy-проверок имеют тест с тем же названием; 13 дополнительных тестов покрывают сохранения, рекорды и дополнительные seed. Список legacy-проверок снят с baseline `origin/main` до замены раннера.
 
 ## Remaining work
 
-- T1: generate eight Vitest suites (economy, build-and-crew, tasks, illness, debrief, research, content, determinism), add save/load/records and multi-seed `missionFact`/`buildReport` coverage, document all 66 mappings, then switch `npm run check` and retire the old runner only after parity.
 - T2: implement `shared/protocol.ts`, convert the server to TypeScript, replace regex online checks with Vitest server tests, and document the exact `src/net/online.ts` patch for Claude.
 - T3: add Chrome-channel Playwright smoke and 60-second performance specs and scripts; keep e2e outside `npm run check`.
 - T4: add Vitest and optional e2e steps to `.github/workflows/ci.yml` without changing `deploy.yml`.
@@ -34,10 +106,10 @@ Not completed. No old check has yet been ported; therefore no mapping rows are c
 
 ## Local commands
 
-- `npm run check` — current legacy engine and online checks.
-- `npm run test:unit` — Vitest (currently no suite files, until T1 resumes).
+- `npm run check` — Vitest and online checks.
+- `npm run test:unit` — the 79 Vitest engine tests.
 - `npm run build` — TypeScript and production bundle.
 
 ## How to continue
 
-First restore a model slug supported by the authenticated Codex CLI (or wait for a delegated backend quota to recover), then rerun the required `lcode` test-writing jobs. Keep the current Vitest scaffold and central engine helper. Complete T1 and commit only after the full mapping is green; continue T2–T4 as separate commits, running `npm run check` and `npm run build` after each commit.
+T1 is complete and ready for its dedicated commit after the npm check/build gate. Continue T2–T4 as separate commits, using the CLI catalog-supported model `gpt-5.6-terra` through `lcode` for each task that includes tests. Run `npm run check` and `npm run build` after each commit.

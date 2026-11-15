@@ -71,7 +71,7 @@ npm run server
 ```bash
 npm run check
 ```
-Запускает 48 автоматических тестов баланса игрового движка (`scripts/run-checks.mjs`) и интеграционные тесты сетевых комнат (`scripts/run-online-checks.mjs`).
+Запускает 79 Vitest-тестов игрового движка и интеграционные проверки сетевых комнат. `npm run test:unit` запускает только Vitest.
 
 ### Сборка для продакшена
 ```bash
@@ -95,9 +95,9 @@ npm run lint
 ├── LLMS.txt                  # 🤖 Инструкция и указатель для AI-агентов
 ├── server/index.mjs          # Сервер совместной игры (HTTP + Server-Sent Events)
 ├── scripts/
-│   ├── run-checks.mjs        # Автоматическое тестирование 48 сценариев баланса
 │   ├── run-online-checks.mjs # Тестирование мультиплеера
 │   └── fetch-donki.mjs       # Скрипт синхронизации вспышек с NASA API
+├── tests/                    # Vitest suites: движок, баланс, содержимое и сохранения
 ├── src/
 │   ├── engine/               # Детерминированный игровой движок (чистый TypeScript)
 │   ├── data/                 # JSON-конфигурации модулей, событий и фактов NASA
