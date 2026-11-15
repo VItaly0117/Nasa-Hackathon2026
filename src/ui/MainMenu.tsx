@@ -93,40 +93,77 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined }: 
     );
   }
 
-  return (
-    <div className="overlay">
-      <div className="modal intro menu" role="dialog" aria-labelledby="menu-title">
-        <MoonLogo size={88} />
-        <h1 id="menu-title" className="menu__title">{t("app.title")}</h1>
-        <p className="menu__tagline">{t("menu.tagline")}</p>
-        <div className="menu__buttons">
-          <button className="btn btn--ghost menu__btn" onClick={() => { sound.playClick(); setView("lang"); }}>
-            {t("menu.language", { lang: langName(getLang()) })}
+    return (
+    <div className="mm">
+      <div className="mm__box" role="dialog" aria-labelledby="menu-title">
+        <MoonLogo size={96} />
+        <h1 id="menu-title" className="mm__title">{t("app.title")}</h1>
+        <p className="mm__tagline">{t("menu.tagline")}</p>
+
+        <div className="mm__row">
+          <button className="mm__pill" onClick={() => { sound.playClick(); setView("lang"); }}>
+            <GlobeIcon />
+            <span>{t("menu.language", { lang: langName(getLang()) })}</span>
+            <ChevronIcon />
           </button>
           <button
             type="button"
-            className="btn btn--ghost menu__btn"
+            className="mm__pill"
             onClick={() => sound.toggleMute()}
             title={muted ? t("app.soundOff") : t("app.soundOn")}
           >
             {muted ? <SoundOffIcon size={20} /> : <SoundOnIcon size={20} />}
-            <span>{muted ? t("app.soundOff") : t("app.soundOn")}</span>
-          </button>
-          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); onNewGame(); }}>
-            {t("menu.newGame")}
-          </button>
-          <button
-            className="btn btn--primary menu__btn"
-            onClick={() => { sound.playClick(); onContinue(); }}
-            disabled={savedDay === null}
-          >
-            {savedDay === null ? t("menu.continue") : t("menu.continueDay", { day: savedDay })}
-          </button>
-          <button className="btn btn--primary menu__btn" onClick={() => { sound.playClick(); setView("server"); }}>
-            {t("menu.server")}
+            <span>{muted ? t("menu.soundIsOff") : t("menu.soundIsOn")}</span>
+            <ChevronIcon />
           </button>
         </div>
+
+        <button className="mm__btn mm__btn--new" onClick={() => { sound.playClick(); setView("modes"); }}>
+          {t("menu.newGame")}
+        </button>
+        <button
+          className="mm__btn mm__btn--olive"
+          onClick={() => { sound.playClick(); onContinue(); }}
+          disabled={savedDay === null}
+        >
+          {savedDay === null ? t("menu.continue") : t("menu.continueDay", { day: savedDay })}
+        </button>
+        <button className="mm__btn mm__btn--olive" onClick={() => { sound.playClick(); setView("server"); }}>
+          {t("menu.server")}
+        </button>
+        <button className="mm__btn mm__btn--glass" onClick={() => { sound.playClick(); onSources(); }}>
+          <ExitIcon />
+          <span>{t("menu.sources")}</span>
+        </button>
       </div>
     </div>
+  );
+}
+
+// Маленькие иконки для кнопок главного экрана
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.5" />
+      <ellipse cx="12" cy="12" rx="4" ry="9.5" />
+      <path d="M2.5 12 H21.5" />
+    </svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 9 L12 15 L18 9" />
+    </svg>
+  );
+}
+
+function ExitIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 4 H5 a1 1 0 0 0 -1 1 v14 a1 1 0 0 0 1 1 h5" />
+      <path d="M15 8 L19 12 L15 16 M19 12 H9" />
+    </svg>
   );
 }
