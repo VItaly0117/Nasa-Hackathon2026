@@ -144,10 +144,10 @@
 
 /* Поражение: стоят у базы, потом ложатся */
 .end--lose .end-walker { left: var(--stay); }
-.end--lose.end--s1 .end-man, .end--lose.end--s2 .end-man { transform: rotate(90deg); }
-.end--lose.end--s1 .end-walker--2 .end-man, .end--lose.end--s2 .end-walker--2 .end-man { transition-delay: 0.8s; }
-.end--lose.end--s1 .end-walker--3 .end-man, .end--lose.end--s2 .end-walker--3 .end-man { transition-delay: 1.6s; }
-.end--lose.end--s1 .end-walker--4 .end-man, .end--lose.end--s2 .end-walker--4 .end-man { transition-delay: 2.4s; }
+.end--lose:is(.end--s1, .end--s2, .end--s3, .end--s4) .end-man { transform: rotate(90deg); }
+.end--lose:is(.end--s1, .end--s2, .end--s3, .end--s4) .end-walker--2 .end-man { transition-delay: 0.8s; }
+.end--lose:is(.end--s1, .end--s2, .end--s3, .end--s4) .end-walker--3 .end-man { transition-delay: 1.6s; }
+.end--lose:is(.end--s1, .end--s2, .end--s3, .end--s4) .end-walker--4 .end-man { transition-delay: 2.4s; }
 .end--lose.end--s0 .end-man__bob { animation: end-bob 1.6s ease-in-out infinite alternate; }
 
 /* ---------- Ракеты ---------- */
@@ -203,12 +203,37 @@
 /* ---------- Поражение: свет гаснет ---------- */
 .end-dark { position: absolute; inset: 0; background: #02030a; opacity: 0; transition: opacity 3.5s ease; z-index: 4; pointer-events: none; }
 .end--lose.end--s1 .end-dark { opacity: 0.45; }
+.end--lose.end--s0 .end-habitat__win { background: #ff6b6b; box-shadow: 0 0 1.4vmin #ff4d4d; animation: end-blink 0.9s steps(2, jump-none) infinite; }
 .end--lose.end--s2 .end-dark { opacity: 0.72; }
+.end--lose.end--s3 .end-dark { opacity: 0.8; }
+.end--lose.end--s4 .end-dark { opacity: 0.88; }
 .end--lose .end-earth { z-index: 5; }
 .end--lose.end--s1 .end-habitat__win--a { background: #34395a; box-shadow: none; }
 .end--lose.end--s1 .end-habitat__win--b { background: #34395a; box-shadow: none; transition-delay: 1.4s; }
-.end--lose.end--s2 .end-habitat__win { background: #34395a; box-shadow: none; }
+.end--lose:is(.end--s2, .end--s3, .end--s4) .end-habitat__win { background: #34395a; box-shadow: none; }
 .end--lose .end-rk { filter: brightness(0.7); }
+
+/* Кадр 1: красная тревога по всему экрану */
+.end-alarm { position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 70%, transparent 35%, rgba(255, 40, 40, 0.5)); }
+.end--lose.end--s0 .end-alarm { animation: end-alarm 1.1s ease-in-out infinite; }
+@keyframes end-alarm { 0%, 100% { opacity: 0.1; } 50% { opacity: 1; } }
+@keyframes end-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
+
+/* Кадр 3: связь с Землёй пропадает */
+.end-signal { position: absolute; z-index: 7; left: 50%; top: 14%; transform: translateX(-50%); display: flex; align-items: center; gap: 1.4vmin; padding: 1.2vmin 2.4vmin; border-radius: 3vmin; background: rgba(14, 18, 36, 0.8); border: 1.5px solid rgba(255, 255, 255, 0.2); color: #ff8a8a; font-weight: 800; letter-spacing: 0.1em; font-size: clamp(12px, 2.2vmin, 22px); opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+.end--lose:is(.end--s2, .end--s3) .end-signal { opacity: 1; animation: end-blink 1.2s steps(2, jump-none) infinite; }
+.end-signal__bars { display: flex; align-items: flex-end; gap: 0.5vmin; height: 3vmin; }
+.end-signal__bars i { width: 0.7vmin; background: #ff8a8a; border-radius: 1px; }
+.end-signal__bars i:nth-child(1) { height: 25%; }
+.end-signal__bars i:nth-child(2) { height: 50%; opacity: 0.4; }
+.end-signal__bars i:nth-child(3) { height: 75%; opacity: 0.2; }
+.end-signal__bars i:nth-child(4) { height: 100%; opacity: 0.1; }
+.end--lose:is(.end--s2, .end--s3, .end--s4) .end-earth { filter: brightness(0.55) saturate(0.6); transition: filter 3s ease; }
+
+/* Кадр 4: в темноте мигает маяк у ракеты */
+.end-beacon { position: absolute; z-index: 7; left: calc(50% - 0.6vmin); bottom: 33vmin; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #ff5a5a; box-shadow: 0 0 2.4vmin 0.8vmin rgba(255, 70, 70, 0.8); opacity: 0; pointer-events: none; }
+.end--lose:is(.end--s3, .end--s4) .end-beacon { animation: end-beacon 1.6s ease-in-out infinite; }
+@keyframes end-beacon { 0%, 100% { opacity: 0.05; } 50% { opacity: 1; } }
 
 /* ---------- Субтитры ---------- */
 .end-bar {
@@ -245,5 +270,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .end-earth, .end-rk, .end-ground, .end-crew, .end-man, .end-dark, .end-habitat__win, .end-walker { transition-duration: 0.01s !important; transition-delay: 0s !important; }
-  .end-walker, .end-rk, .end-man__bob, .end-puff, .end-stars i { animation: none !important; }
+  .end-walker, .end-rk, .end-man__bob, .end-puff, .end-stars i, .end-alarm, .end-beacon, .end-signal, .end-habitat__win { animation: none !important; }
 }
