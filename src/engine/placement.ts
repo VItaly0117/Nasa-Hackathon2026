@@ -1,5 +1,5 @@
 import type { GameState, ModuleType } from "@/types";
-import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "@/content/map";
+import { FORCE_BLOCK, FORCE_BUILD, IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "@/content/map";
 import type { Terrain } from "@/content/map";
 
 export type { Terrain };
@@ -28,12 +28,14 @@ const TERRAIN_MAP: Record<string, Terrain> = {
 };
 
 export function getTileInfo(row: number, col: number): TileInfo {
+  const slot = row * MAP_COLS + col;
   const terrain = TERRAIN_MAP[MAP_LAYOUT[row][col]];
   return {
     row,
     col,
     terrain,
-    canBuild: terrain === "ground",
+    // фиолетовые клетки запрещены, зелёные разрешены даже на камне
+    canBuild: !FORCE_BLOCK.has(slot) && (terrain === "ground" || FORCE_BUILD.has(slot)),
     canMine: terrain === "ice" || terrain === "rock",
   };
 }
@@ -77,8 +79,14 @@ export function isNearBase(modules: { slot: number }[], row: number, col: number
   return modules.some((m) => cellDistance(cellOf(m.slot), { row, col }) <= BUILD_RADIUS);
 }
 
+// Зона стройки: радиус вокруг базы плюс зелёные клетки, размеченные вручную
+export function inBuildZone(modules: { slot: number }[], row: number, col: number): boolean {
+  return FORCE_BUILD.has(slotOf(row, col)) || isNearBase(modules, row, col);
+}
+
 // TODO @Regie: размер модуля
 export function canPlace(state: GameState, type: ModuleType, row: number, col: number): boolean {
+  if (FORCE_BLOCK.has(slotOf(row, col))) return false; // фиолетовые клетки
   const tile = getTileInfo(row, col);
   // Добыча ставится прямо на месторождение, остальное — на ровный грунт
   const fits =
@@ -87,5 +95,5 @@ export function canPlace(state: GameState, type: ModuleType, row: number, col: n
     : tile.canBuild;
   if (!fits) return false;
   if (state.modules.some((m) => m.slot === slotOf(row, col))) return false;
-  return isNearBase(state.modules, row, col);
+  return inBuildZone(state.modules, row, col);
 }

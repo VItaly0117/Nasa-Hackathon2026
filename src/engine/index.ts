@@ -15,7 +15,7 @@ export { allTasksDone } from "@/engine/systems/tasks";
 export { summarizeDay } from "./daySummary";
 export type { DaySummary, Setback, Verdict, VitalKey } from "./daySummary";
 
-export { BUILD_RADIUS, canPlace, cellOf, getTileInfo, isNearBase, nearestGroundSlot, slotOf, MAP_COLS, MAP_LAYOUT, MAP_ROWS } from "./placement";
+export { BUILD_RADIUS, canPlace, inBuildZone, cellOf, getTileInfo, isNearBase, nearestGroundSlot, slotOf, MAP_COLS, MAP_LAYOUT, MAP_ROWS } from "./placement";
 export type { Terrain, TileInfo } from "./placement";
 
 export { analyzeMission, missionFact } from "./debrief";

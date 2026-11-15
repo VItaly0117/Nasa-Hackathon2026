@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { ModuleDef, ModuleType } from "@/types";
-import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, isNearBase, slotOf, cellOf } from "@/engine";
+import { MAP_LAYOUT, BUILD_RADIUS, getTileInfo, inBuildZone, slotOf, cellOf } from "@/engine";
 import type { Terrain, TileInfo } from "@/engine";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/map";
 import { moduleName, t, tDynamic } from "@/i18n";
@@ -384,7 +384,7 @@ export default function LunarMap({
       };
     }
 
-    const near = isNearBase(modules, selected.row, selected.col);
+    const near = inBuildZone(modules, selected.row, selected.col);
     const text = selected.terrain === "ice"
       ? t("map.ice")
       : selected.terrain === "rock"
@@ -395,7 +395,7 @@ export default function LunarMap({
           ? t("map.canBuild")
           : t("map.tooFar", { n: BUILD_RADIUS });
     // над ракетой и скалами облачко поднимаем, чтобы оно их не закрывало
-    const lift = selected.terrain === "landing" ? 170 : selected.terrain === "rock" ? 30 : 0;
+    const lift = selected.terrain === "landing" ? 170 : selected.terrain === "rock" && !selected.canBuild ? 30 : 0;
 
     return { x, y: y - TILE_H / 2 - lift, title: getTerrainName(selected.terrain), text };
   })();

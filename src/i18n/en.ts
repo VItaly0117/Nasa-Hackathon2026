@@ -3,6 +3,8 @@ import type { ru } from "./ru";
 export const en: Record<keyof typeof ru, string> = {
   "menu.tagline": "Build a base at the Moon's south pole and survive for 20 days",
   "menu.language": "Language: {lang}",
+  "menu.soundIsOn": "Sound: On",
+  "menu.soundIsOff": "Sound: Off",
   "menu.newGame": "New game",
   "menu.modeTitle": "Choose a mode",
   "menu.back": "Back",

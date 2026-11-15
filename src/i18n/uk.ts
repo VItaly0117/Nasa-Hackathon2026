@@ -3,6 +3,8 @@ import type { ru } from "./ru";
 export const uk: Record<keyof typeof ru, string> = {
   "menu.tagline": "Збудуй базу на південному полюсі Місяця і протримайся 20 днів",
   "menu.language": "Мова: {lang}",
+  "menu.soundIsOn": "Звук: Увімкнено",
+  "menu.soundIsOff": "Звук: Вимкнено",
   "menu.newGame": "Нова гра",
   "menu.modeTitle": "Обери режим",
   "menu.back": "Назад",

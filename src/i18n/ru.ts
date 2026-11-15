@@ -3,6 +3,8 @@ export const ru = {
   "lang.name": "Русский",
 
   "menu.tagline": "Построй базу на южном полюсе Луны и продержись 20 дней",
+  "menu.soundIsOn": "Звук: Включён",
+  "menu.soundIsOff": "Звук: Выключен",
   "menu.language": "Язык: {lang}",
   "menu.newGame": "Новая игра",
   "menu.modeTitle": "Выбери режим",
