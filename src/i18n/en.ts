@@ -43,7 +43,7 @@ export const en: Record<keyof typeof ru, string> = {
   "role.technician": "Technician",
 
   "lang.name": "English",
-  "plural.day": "day|days|days",
+  "plural.day": "day|days",
   "unit.dShort": "d",
 
   "app.title": "Lunar base",
@@ -201,7 +201,7 @@ export const en: Record<keyof typeof ru, string> = {
   "goal.hint.energy": "Build batteries: energy drops to zero at night.",
   "goal.hint.none": "Nothing urgent. Plan your next module.",
   "res.tip.left": "Enough for {days}.",
-  "res.tip.cap": "",
+  "res.tip.cap": "Storage is full: anything extra is lost. A warehouse or a battery adds room.",
 
   "crew.title": "Crew ({n})",
   "crew.aria": "Crew",

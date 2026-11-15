@@ -114,3 +114,15 @@
   .mm__pill { min-height: 42px; font-size: 14px; }
   .mm__btn { min-height: 46px; font-size: 17px; }
 }
+
+/* Очень низкие экраны (телефон горизонтально): всё меню должно помещаться без прокрутки */
+@media (max-height: 420px) {
+  .mm { padding: 6px; }
+  .mm__box { gap: 5px; }
+  .mm__box > svg { width: 52px; height: 52px; }
+  .mm__title { font-size: 24px; }
+  .mm__tagline { display: none; }
+  .mm__row { gap: 8px; }
+  .mm__pill { min-height: 34px; font-size: 13px; }
+  .mm__btn { min-height: 36px; font-size: 15px; border-radius: 14px; }
+}

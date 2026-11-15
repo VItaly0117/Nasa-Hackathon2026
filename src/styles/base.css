@@ -4,7 +4,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 button { font-family: inherit; }
 
 /* Вся игра — один экран: небо, карта и панели поверх неё */
-.game { position: relative; height: 100vh; height: 100dvh; overflow: hidden; }
+.game { position: relative; height: 100vh; height: 100dvh; overflow: hidden; overflow: clip; } /* clip: контейнер нельзя прокрутить программно (например, фокусом на элементе за краем), иначе весь экран уезжает влево */
 
 /* ---------- Фон меню: та сама картинка, що й на карті ---------- */
 .backdrop {

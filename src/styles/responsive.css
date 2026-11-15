@@ -17,8 +17,8 @@
   .btn--small { min-height: 40px; padding: 0 10px; font-size: 14px; }
   .crew {
     left: 10px;
-    top: 112px;
-    bottom: 10px;
+    top: 180px;
+    max-height: calc(100dvh - 190px);
     width: 220px;
     padding: 10px;
     overflow-y: auto;
@@ -30,7 +30,7 @@
   }
   .crew__list { gap: 8px; margin-top: 8px; }
   .crew__item { padding: 6px; }
-  .side { right: 10px; top: 80px; bottom: 10px; width: 250px; gap: 8px; }
+  .side { right: 10px; top: 180px; bottom: 10px; width: 250px; gap: 8px; }
   .alert, .goal, .journal { padding: 10px 12px; }
   .alert p, .goal p, .journal ul { font-size: 13px; }
   .modal { padding: 18px; font-size: 16px; }
@@ -41,8 +41,21 @@
     left: 240px;
     transform: none;
     width: clamp(200px, calc(100vw - 240px - 270px), 390px);
-    top: 140px;
+    top: 188px;
   }
+  /* Верхняя полоса: плашка базы фиксированной ширины, ресурсы переносятся (раньше плашку сжимало до 73 px) */
+  .topbar { flex-wrap: wrap; }
+  .base-badge { flex: 0 0 auto; width: min(360px, 100%); max-width: none; }
+  .resources { flex: 1 1 100%; flex-wrap: wrap; justify-content: flex-start; }
+}
+
+/* Низкие экраны (телефон горизонтально): ресурсы рядом с плашкой в одной строке, карта освобождается */
+@media (max-height: 620px) {
+  .resources { flex: 1 1 0; min-width: 0; justify-content: flex-end; }
+  .resource { padding: 4px 6px; }
+  .crew { top: 124px; max-height: calc(100dvh - 134px); }
+  .side { top: 124px; }
+  .task-toasts { top: 132px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

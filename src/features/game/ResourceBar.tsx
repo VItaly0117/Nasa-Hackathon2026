@@ -111,6 +111,7 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
                   </>
                 )}
               </p>
+              {!PERCENT.includes(key) && value >= capacity[key] && <p className="resource__tipnote">{t("res.tip.cap")}</p>}
               {left !== null && (
                 <p className="resource__tipnote">{t("res.tip.left", { days: formatDays(left) })}</p>
               )}

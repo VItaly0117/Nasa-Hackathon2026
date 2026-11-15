@@ -64,7 +64,13 @@ describe("translation dictionaries", () => {
     }
   });
 
-  it.todo("has no empty values (known issue: res.tip.cap is empty in ru, uk, and en)");
+  it("has no empty values", () => {
+    for (const [language, dictionary] of Object.entries(dictionaries)) {
+      for (const [key, value] of Object.entries(dictionary)) {
+        expect(value.trim(), `${language}: ${key} is empty`).not.toBe("");
+      }
+    }
+  });
 
   it("has no values equal to their key", () => {
     for (const [language, dictionary] of Object.entries(dictionaries)) {
@@ -88,7 +94,9 @@ describe("translation dictionaries", () => {
     expect(uk["plural.day"].split("|")).toHaveLength(3);
   });
 
-  it.todo("has two English day forms (known issue: en plural.day has three)");
+  it("has two English day forms", () => {
+    expect(en["plural.day"].split("|")).toHaveLength(2);
+  });
 
   it("resolves static keys and dynamic key prefixes from source", () => {
     const { exact, prefixes } = usedTranslationKeys();
