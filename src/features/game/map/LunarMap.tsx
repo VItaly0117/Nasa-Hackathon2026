@@ -41,7 +41,7 @@ const BAD_COLOR = "#FF6B6B";
 
 // Рисунки модулей по размеру подобраны под ракету на фоновой картинке
 const ART_SCALE = 1.7;
-const BUBBLE_W = 340;
+const BUBBLE_W = 300;
 const BUBBLE_H = 330;
 const DRAG_THRESHOLD = 6;
 
@@ -79,6 +79,7 @@ function Bubble({
   x,
   y,
   title,
+  dot,
   text,
   onRepair,
   canRepair,
@@ -90,6 +91,7 @@ function Bubble({
   x: number;
   y: number;
   title: string;
+  dot?: string; // цвет индикатора состояния рядом с названием
   text: ReactNode;
   onRepair?: () => void;
   canRepair?: boolean;
@@ -105,7 +107,10 @@ function Bubble({
       <foreignObject x={-BUBBLE_W / 2} y={-BUBBLE_H} width={BUBBLE_W} height={BUBBLE_H}>
         <div className="bubble">
           <div className="bubble__body" role="status">
-            <div className="bubble__title">{title}</div>
+            <div className="bubble__title">
+              {dot && <span className="bubble__dot" style={{ background: dot }} aria-hidden="true" />}
+              {title}
+            </div>
             <div className="bubble__text">{text}</div>
             {onRepair && (
               <button
@@ -213,6 +218,7 @@ export default function LunarMap({
   const [selected, setSelected] = useState<TileInfo | null>(null);
   const [hovered, setHovered] = useState<TileInfo | null>(null);
   const [hoverMod, setHoverMod] = useState<number | null>(null);
+  const [hoverIce, setHoverIce] = useState<TileInfo | null>(null);
 
   const frameRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef<Size>({ w: 0, h: 0 });
@@ -419,7 +425,7 @@ export default function LunarMap({
   // Что написать в облачке над выбранной клеткой
   const hoverModule = !buildType && hoverMod !== null ? modules.find((m) => m.slot === hoverMod) : undefined;
   const hoverTile = hoverModule ? TILES.find((tl) => slotOf(tl.row, tl.col) === hoverModule.slot) : undefined;
-  const bubbleTile = selected ?? hoverTile ?? null;
+  const bubbleTile = selected ?? hoverTile ?? (!buildType ? hoverIce : null) ?? null;
   const bubble = (() => {
     if (!bubbleTile) return null;
     const { x, y } = getPosition(bubbleTile.row, bubbleTile.col);
@@ -429,6 +435,9 @@ export default function LunarMap({
 
     if (module && def) {
       const isBroken = module.broken;
+      const solarDark = isNight && module.type === "solar";
+      const active = !module.building && !isBroken && !module.paused && !solarDark;
+      const dot = module.building ? "#fbbf24" : isBroken ? "#ff6b6b" : active ? "#4ade80" : "#9aa3b8";
       const status = module.building
         ? t("map.statusBuilding")
         : isBroken
@@ -440,21 +449,25 @@ export default function LunarMap({
         x,
         y: y - ART_HEIGHT[module.type] * ART_SCALE - 4,
         title: moduleName(def.type),
+        dot,
         text: (
           <>
             <div className="bubble__desc">{moduleDesc(def.type)}</div>
-            <div className="bubble__status">{status}</div>
-            <div className="bubble__stats">
-              {module.building
-                ? module.waiting
-                  ? t("map.waiting")
-                  : renderBuild?.percent(module)
-                : isBroken
-                  ? t("map.broken")
-                  : module.paused
-                    ? t("map.nothing")
-                    : perDayText(def, isNight)}
+            <div className="bubble__row">
+              <div className="bubble__status" style={{ background: dot }}>{status}</div>
+              <div className="bubble__stats">
+                {module.building
+                  ? module.waiting
+                    ? t("map.waiting")
+                    : renderBuild?.percent(module)
+                  : isBroken
+                    ? t("map.broken")
+                    : module.paused
+                      ? t("map.nothing")
+                      : perDayText(def, isNight)}
+              </div>
             </div>
+            {solarDark && !isBroken && !module.building && <div className="bubble__desc">{t("map.hintSolarNight")}</div>}
           </>
         ),
         onRepair: isSelected && isBroken && onRepairModule ? () => onRepairModule(module.slot) : undefined,
@@ -465,7 +478,12 @@ export default function LunarMap({
         onCancelBuild: isSelected && module.building && onCancelBuild ? () => onCancelBuild(module.slot) : undefined,
       };
     }
-    if (!selected) return null;
+    const target = selected ?? bubbleTile;
+    if (!selected) {
+      // Без выбора облачко показываем только над залежью льда: это ресурс, а не пустая земля
+      if (target.terrain !== "ice") return null;
+      return { x, y: y - TILE_H / 2, title: getTerrainName("ice"), dot: "#56d8ff", text: t("map.ice") };
+    }
 
     const near = inBuildZone(modules, selected.row, selected.col);
     const text = selected.terrain === "ice"
@@ -540,7 +558,8 @@ export default function LunarMap({
             stroke={buildType ? "#ffffff" : "none"}
             strokeOpacity="0.14"
             onClick={() => handleSelect(tile)}
-            onMouseEnter={buildType ? () => setHovered(tile) : undefined}
+            onMouseEnter={buildType ? () => setHovered(tile) : tile.terrain === "ice" ? () => setHoverIce(tile) : undefined}
+            onMouseLeave={tile.terrain === "ice" ? () => setHoverIce((h) => (h === tile ? null : h)) : undefined}
             style={{ cursor: buildType ? "crosshair" : "pointer" }}
           />
         );
@@ -587,18 +606,21 @@ export default function LunarMap({
               style={{ cursor: "pointer" }}
               pointerEvents={buildType ? "none" : "auto"}
             >
-              <g className="module-art" opacity={module.building ? 0.45 : 1}>
+              <g className={`module-art${isNight ? (module.type === "solar" ? " module-art--night-solar" : " module-art--night") : ""}`} opacity={module.building ? 0.45 : 1}>
                 {/* при смене «строится → готово» ключ пересоздаёт группу и играет появление */}
                 <g key={module.building ? "building" : "ready"} className={module.building ? undefined : "module-pop"}>
                   <ModuleArt type={module.type} broken={module.broken} />
                 </g>
               </g>
+              {isNight && !module.building && !module.broken && module.type !== "solar" && (
+                <ellipse className="night-glow" cx="0" cy={-ART_HEIGHT[module.type] * 0.45} rx="26" ry="18" fill="url(#gNightGlow)" pointerEvents="none" />
+              )}
               {!module.building && <ellipse className="build-pulse" cx="0" cy="0" rx="34" ry="17" fill="none" stroke="#ffd166" strokeWidth="3" />}
               {module.building && renderBuild?.progress(module)}
             </g>
           );
         }),
-    [modules, buildType, handleSelect, renderBuild]
+    [modules, buildType, handleSelect, renderBuild, isNight]
   );
 
   const ghost =
@@ -620,7 +642,7 @@ export default function LunarMap({
       >
         <div
           ref={stageRef}
-          className={`map-stage ${smooth ? "map-stage--smooth" : ""}`}
+          className={`map-stage ${smooth ? "map-stage--smooth" : ""}${isNight ? " map-stage--night" : ""}`}
           style={{ width: MAP_W, height: MAP_H }}
         >
           {/* Слой 1: фоновая картинка — небо, Земля, горы, кратеры, лёд, площадка с ракетой */}
@@ -652,7 +674,7 @@ export default function LunarMap({
 
             {/* Слой 3: лунная ночь затемняет поверхность, огни зданий остаются яркими */}
             {isNight && (
-              <rect width={MAP_W} height={MAP_H} fill="#050a1a" opacity="0.5" pointerEvents="none" />
+              <rect width={MAP_W} height={MAP_H} fill="#040922" opacity="0.62" pointerEvents="none" />
             )}
 
             {/* Слой 4: зелёные клетки, где можно строить выбранный модуль */}

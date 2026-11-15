@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Task } from "@/types";
 import { t, tDynamic } from "@/i18n";
 import { Avatar } from "./CrewPanel";
@@ -11,6 +12,20 @@ export const TOAST_MS = 8000;
 
 // Член экипажа сам просит о чём-то: портрет, имя, что сделать и зачем. Игру не останавливает
 export function TaskToast({ tasks, onClose }: Props) {
+  const hasTasks = tasks.length > 0;
+  const closeRef = useRef({ tasks, onClose });
+  useEffect(() => {
+    closeRef.current = { tasks, onClose };
+  });
+  useEffect(() => {
+    if (!hasTasks) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      closeRef.current.tasks.forEach((task) => closeRef.current.onClose(task.id));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hasTasks]);
   if (tasks.length === 0) return null;
   return (
     <div className="task-toasts" role="status" aria-live="polite">

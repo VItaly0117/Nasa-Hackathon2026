@@ -1,4 +1,5 @@
-import type { CrewMember } from "@/types";
+import { useState } from "react";
+import type { CrewMember, ModuleType } from "@/types";
 import portrait1 from "@/assets/crew/crew1.webp";
 import portrait2 from "@/assets/crew/crew2.webp";
 import portrait3 from "@/assets/crew/crew3.webp";
@@ -47,7 +48,22 @@ function Mood({ mood }: { mood: number }) {
 // Настроение лица: от морали (задания), а при плохом здоровье не бывает весёлым
 const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >= 60 ? 1 : morale >= 30 ? 0 : -1);
 
-export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
+export type BrokenModule = { slot: number; type: ModuleType };
+
+export function CrewPanel({
+  health,
+  crew,
+  broken = [],
+  canAffordRepair = true,
+  onRepair,
+}: {
+  health: number;
+  crew: CrewMember[];
+  broken?: BrokenModule[];
+  canAffordRepair?: boolean;
+  onRepair?: (slot: number) => void;
+}) {
+  const [menuFor, setMenuFor] = useState<number | null>(null);
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
   const scrollRef = useScrollMore<HTMLElement>();
@@ -72,16 +88,60 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
                 {tDynamic(`crew.r${p.id}`)} ·{" "}
                 {(() => {
                   const status = crew.find((c) => c.id === p.id)?.status;
-                  return status?.kind === "building"
-                    ? t("crew.building", { name: moduleName(status.module) })
-                    : status?.kind === "sick"
-                      ? t("crew.sick")
-                      : t("crew.free");
+                  if (status?.kind === "building") return t("crew.building", { name: moduleName(status.module) });
+                  if (status?.kind === "sick") return t("crew.sick");
+                  return (
+                    <button
+                      type="button"
+                      className="crew__free"
+                      aria-expanded={menuFor === p.id}
+                      title={t("crew.assign")}
+                      onClick={() => setMenuFor(menuFor === p.id ? null : p.id)}
+                    >
+                      {t("crew.free")} ▾
+                    </button>
+                  );
                 })()}
               </span>
-              <div className="crew__bar">
-                <div style={{ width: `${health}%`, background: barColor }} />
+              <div className="crew__barrow" title={`${t("crew.healthBar")}: ${Math.round(health)}%`}>
+                <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" className="crew__baricon">
+                  <path d="M10 17 C2 11 3 4 7 4 C9 4 10 6 10 6 C10 6 11 4 13 4 C17 4 18 11 10 17 Z" fill={barColor} />
+                </svg>
+                <div
+                  className="crew__bar"
+                  role="meter"
+                  aria-label={t("crew.healthBar")}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(health)}
+                >
+                  <div style={{ width: `${health}%`, background: barColor }} />
+                </div>
               </div>
+              {menuFor === p.id && (
+                <div className="crew__menu" role="menu" aria-label={t("crew.assign")}>
+                  {broken.length === 0 ? (
+                    <p className="crew__menu-empty">{t("crew.assignNone")}</p>
+                  ) : (
+                    broken.map((b) => (
+                      <button
+                        key={b.slot}
+                        type="button"
+                        role="menuitem"
+                        className="crew__menu-item"
+                        disabled={!canAffordRepair}
+                        title={canAffordRepair ? undefined : t("crew.assignNoMoney")}
+                        onClick={() => {
+                          onRepair?.(b.slot);
+                          setMenuFor(null);
+                        }}
+                      >
+                        🔧 {t("crew.assignRepair", { name: moduleName(b.type) })}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             <Mood mood={mood} />
           </li>

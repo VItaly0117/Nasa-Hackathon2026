@@ -30,6 +30,15 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
 
   useEffect(() => sound.subscribe(setMuted), []);
 
+  useEffect(() => {
+    if (view === "main") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setView("main");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [view]);
+
   if (view === "lang") {
     return (
       <LangSelect

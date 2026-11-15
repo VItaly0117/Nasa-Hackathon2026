@@ -17,8 +17,9 @@ function GameClock({ children }: { children: ReactNode }) {
   const session = useSession();
   const clockMs = useGame((s) => s.clockMs);
   const running = useClockRunning();
+  const isNight = useGame((s) => s.isNight);
   return (
-    <DayClock running={running} progress={clockMs / DAY_MS} onTick={session.tick}>
+    <DayClock running={running} isNight={isNight} progress={clockMs / DAY_MS} onTick={session.tick}>
       {children}
     </DayClock>
   );

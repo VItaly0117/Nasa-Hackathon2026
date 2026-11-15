@@ -1,6 +1,6 @@
 import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
-import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
+import { capacityOf, dailyDelta, hasFreeCrew, REPAIR_COST } from "@/engine";
 import type { ModuleDef, Role } from "@/types";
 import { sound } from "@/audio/audio";
 import { useGame, useMeta, useSend, useSession } from "@/session/hooks";
@@ -28,7 +28,21 @@ export function ResourcesContainer() {
 export function CrewContainer() {
   const health = useGame((s) => s.resources.health);
   const crew = useGame((s) => s.crew);
-  return <CrewPanel health={health} crew={crew} />;
+  const broken = useGame((s) => s.modules.filter((m) => m.broken).map((m) => ({ slot: m.slot, type: m.type })), shallowEqual);
+  const canAffordRepair = useGame((s) => canAffordCost(s.resources, REPAIR_COST));
+  const send = useSend();
+  return (
+    <CrewPanel
+      health={health}
+      crew={crew}
+      broken={broken}
+      canAffordRepair={canAffordRepair}
+      onRepair={(slot) => {
+        sound.playRepair();
+        send({ type: "repair", slot });
+      }}
+    />
+  );
 }
 
 export function SideContainer() {
