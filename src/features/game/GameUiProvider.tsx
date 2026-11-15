@@ -48,7 +48,10 @@ export function GameUiProvider({ children }: { children: ReactNode }) {
         setSelectedType(type);
         setBuildType(null);
       },
-      startPlacing: () => setBuildType(selectedType),
+      startPlacing: (type) => {
+        if (type) setSelectedType(type);
+        setBuildType(type ?? selectedType);
+      },
       stopPlacing: () => setBuildType(null),
       setSurveyingIce: (on) => {
         setSurveyingIce(on);

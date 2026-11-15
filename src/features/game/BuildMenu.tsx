@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
 import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
@@ -16,7 +16,7 @@ type Props = {
   // Совместная игра: роль другого игрока, который строит этот модуль, или null, если строить можно самому
   lockedBy?: (def: ModuleDef) => Role | null;
   onSelect: (type: ModuleType) => void;
-  onStartBuild: () => void;
+  onStartBuild: (type: ModuleType) => void;
   onCancel: () => void;
 };
 
@@ -64,10 +64,7 @@ export function BuildMenu({
   onStartBuild,
   onCancel,
 }: Props) {
-  const def = defs.find((d) => d.type === selected) ?? null;
-  const lines = def ? perDayLines(def.perDay) : [];
-  const locked = def && lockedBy ? lockedBy(def) : null;
-  const affordable = def ? isAffordable(def) : false;
+  const [hovered, setHovered] = useState<ModuleType | null>(null);
   const [closed, toggle] = useCollapsed(startsCollapsed());
   // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
   const collapsed = closed || placing;
@@ -112,11 +109,29 @@ export function BuildMenu({
       <section className="hud-panel build" aria-label={t("build.aria")}>
         {(
           <ul className="build__list">
-            {defs.map((d) => (
-              <li key={d.type}>
+            {defs.map((d) => {
+              const lines = perDayLines(d.perDay);
+              const locked = lockedBy ? lockedBy(d) : null;
+              const affordable = isAffordable(d);
+              const blocked = disabled || !affordable || crewBusy || locked !== null;
+              const status = locked
+                ? t("online.lockedBy", { role: t(`role.${locked}`) })
+                : crewBusy ? t("build.crewBusy") : !affordable ? t("build.cantAfford") : null;
+              return (
+              <li
+                key={d.type}
+                className="card-wrap"
+                onMouseEnter={() => setHovered(d.type)}
+                onMouseLeave={() => setHovered((h) => (h === d.type ? null : h))}
+              >
                 <button
-                  className={`card ${selected === d.type ? "card--selected" : ""}`}
-                  onClick={() => onSelect(d.type)}
+                  className={`card ${selected === d.type ? "card--selected" : ""} ${!affordable ? "card--poor" : ""}`}
+                  onClick={() => {
+                    onSelect(d.type);
+                    if (!blocked) onStartBuild(d.type);
+                  }}
+                  onFocus={() => setHovered(d.type)}
+                  onBlur={() => setHovered((h) => (h === d.type ? null : h))}
                   disabled={disabled}
                   aria-pressed={selected === d.type}
                 >
@@ -124,54 +139,35 @@ export function BuildMenu({
                   <ModulePreview type={d.type} size={70} />
                   <Cost cost={d.cost} />
                 </button>
+                {hovered === d.type && (
+                  <div className="detail" role="tooltip">
+                    <h2 className="hud-title">{moduleName(d.type)}</h2>
+                    <p>{moduleDesc(d.type)}</p>
+                    <ul className="detail__lines">
+                      {lines.map((l) => (
+                        <li key={l.key} className={`detail__line ${l.plus ? "plus" : "minus"}`}>
+                          <ResourceIcon type={l.key} size={20} />
+                          <span className="detail__line-value">{l.sign}{l.amount}</span>
+                          <span className="detail__line-label">{l.unit} / {t("unit.dShort")}</span>
+                        </li>
+                      ))}
+                      {d.nightPerDay && <li className="detail__night">{t("build.night")}</li>}
+                    </ul>
+                    <div className="detail__cost">
+                      <span>{t("build.cost")}</span>
+                      <Cost cost={d.cost} />
+                    </div>
+                    {status && <div className="detail__status">{status}</div>}
+                  </div>
+                )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>
       )}
 
-      {def && !collapsed && (
-        <section className="hud-panel detail" aria-label={t("build.moduleAria", { name: moduleName(def.type) })}>
-          <div className="detail__top">
-            <div className="detail__preview"><ModulePreview type={def.type} size={110} /></div>
-            <div className="detail__info">
-              <h2 className="hud-title">{moduleName(def.type)}</h2>
-              <p>{moduleDesc(def.type)}</p>
-              <ul className="detail__lines">
-                {lines.map((l) => (
-                  <li key={l.key} className={`detail__line ${l.plus ? "plus" : "minus"}`}>
-                    <ResourceIcon type={l.key} size={20} />
-                    <span className="detail__line-value">{l.sign}{l.amount}</span>
-                    <span className="detail__line-label">{l.unit} / {t("unit.dShort")}</span>
-                  </li>
-                ))}
-                {def.nightPerDay && <li className="detail__night">{t("build.night")}</li>}
-              </ul>
-            </div>
-          </div>
-          <div className="detail__cost">
-            <span>{t("build.cost")}</span>
-            <Cost cost={def.cost} />
-          </div>
-          {placing ? (
-            <button className="btn btn--solid btn--cancel" onClick={onCancel}>
-              {t("build.cancel")}
-            </button>
-          ) : (
-            <button
-              className="btn btn--primary"
-              onClick={onStartBuild}
-              disabled={disabled || !affordable || crewBusy || locked !== null}
-              title={crewBusy ? t("build.crewBusyHint") : undefined}
-            >
-              {locked
-                ? t("online.lockedBy", { role: t(`role.${locked}`) })
-                : crewBusy ? t("build.crewBusy") : affordable ? t("build.build") : t("build.cantAfford")}
-            </button>
-          )}
-        </section>
-      )}
     </>
   );
 }

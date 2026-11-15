@@ -75,9 +75,9 @@ export function BuildContainer() {
         sound.playClick();
         ui.selectType(type);
       }}
-      onStartBuild={() => {
+      onStartBuild={(type) => {
         sound.playClick();
-        ui.startPlacing();
+        ui.startPlacing(type);
       }}
       onCancel={() => {
         sound.playClick();
