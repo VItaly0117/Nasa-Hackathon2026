@@ -53,7 +53,7 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
   const scrollRef = useScrollMore<HTMLElement>();
 
   return (
-    <section ref={scrollRef} className="hud-panel crew scroll-more" aria-label={t("crew.aria")}>
+    <section ref={scrollRef} className={`hud-panel crew scroll-more${collapsed ? " crew--collapsed" : ""}`} aria-label={t("crew.aria")}>
       <div className="panel-head">
         <h2 className="hud-title">{t("crew.title", { n: CREW.length })}</h2>
         <CollapseButton collapsed={collapsed} onClick={toggle} />

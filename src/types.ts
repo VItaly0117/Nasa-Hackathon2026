@@ -40,6 +40,7 @@ export type PlacedModule = {
   slot: number;
   type: ModuleType;
   broken: boolean;
+  paused?: boolean; // игрок остановил работу: модуль стоит, ничего не даёт и не берёт
   // crewId null: строитель заболел, стройка стоит, пока её не подхватит другой свободный
   // sickAt: когда leftMs дойдёт до этого числа, строитель заболеет (решено при старте стройки по seed)
   build?: { leftMs: number; totalMs: number; crewId: number | null; sickAt?: number };
@@ -119,6 +120,9 @@ export type Action =
   | { type: "nextDay" }      // пропустить остаток дня
   | { type: "build"; slot: number; module: ModuleType }
   | { type: "repair"; slot: number }
+  | { type: "pause"; slot: number }
+  | { type: "demolish"; slot: number }
+  | { type: "cancelBuild"; slot: number }
   | { type: "research"; id: "moonDust"; answer: "shield" | "brush" }
   | { type: "research"; id: "iceScout"; answer: "ice" | "rock" }
   | { type: "resolveEvent"; choice: string };

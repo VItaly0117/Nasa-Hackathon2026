@@ -116,6 +116,33 @@
 /* Без тіні й розмиття позаду карток цілі та підказок */
 .hud-panel.goal, .hud-panel.task-toast { box-shadow: none; backdrop-filter: none; }
 
+/* Читабельність картки цілі: щільний фон, чіткий текст, розділення завдань */
+.goal p, .goal .task strong, .goal .task__why, .goal .hud-title {
+  text-shadow: 0 1px 2px rgba(8, 10, 40, 0.95), 0 0 8px rgba(8, 10, 40, 0.85);
+}
+.goal p { color: #fff; font-size: 16px; line-height: 1.45; }
+.hud-panel.goal { padding: 18px; }
+.goal p {
+  margin: 14px 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.goal .hud-title:not(:first-child) { margin: 22px 0 14px; }
+.goal .tasks__list { gap: 14px; }
+.goal .task {
+  padding: 14px 16px;
+  gap: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.goal .task strong { margin-bottom: 6px; }
+.goal .task strong { color: #fff; font-size: 16px; line-height: 1.3; font-weight: 800; }
+.goal .task__why { opacity: 1; color: #e3e8ff; font-size: 14px; line-height: 1.45; font-weight: 600; }
+.goal__bar { height: 12px; background: rgba(0, 0, 0, 0.5); }
+
 /* Бічна колонка: картки не стискаються, а колонка прокручується вниз, якщо не вміщається */
 .side > * { flex-shrink: 0; }
 .side { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
@@ -126,17 +153,24 @@
 @media (max-height: 620px), (max-width: 900px) {
   .crew { bottom: 190px; }
 }
+/* Згорнута панель — лише заголовок, без розтягування на всю висоту */
+.hud-panel.crew.crew--collapsed { bottom: auto; }
 
 /* Підказка «є ще вниз»: затемнення + стрілка внизу, поки не докрутили до кінця */
 .scroll-more::after {
-  content: "⌄"; position: sticky; bottom: 0; flex: none; display: block; height: 34px; margin-top: -34px;
-  text-align: center; font-size: 30px; line-height: 40px; font-weight: 900; color: #fff; pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(30, 32, 80, 0.85));
+  content: ""; position: sticky; bottom: 0; flex: none; display: block; height: 64px; margin-top: -64px;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center calc(100% - 10px) / 22px 22px,
+    linear-gradient(to bottom,
+      rgba(34, 36, 88, 0) 0%, rgba(34, 36, 88, 0.12) 25%, rgba(34, 36, 88, 0.38) 50%,
+      rgba(34, 36, 88, 0.68) 75%, rgba(34, 36, 88, 0.88) 100%);
   border-radius: 0 0 var(--radius) var(--radius);
-  opacity: 0; transition: opacity 0.2s; animation: scroll-nudge 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  opacity: 0; transition: opacity 0.25s; animation: scroll-nudge 1.6s ease-in-out infinite;
 }
 .scroll-more[data-more="true"]::after { opacity: 1; }
-@keyframes scroll-nudge { 50% { transform: translateY(3px); } }
+@keyframes scroll-nudge { 50% { background-position: center calc(100% - 6px), 0 0; } }
 @media (prefers-reduced-motion: reduce) { .scroll-more::after { animation: none; } }
 
 /* ---------- Підсумки дня: редизайн у стилі HUD ---------- */
@@ -162,7 +196,7 @@
   font-size: 16px; font-weight: 900; background: rgba(0, 0, 0, 0.22); color: #fff;
 }
 /* Смуга часу — по всій ширині вікна, без обрізання по краях */
-.daysum > .daysum__bar { position: absolute; top: 0; left: 0; right: 0; width: auto; height: 7px; margin: 0; background: rgba(255, 255, 255, 0.12); }
+.daysum > .daysum__bar { position: absolute; top: 14px; left: 28px; right: 28px; width: auto; height: 8px; margin: 0; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.12); }
 .daysum__bar span { background: linear-gradient(90deg, #8fb4ff, var(--orange-1)); }
 
 /* Екіпаж: компактніше, щоб усі 4 вміщались; розміри залежать від висоти екрана */
