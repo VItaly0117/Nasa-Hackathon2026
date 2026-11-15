@@ -388,7 +388,8 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
 
       {event && (
         <div className="overlay">
-          <div className="modal" role="dialog" aria-labelledby="event-title">
+          <div className="modal modal--event" role="dialog" aria-labelledby="event-title">
+            {event.id !== "illness" && <div className="modal__badge" aria-hidden="true">⚠️</div>}
             {event.id === "illness" && state.illness && (() => {
               // Кто заболел: портрет и имя, как при просьбе о задании
               const person = CREW.find((c) => c.id === state.illness!.crewId)!;
@@ -409,10 +410,10 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
               </p>
             )}
             <div className="modal__choices">
-              {event.choices.map((choice) => (
+              {event.choices.map((choice, i) => (
                 <button
                   key={choice.id}
-                  className="btn btn--choice"
+                  className={`btn btn--choice${i === 0 ? " btn--choice-main" : ""}`}
                   onClick={() => {
                     sound.playDecisionConfirm();
                     dispatch({ type: "resolveEvent", choice: choice.id });

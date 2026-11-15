@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { DaySummary as Summary, VitalKey } from "../engine/daySummary";
-import { MISSION_DAYS } from "../engine/constants";
 import { days, moduleName, t } from "../i18n";
 import { ResourceIcon } from "./icons";
 
 const VITAL: VitalKey[] = ["oxygen", "water", "food", "energy"];
-const STARS = { ahead: 3, onTrack: 2, behind: 1 } as const;
 const MAX_LEFT = 3;
 const MAX_DONE = 4;
 const AUTO_MIN = 8;
@@ -19,20 +17,6 @@ function moodOf(left: number | null): Mood {
   return left >= 3 ? "ok" : "bad";
 }
 
-function Star({ on, index }: { on: boolean; index: number }) {
-  return (
-    <svg
-      className={`daysum__star${on ? " is-on" : ""}`}
-      style={{ animationDelay: `${0.15 + index * 0.18}s` }}
-      viewBox="0 0 24 24"
-      width="52"
-      height="52"
-      aria-hidden="true"
-    >
-      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 // Окно «Итоги дня» для детей 7–12: ракета и звёзды, что сделал, запасы со смайлами, план на завтра
 export function DaySummary({ summary, onClose }: { summary: Summary; onClose: () => void }) {
@@ -43,7 +27,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
     ...summary.tasksDone.map((id) => ({ text: t(`task.${id}`) })),
   ];
   const shownDone = done.slice(0, MAX_DONE);
-  const moreDone = done.length - shownDone.length;
 
   // Всё, что пошло не так, в одном блоке
   const care = [
@@ -63,8 +46,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
   }
 
   const left = summary.left.slice(0, MAX_LEFT);
-  const more = summary.left.length - left.length;
-  const progress = Math.min(100, Math.round((summary.day / MISSION_DAYS) * 100));
 
   // Окно закрывается само: время читать зависит от количества текста (~2,5 слова в секунду для 7–12 лет)
   const wordCount = [...shownDone.map((d) => d.text), ...care, ...heads, ...left.map(({ task }) => t(`task.${task.id}`))]
@@ -90,15 +71,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
         onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)}>
         <header className="daysum__head">
           <h2 id="daysum-title">{t("sum.title", { day: summary.day })}</h2>
-          <div className="daysum__progress" role="img" aria-label={t("sum.progress", { day: summary.day, total: MISSION_DAYS })}>
-            <div className="daysum__progress-bar"><i style={{ width: `${progress}%` }} /></div>
-            <span>{t("sum.progress", { day: summary.day, total: MISSION_DAYS })}</span>
-          </div>
-          <div className="daysum__stars" aria-hidden="true">
-            {[1, 2, 3].map((n) => (
-              <Star key={n} on={n <= STARS[verdict]} index={n} />
-            ))}
-          </div>
           <p className="daysum__verdict">{t(`sum.verdict.${verdict}`)}</p>
         </header>
 
@@ -116,9 +88,9 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                   <strong className={n > 0 ? "is-up" : n < 0 ? "is-down" : ""}>
                     {n > 0 ? `▲ +${n}` : n < 0 ? `▼ −${Math.abs(n)}` : "•"}
                   </strong>
-                  <span className="daysum__res-state">
-                    {left === null ? t("sum.res.plenty") : mood === "good" ? t("sum.res.good") : t("sum.res.left", { days: days(left) })}
-                  </span>
+                  {left !== null && mood !== "good" && (
+                    <span className="daysum__res-state">{t("sum.res.left", { days: days(left) })}</span>
+                  )}
                 </li>
               );
             })}
@@ -144,7 +116,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
               {shownDone.map((d, i) => (
                 <li key={i} className="is-done"><i aria-hidden="true" />{d.text}</li>
               ))}
-              {moreDone > 0 && <li className="daysum__more">{t("sum.left.more", { n: moreDone })}</li>}
             </ul>
           ) : (
             <p className="daysum__quiet">{t("sum.done.none")}</p>
@@ -161,7 +132,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                   {t(`task.${task.id}`)}
                 </li>
               ))}
-              {more > 0 && <li className="daysum__more">{t("sum.left.more", { n: more })}</li>}
               {heads.map((h) => (
                 <li key={h} className="daysum__head-up">{h}</li>
               ))}
@@ -172,7 +142,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
 
         <button className="btn btn--primary daysum__go" autoFocus onClick={onClose}>
           {t("sum.continue")}
-          <i className="daysum__timer" aria-hidden="true" style={{ animationDuration: `${seconds}s`, animationPlayState: paused ? "paused" : "running" }} />
         </button>
       </div>
     </div>
