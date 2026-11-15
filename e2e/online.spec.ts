@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test("совместная игра: двое в одной комнате видят одно и то же время", async ({ browser }) => {
   test.setTimeout(90_000);
   const room = `QA${Math.random().toString(36).replace(/[^a-z]/g, "").slice(0, 8)}`;
-  const state = { cookies: [], origins: [{ origin: "http://localhost:5173", localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
+  const state = { cookies: [], origins: [{ origin: `http://localhost:${process.env.E2E_PORT ?? 5173}`, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const errors: string[] = [];
 
   async function join() {

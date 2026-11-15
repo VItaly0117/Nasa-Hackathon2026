@@ -359,6 +359,8 @@ export function ArtDefs() {
       <radialGradient id="gGlass" cx="0.4" cy="0.3" r="0.9"><stop offset="0" stopColor="#d6f3ff" stopOpacity="0.85" /><stop offset="1" stopColor="#5fb4e0" stopOpacity="0.55" /></radialGradient>
       <radialGradient id="gShelter" cx="0.35" cy="0.25" r="0.95"><stop offset="0" stopColor="#8a89b0" /><stop offset="1" stopColor="#4d4a6c" /></radialGradient>
       <linearGradient id="gRock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#b8a98f" /><stop offset="1" stopColor="#7a6f88" /></linearGradient>
+      <linearGradient id="gAstroWhite" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#d9deef" /></linearGradient>
+      <radialGradient id="gAstroVisor" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stopColor="#4a76dc" /><stop offset="1" stopColor="#1f3688" /></radialGradient>
       <linearGradient id="gIceLeft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#d9f6ff" /><stop offset="1" stopColor="#8ad3f3" /></linearGradient>
     </defs>
   );
