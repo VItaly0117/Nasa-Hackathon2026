@@ -12,7 +12,7 @@ import type { Terrain, TileInfo } from "../../engine/placement";
 import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "../../data/map";
 import { moduleName, t } from "../../i18n";
 import { ART_HEIGHT, ArtDefs, Ice, ModuleArt } from "./art";
-import moonBg from "src/assets/moon_bg.svg";
+import moonBg from "../../assets/moon_bg.svg";
 import { Walkers } from "./Walkers";
 import { BuildProgress } from "./BuildProgress";
 import type { WalkTarget } from "./Walkers";
