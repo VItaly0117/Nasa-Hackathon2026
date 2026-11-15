@@ -26,7 +26,8 @@ export function EventModal() {
 
   return (
     <div className="overlay">
-      <div className="modal" role="dialog" aria-labelledby="event-title">
+      <div className="modal modal--event" role="dialog" aria-labelledby="event-title">
+        {event.id !== "illness" && <div className="modal__badge" aria-hidden="true">⚠️</div>}
         {person && (
           <div className="modal__portrait">
             <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
@@ -43,10 +44,10 @@ export function EventModal() {
           </p>
         )}
         <div className="modal__choices">
-          {event.choices.map((choice) => (
+          {event.choices.map((choice, i) => (
             <button
               key={choice.id}
-              className="btn btn--choice"
+              className={`btn btn--choice${i === 0 ? " btn--choice-main" : ""}`}
               onClick={() => {
                 sound.playDecisionConfirm();
                 send({ type: "resolveEvent", choice: choice.id });

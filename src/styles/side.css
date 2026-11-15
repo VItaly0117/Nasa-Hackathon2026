@@ -11,22 +11,17 @@
   z-index: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(110, 140, 230, 0.4) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .side::-webkit-scrollbar {
-  width: 6px;
+  display: none;
 }
 .side::-webkit-scrollbar-track {
-  background: transparent;
+  display: none;
 }
 .side::-webkit-scrollbar-thumb {
-  background: rgba(110, 140, 230, 0.4);
-  border-radius: 3px;
-}
-.side::-webkit-scrollbar-thumb:hover {
-  background: rgba(140, 170, 255, 0.7);
+  display: none;
 }
 .alert { display: flex; gap: 12px; align-items: center; padding: 14px 16px; }
 .alert p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; }
@@ -60,15 +55,11 @@
   line-height: 1.4;
   max-height: 280px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(110, 140, 230, 0.4) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .tasks ul::-webkit-scrollbar {
-  width: 6px;
-}
-.tasks ul::-webkit-scrollbar-thumb {
-  background: rgba(110, 140, 230, 0.4);
-  border-radius: 3px;
+  display: none;
 }
 .task { display: flex; gap: 12px; align-items: flex-start; }
 .task strong { display: block; margin-bottom: 3px; }

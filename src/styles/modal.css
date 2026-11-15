@@ -32,4 +32,49 @@
 .modal__portrait { display: flex; justify-content: center; margin-bottom: 8px; }
 .modal__portrait svg { width: 88px; height: 88px; }
 .modal__choices { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
+/* Окно события: центр, крупный значок, воздух между блоками */
+.modal--event {
+  width: min(520px, 94vw);
+  padding: 36px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  border-radius: 28px;
+  animation: modalPop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.modal--event h2 { margin: 0; font-size: 28px; line-height: 1.2; }
+.modal--event > p { margin: 0; font-size: 19px; line-height: 1.55; color: rgba(255, 255, 255, 0.82); max-width: 40ch; }
+.modal--event .modal__portrait { margin: 0; }
+.modal__badge {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+  border-radius: 50%;
+  background: rgba(255, 190, 80, 0.15);
+  box-shadow: 0 0 0 8px rgba(255, 190, 80, 0.07);
+}
+.modal--event .modal__choices { width: 100%; margin-top: 8px; gap: 16px; }
+.modal--event .btn--choice {
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+.modal--event .btn--choice strong { font-size: 20px; }
+.modal--event .btn--choice .muted { font-size: 16px; font-weight: 500; line-height: 1.4; }
+.modal--event .btn--choice:hover { background: rgba(255, 255, 255, 0.11); transform: translateY(-2px); }
+.modal--event .btn--choice-main {
+  background: rgba(255, 190, 80, 0.16);
+  border-color: rgba(255, 190, 80, 0.7);
+}
+.modal--event .btn--choice-main:hover { background: rgba(255, 190, 80, 0.26); }
+@keyframes modalPop { from { opacity: 0; transform: scale(0.94) translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .modal--event { animation: none; } }
 .debrief { padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
