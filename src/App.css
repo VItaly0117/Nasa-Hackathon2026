@@ -10,7 +10,7 @@ button { font-family: inherit; }
 .backdrop {
   position: absolute;
   inset: 0;
-  background: #0a0d24 url("./assets/moon-bg.webp") center top / cover no-repeat;
+  background: #0a0d24 url("./assets/moon_bg.svg") center top / cover no-repeat;
 }
 
 
