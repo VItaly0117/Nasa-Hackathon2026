@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
-import { clickFreeTile } from "./helpers";
+import { clickFreeTile, uniqueRoom } from "./helpers";
 
 const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
 const storageState = {
@@ -43,7 +43,7 @@ function roleFromBadge(text: string): string {
 
 test("совместная игра: роли разные, модуль чужой роли закрыт, свой строится у всех", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "ROLEBUILDQA";
+  const room = uniqueRoom("ROLEBUILDQA");
   const a = await joinRoom(browser, room);
   const b = await joinRoom(browser, room);
 
@@ -73,7 +73,7 @@ test("совместная игра: роли разные, модуль чуж�
 
 test("совместная игра: четвёртый игрок получает последнюю свободную роль", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "FOURROLESQA";
+  const room = uniqueRoom("FOURROLESQA");
   const players: { context: BrowserContext; page: Page }[] = [];
 
   try {
@@ -92,7 +92,7 @@ test("совместная игра: четвёртый игрок получа�
 // Известная production-проблема: сервер повторно раздаёт занятые роли после четвёртого игрока.
 // Оставляем ожидаемый сценарий как fixme, пока ограничение комнаты нельзя исправить в tests/-only задаче.
 test.fixme("совместная игра: пятый игрок получает понятный отказ", async ({ browser }) => {
-  const room = "FIFTHPLAYERQA";
+  const room = uniqueRoom("FIFTHPLAYERQA");
   const players: { context: BrowserContext; page: Page }[] = [];
 
   try {

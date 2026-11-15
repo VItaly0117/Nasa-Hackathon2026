@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { clickFreeTile } from "./helpers";
+import { clickFreeTile, uniqueRoom } from "./helpers";
 
 // Два игрока входят в одну комнату: у обоих видна комната и два игрока, время общее (его двигает ведущий)
 test("совместная игра: двое в одной комнате видят одно и то же время", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "CLOCKSYNCQA";
+  const room = uniqueRoom("CLOCKSYNCQA");
   const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
   const state = { cookies: [], origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const errors: string[] = [];
@@ -50,7 +50,7 @@ test("совместная игра: двое в одной комнате ви�
 
 test("совместная игра: после потери связи действия не применяются повторно", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "RECONNECTQA";
+  const room = uniqueRoom("RECONNECTQA");
   const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
   const state = { cookies: [], origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const ctx = await browser.newContext({ baseURL: appUrl, storageState: state, viewport: { width: 1280, height: 800 } });

@@ -44,3 +44,11 @@ export async function clickFreeTile(page: Page) {
   expect(spot, "нет свободной клетки для постройки").not.toBeNull();
   await page.mouse.click(spot!.x, spot!.y);
 }
+
+/** Уникальное имя комнаты: сервер хранит комнаты между прогонами, а имя — только латиница до 20 символов. */
+export function uniqueRoom(prefix: string): string {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  let suffix = "";
+  for (let i = 0; i < 6; i += 1) suffix += letters[Math.floor(Math.random() * letters.length)];
+  return `${prefix}${suffix}`.slice(0, 20);
+}
