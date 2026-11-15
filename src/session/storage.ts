@@ -54,10 +54,12 @@ function migrate(s: GameState, version: number): GameState {
   if (version < 7) {
     // журнал и причины отложенных эффектов были готовым текстом: оставляем его как есть
     const legacy = (text: unknown) => ({ key: "log.legacy", params: { text: String(text) } });
+    // запись уже в новой форме (есть key) оставляем, готовый текст превращаем в «старое» сообщение
+    const isMsg = (v: unknown): v is { key: string } => typeof v === "object" && v !== null && "key" in v;
     m = {
       ...m,
-      log: (m.log as unknown as { day: number; text?: string }[]).map((e) => ({ day: e.day, ...legacy(e.text) })),
-      pending: (m.pending as unknown as GameState["pending"]).map((p) => ({ ...p, reason: legacy(p.reason) })),
+      log: (m.log as unknown as { day: number; text?: string }[]).map((e) => (isMsg(e) ? e : { day: e.day, ...legacy(e.text) })) as GameState["log"],
+      pending: (m.pending as unknown as GameState["pending"]).map((p) => (isMsg(p.reason) ? p : { ...p, reason: legacy(p.reason) })),
     };
   }
   return m;
