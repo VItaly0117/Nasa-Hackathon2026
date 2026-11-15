@@ -14,13 +14,16 @@
     "typecheck": "tsc -b",
     "architecture": "node scripts/check-architecture.mjs",
     "test:unit": "vitest run tests/engine",
-    "test:online": "vitest run tests/online"
+    "test:online": "vitest run tests/online",
+    "e2e": "playwright test e2e/smoke.spec.ts",
+    "perf": "playwright test e2e/perf.spec.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
