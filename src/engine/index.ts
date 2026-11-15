@@ -6,12 +6,12 @@ export { initialState } from "./state";
 export { nextRandom } from "./random";
 
 export { BUILD_MS, DAY_MS, ILLNESS_CHANCE, ILLNESS_GAP, MAX_ILLNESS, MISSION_DAYS, MODES, MODE_IDS, NIGHT_START, SHORTAGE_DAMAGE } from "./constants";
-export { BASE_CAPACITY, capacityOf, clamp, dailyDelta, dailyDeltaFor, getDef, isWorking } from "./selectors";
+export { BASE_CAPACITY, capacityOf, clamp, dailyDelta, getDef, isWorking } from "./selectors";
 
 export { REPAIR_COST } from "@/engine/actions/repair";
 export { hasFreeCrew, pickBuilder } from "@/engine/systems/crew";
 export { choiceCost, dayOfEvent, nextScheduledEvent } from "@/engine/systems/events";
-export { allTasksDone, lockedTasks } from "@/engine/systems/tasks";
+export { allTasksDone } from "@/engine/systems/tasks";
 export { summarizeDay } from "./daySummary";
 export type { DaySummary, Setback, Verdict, VitalKey } from "./daySummary";
 

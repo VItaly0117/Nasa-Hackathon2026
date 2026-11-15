@@ -1,7 +1,6 @@
 import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
-import { capacityOf, dailyDelta, dailyDeltaFor, hasFreeCrew, lockedTasks } from "@/engine";
-import { goalHint } from "./goal-hint";
+import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
 import type { ModuleDef, Role } from "@/types";
 import { sound } from "@/audio/audio";
 import { useGame, useMeta, useSend, useSession } from "@/session/hooks";
@@ -19,20 +18,8 @@ const MODULES = modulesData as ModuleDef[];
 export function ResourcesContainer() {
   const resources = useGame((s) => s.resources);
   const delta = useGame(dailyDelta, shallowEqual);
-  const dayDelta = useGame((s) => dailyDeltaFor(s, false), shallowEqual);
-  const nightDelta = useGame((s) => dailyDeltaFor(s, true), shallowEqual);
-  const isNight = useGame((s) => s.isNight);
   const capacity = useGame((s) => capacityOf(s.modules), shallowEqual);
-  return (
-    <ResourceBar
-      resources={resources}
-      delta={delta}
-      dayDelta={dayDelta}
-      nightDelta={nightDelta}
-      isNight={isNight}
-      capacity={capacity}
-    />
-  );
+  return <ResourceBar resources={resources} delta={delta} capacity={capacity} />;
 }
 
 export function CrewContainer() {
@@ -46,15 +33,11 @@ export function SideContainer() {
     (s) => ({ day: s.day, isNight: s.isNight, pending: s.pending, tasks: s.tasks, research: s.research, log: s.log }),
     shallowEqual,
   );
-  const locked = useGame(lockedTasks, shallowEqual);
-  const hint = useGame(goalHint);
   const send = useSend();
   const ui = useGameUi();
   return (
     <SidePanel
       state={view}
-      locked={locked}
-      hint={hint}
       surveyingIce={ui.surveyingIce}
       onCancelIceSurvey={() => ui.setSurveyingIce(false)}
       onStartIceSurvey={() => ui.setSurveyingIce(true)}

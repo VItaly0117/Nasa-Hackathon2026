@@ -30,7 +30,6 @@ function Mood({ mood }: { mood: number }) {
   const label = mood > 0 ? t("crew.moodGood") : mood < 0 ? t("crew.moodBad") : t("crew.moodTired");
   return (
     <svg viewBox="0 0 22 22" width="32" height="32" role="img" aria-label={label}>
-      <title>{label}</title>
       <circle cx="11" cy="11" r="10" fill={color} />
       <circle cx="8" cy="9" r="1.3" fill="#14301f" />
       <circle cx="14" cy="9" r="1.3" fill="#14301f" />
@@ -44,7 +43,7 @@ const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >=
 
 export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
-  const [collapsed, toggle] = useCollapsed(startsCollapsed(), "crew");
+  const [collapsed, toggle] = useCollapsed(startsCollapsed());
 
   return (
     <section className="hud-panel crew" aria-label={t("crew.aria")}>
@@ -62,27 +61,19 @@ export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[]
             <Avatar skin={p.skin} hair={p.hair} long={p.long} mood={mood} />
             <div className="crew__info">
               <strong>{tDynamic(`crew.n${p.id}`)}</strong>
-              <span className="crew__role">{tDynamic(`crew.r${p.id}`)}</span>
-              {(() => {
-                const status = member?.status;
-                const kind = status?.kind ?? "free";
-                const text =
-                  status?.kind === "building"
+              <span className="crew__role">
+                {tDynamic(`crew.r${p.id}`)} ·{" "}
+                {(() => {
+                  const status = crew.find((c) => c.id === p.id)?.status;
+                  return status?.kind === "building"
                     ? t("crew.building", { name: moduleName(status.module) })
                     : status?.kind === "sick"
                       ? t("crew.sick")
                       : t("crew.free");
-                return <span className={`crew__badge crew__badge--${kind}`}>{text}</span>;
-              })()}
-              <div className="crew__vital" role="progressbar" aria-label={t("crew.healthLabel")} title={t("crew.healthTip")}
-                aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(health)}>
-                <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
-                  <path d="M10 17 C2 11 2 4.5 6.2 4.5 C8 4.5 9.3 5.6 10 7 C10.7 5.6 12 4.5 13.8 4.5 C18 4.5 18 11 10 17 Z" fill={barColor} />
-                </svg>
-                <div className="crew__bar">
-                  <div style={{ width: `${health}%`, background: barColor }} />
-                </div>
-                <span className="crew__pct">{Math.round(health)}%</span>
+                })()}
+              </span>
+              <div className="crew__bar">
+                <div style={{ width: `${health}%`, background: barColor }} />
               </div>
             </div>
             <Mood mood={mood} />

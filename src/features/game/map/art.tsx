@@ -58,10 +58,10 @@ function Habitat() {
       <IsoBox w={27} d={13.5} h={17} dy={-1} />
       {/* окна на левой стене */}
       <g {...LINE} strokeWidth="1">
-        <polygon className="art-window" points="-23,-14 -16,-10.5 -16,-4 -23,-7.5" fill="url(#gWindow)" />
-        <polygon className="art-window" points="-12,-8.5 -5,-5 -5,1.5 -12,-2" fill="url(#gWindow)" />
+        <polygon points="-23,-14 -16,-10.5 -16,-4 -23,-7.5" fill="url(#gWindow)" />
+        <polygon points="-12,-8.5 -5,-5 -5,1.5 -12,-2" fill="url(#gWindow)" />
         {/* дверь на правой стене */}
-        <polygon className="art-window" points="8,-1 16,-5 16,6.5 8,10.5" fill="url(#gWindow)" />
+        <polygon points="8,-1 16,-5 16,6.5 8,10.5" fill="url(#gWindow)" />
       </g>
       <Wear d="M -26 -6 q 3 -4 6 -1 q -1 4 -6 1 Z M 18 -12 q 4 -2 6 2 q -4 3 -6 -2 Z" />
       {/* купол */}
@@ -312,7 +312,7 @@ const MODULE_ART: Record<ModuleType, () => React.JSX.Element> = {
 export function ModuleArt({ type, broken = false }: { type: ModuleType; broken?: boolean }) {
   const Art = MODULE_ART[type];
   return (
-    <g className={`art art--${type}`} filter={broken ? "url(#broken)" : undefined}>
+    <g filter={broken ? "url(#broken)" : undefined}>
       <Art />
       {broken && (
         <g>

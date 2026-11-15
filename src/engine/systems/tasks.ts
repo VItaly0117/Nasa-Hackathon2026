@@ -58,21 +58,6 @@ export function allTasksDone(state: GameState): boolean {
   return open.length > 0 && open.every((task) => defOf(task.id).done(state));
 }
 
-// Задания, которые ещё не выданы, но выданы будут: интерфейс объясняет, почему список пуст.
-// count: сколько их; nextDay: с какого дня появится ближайшее (null, если они уже доступны и ждут очереди)
-export function lockedTasks(state: GameState): { count: number; nextDay: number | null } {
-  let count = 0;
-  let nextDay: number | null = null;
-  for (const def of TASK_DEFS) {
-    if (state.tasks.some((task) => task.id === def.id) || def.done(state)) continue;
-    if (def.deadline && def.deadline() <= state.day) continue; // срок прошёл, задание уже не выдадут
-    count++;
-    const from = def.fromDay ?? 1;
-    if (from > state.day && (nextDay === null || from < nextDay)) nextDay = from;
-  }
-  return { count, nextDay };
-}
-
 // Выдаёт сегодняшние задания: сколько положено на этот день, но так, чтобы открытых не стало больше MAX_OPEN
 export function issueTasks(state: GameState): GameState {
   const open = state.tasks.filter((task) => task.status === "open").length;
