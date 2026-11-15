@@ -11,14 +11,6 @@ import { FlareBadgeIcon, BreakdownBadgeIcon, AlertBadgeIcon } from "@/ui/icons";
 
 const EVENTS = eventsData as EventDef[];
 
-const CHOICE_ICONS: Record<string, string> = {
-  hide: "🛡️",
-  work: "⚡",
-  repair: "🔧",
-  ignore: "⏳",
-  treat: "💊",
-};
-
 // Тексты событий лежат в словарях i18n: ev.<id>.title / .text / .<choice>.label / .<choice>.hint
 // Цены выборов лежат в events.json (тип EventDef в types.ts)
 export function EventModal() {
@@ -79,12 +71,7 @@ export function EventModal() {
                 send({ type: "resolveEvent", choice: choice.id });
               }}
             >
-              <div className="btn--choice-header">
-                <span className="btn--choice-icon" aria-hidden="true">
-                  {CHOICE_ICONS[choice.id] ?? "👉"}
-                </span>
-                <strong className="btn--choice-title">{tDynamic(`ev.${event.id}.${choice.id}.label`)}</strong>
-              </div>
+              <strong className="btn--choice-title">{tDynamic(`ev.${event.id}.${choice.id}.label`)}</strong>
               <span className="btn--choice-hint">{tDynamic(`ev.${event.id}.${choice.id}.hint`)}</span>
             </button>
           ))}

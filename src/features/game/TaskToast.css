@@ -20,10 +20,8 @@
   padding: 14px 44px 14px 14px;
   pointer-events: auto;
   background: rgba(14, 18, 36, 0.82);
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   animation: toast-in 0.35s ease-out;
 }
 
@@ -61,6 +59,34 @@
   transition: opacity 0.15s, background 0.15s;
 }
 .task-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+
+/* Полоса времени до автозакрытия; при наведении пауза */
+.task-toast__timer {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.task-toast { padding-bottom: 20px; }
+.task-toast__timer-bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transform-origin: left center;
+  animation: toast-timer linear forwards;
+}
+.task-toast:hover .task-toast__timer-bar { animation-play-state: paused; }
+
+@keyframes toast-timer {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
 
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(-12px); }

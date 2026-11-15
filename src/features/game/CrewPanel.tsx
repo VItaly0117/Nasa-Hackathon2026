@@ -6,6 +6,7 @@ import portrait4 from "@/assets/crew/crew4.webp";
 import { moduleName, t, tDynamic } from "@/i18n";
 import { CREW } from "@/ui/crewData";
 import { CollapseButton } from "@/ui/Collapse";
+import { useScrollMore } from "@/ui/useScrollMore";
 import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 
 // Экипаж пока декоративный: настроение и полоска берутся из общего здоровья.
@@ -49,9 +50,10 @@ const moodOf = (morale: number, health: number) => (health < 40 ? -1 : morale >=
 export function CrewPanel({ health, crew }: { health: number; crew: CrewMember[] }) {
   const barColor = health >= 70 ? "#4ade80" : health >= 40 ? "#fbbf24" : "#ff7a7a";
   const [collapsed, toggle] = useCollapsed(startsCollapsed());
+  const scrollRef = useScrollMore<HTMLElement>();
 
   return (
-    <section className="hud-panel crew" aria-label={t("crew.aria")}>
+    <section ref={scrollRef} className="hud-panel crew scroll-more" aria-label={t("crew.aria")}>
       <div className="panel-head">
         <h2 className="hud-title">{t("crew.title", { n: CREW.length })}</h2>
         <CollapseButton collapsed={collapsed} onClick={toggle} />

@@ -31,6 +31,11 @@
 .alert__text { flex: 1; }
 
 .goal { padding: 14px 16px; }
+.goal .hud-title:not(:first-child) { margin: 18px 0 12px; }
+.goal .tasks__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.goal .task { gap: 10px; align-items: flex-start; }
+.goal .task__mark { margin-top: 1px; }
+.goal .task strong { margin-bottom: 4px; line-height: 1.3; }
 .goal p { margin: 10px 0 12px; font-size: 15px; line-height: 1.4; }
 .goal__row { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 800; color: var(--accent); }
 .goal__bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }

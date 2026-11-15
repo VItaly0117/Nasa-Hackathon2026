@@ -35,7 +35,7 @@
 .daysum__res .is-ok { background: rgba(245, 184, 61, 0.14); }
 .daysum__res .is-bad { background: rgba(255, 110, 110, 0.18); }
 .daysum__res-name { font-size: 13px; font-weight: 600; color: rgba(238, 242, 251, 0.6); }
-.daysum__res strong { font-size: 18px; font-weight: 800; color: rgba(238, 242, 251, 0.45); }
+.daysum__res strong { font-size: 22px; font-weight: 800; color: rgba(238, 242, 251, 0.45); }
 .daysum__res strong.is-up { color: #8fe3b0; }
 .daysum__res strong.is-down { color: #ff9b9b; }
 .daysum__res-state { font-size: 12px; font-weight: 700; color: var(--accent); }
@@ -73,8 +73,10 @@
 .daysum__heads { margin-top: 12px; font-size: 15px; color: rgba(238, 242, 251, 0.6); }
 
 .daysum__go {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  min-height: 54px;
+  min-height: 56px;
   font-size: 18px;
   font-weight: 800;
   border-radius: 16px;
@@ -82,6 +84,17 @@
   color: #1a1530;
   box-shadow: none;
 }
+/* Полоска таймера: светлая заливка тает слева направо, пока окно не закроется само */
+.daysum__timer {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.4);
+  transform-origin: left center;
+  animation: daysum-timer var(--dur) linear forwards;
+}
+.daysum__go.is-paused .daysum__timer { animation-play-state: paused; }
+.daysum__go-text { position: relative; }
+@keyframes daysum-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .daysum__go:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.55); outline-offset: 3px; }
 
 @media (max-width: 480px) {
