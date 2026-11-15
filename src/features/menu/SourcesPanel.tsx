@@ -35,6 +35,8 @@ export function SourcesPanel({ onClose }: { onClose: () => void }) {
             >
               <strong>{tDynamic(`source.${s.id}.name`)}</strong>
               <span>{tDynamic(`source.${s.id}.usedFor`)}</span>
+              {/* честно: подключён ли источник в игре или пока только описан */}
+              <small>{s.inGame ? t("sources.inGame") : t("sources.notYet")}</small>
             </a>
           ))}
         </div>

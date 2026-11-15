@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { clickFreeTile, uniqueRoom } from "./helpers";
 
 // Два игрока входят в одну комнату: у обоих видна комната и два игрока, время общее (его двигает ведущий)
 test("совместная игра: двое в одной комнате видят одно и то же время", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "CLOCKSYNCQA";
+  const room = uniqueRoom("CLOCKSYNCQA");
   const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
   const state = { cookies: [], origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const errors: string[] = [];
@@ -13,7 +14,7 @@ test("совместная игра: двое в одной комнате ви�
     const page = await ctx.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto("/");
-    await page.getByRole("button", { name: "Играть с друзьями" }).click();
+    await page.getByRole("button", { name: /Играть с друзьями/ }).click();
     await page.getByLabel("Название сервера").fill(room);
     await page.getByRole("button", { name: "Войти" }).click();
     await expect(page.getByRole("timer")).toBeVisible();
@@ -49,7 +50,7 @@ test("совместная игра: двое в одной комнате ви�
 
 test("совместная игра: после потери связи действия не применяются повторно", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "RECONNECTQA";
+  const room = uniqueRoom("RECONNECTQA");
   const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
   const state = { cookies: [], origins: [{ origin: appUrl, localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] };
   const ctx = await browser.newContext({ baseURL: appUrl, storageState: state, viewport: { width: 1280, height: 800 } });
@@ -78,7 +79,7 @@ test("совместная игра: после потери связи дейс
     if (request.url().includes("/events?")) eventUrls.push(request.url());
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Играть с друзьями" }).click();
+  await page.getByRole("button", { name: /Играть с друзьями/ }).click();
   await page.getByLabel("Название сервера").fill(room);
   await page.getByRole("button", { name: "Войти" }).click();
   await expect(page.getByRole("timer")).toBeVisible();
@@ -98,17 +99,7 @@ test("совместная игра: после потери связи дейс
     const moduleCountBeforeBuild = await page.locator(".module-art").count();
     await page.getByRole("button", { name: "Строительство", expanded: false }).click();
     await page.getByRole("button", { name: new RegExp(`^${moduleName}`) }).click();
-    const spot = await page.evaluate(() => {
-      for (const el of document.querySelectorAll(".tile-ok")) {
-        const bounds = el.getBoundingClientRect();
-        const x = bounds.x + bounds.width / 2;
-        const y = bounds.y + bounds.height / 2;
-        if (x > 330 && x < 880 && y > 430 && y < 620) return { x, y };
-      }
-      return null;
-    });
-    expect(spot, "нет доступной клетки для постройки").not.toBeNull();
-    await page.mouse.click(spot!.x, spot!.y);
+    await clickFreeTile(page);
     await expect(page.locator(".module-art")).toHaveCount(moduleCountBeforeBuild + 1);
     await page.getByRole("button", { name: "Правила" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
