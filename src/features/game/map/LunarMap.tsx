@@ -73,7 +73,6 @@ function perDayText(def: ModuleDef, isNight: boolean) {
 function Bubble({
   x,
   y,
-  k,
   title,
   text,
   onRepair,
@@ -81,14 +80,13 @@ function Bubble({
 }: {
   x: number;
   y: number;
-  k: number;
   title: string;
   text: ReactNode;
   onRepair?: () => void;
   canRepair?: boolean;
 }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${1 / k})`} pointerEvents={onRepair ? "auto" : "none"}>
+    <g style={{ transform: `translate(${x}px, ${y}px) scale(var(--inv-k, 1))` }} pointerEvents={onRepair ? "auto" : "none"}>
       <foreignObject x={-BUBBLE_W / 2} y={-BUBBLE_H} width={BUBBLE_W} height={BUBBLE_H}>
         <div className="bubble">
           <div className="bubble__body" role="status">
@@ -161,16 +159,32 @@ export default function LunarMap({
 
   const frameRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef<Size>({ w: 0, h: 0 });
-  const [view, setView] = useState<View>({ x: 0, y: 0, k: START_ZOOM });
-  const viewRef = useRef(view);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<View>({ x: 0, y: 0, k: START_ZOOM });
+  const rafRef = useRef(0);
   const [smooth, setSmooth] = useState(false);
   const smoothTimer = useRef<number | undefined>(undefined);
 
-  const apply = useCallback((next: View) => {
-    const clamped = clampView(next, sizeRef.current);
-    viewRef.current = clamped;
-    setView(clamped);
+  // Камера двигается напрямую через DOM: React не перерисовывает карту на каждый кадр перетаскивания и зума.
+  // Масштаб подписей (1/k) отдаётся в CSS-переменной, а не через состояние
+  const flush = useCallback(() => {
+    rafRef.current = 0;
+    const stage = stageRef.current;
+    if (!stage) return;
+    const v = viewRef.current;
+    stage.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.k})`;
+    stage.style.setProperty("--inv-k", String(1 / v.k));
   }, []);
+
+  const apply = useCallback(
+    (next: View) => {
+      viewRef.current = clampView(next, sizeRef.current);
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(flush);
+    },
+    [flush]
+  );
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
   // Центр стартовой базы: на него смотрим при запуске и по кнопке «До бази».
   // Считаем один раз, поэтому новые модули камеру не двигают
@@ -247,7 +261,7 @@ export default function LunarMap({
     moved: false,
     startX: 0,
     startY: 0,
-    startView: view,
+    startView: viewRef.current,
     startDist: 1,
     startMidX: 0,
     startMidY: 0,
@@ -277,6 +291,10 @@ export default function LunarMap({
     pointers.current.set(e.pointerId, localPoint(e));
     if (pointers.current.size === 1) gesture.current.moved = false;
     beginGesture();
+    if (smoothTimer.current !== undefined) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = undefined;
+    }
     setSmooth(false);
   };
 
@@ -308,6 +326,8 @@ export default function LunarMap({
     pointers.current.delete(e.pointerId);
     if (pointers.current.size > 0) beginGesture();
   };
+
+  // Колесо вешаем вручную как не-passive не нужно, но событие может приходить чаще кадра — apply уже склеивает их в rAF
 
   const moduleAt = (row: number, col: number) =>
     modules.find((m) => m.slot === slotOf(row, col));
@@ -372,8 +392,6 @@ export default function LunarMap({
     onSelectTile?.(tile);
   };
 
-  const k = view.k;
-
   return (
     <>
       <div
@@ -387,12 +405,9 @@ export default function LunarMap({
         onWheel={onWheel}
       >
         <div
+          ref={stageRef}
           className={`map-stage ${smooth ? "map-stage--smooth" : ""}`}
-          style={{
-            width: MAP_W,
-            height: MAP_H,
-            transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`,
-          }}
+          style={{ width: MAP_W, height: MAP_H }}
         >
           <svg
             viewBox={`0 0 ${MAP_W} ${MAP_H}`}
@@ -536,10 +551,10 @@ export default function LunarMap({
             })}
 
             {/* Слой 6: астронавты ходят между модулями */}
-            <Walkers targets={walkTargets} active={crewActive} k={k} />
+            <Walkers targets={walkTargets} active={crewActive} />
 
             {/* Слой 7: облачко-подпись над выбранным объектом, поверх всего */}
-            {bubble && <Bubble {...bubble} k={k} />}
+            {bubble && <Bubble {...bubble} />}
           </svg>
         </div>
       </div>
