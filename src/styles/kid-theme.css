@@ -1,0 +1,289 @@
+/* ---------- Дитяча тема (7–12 років): продовження hud-theme.css на вікна, картки, підсумки та анімації ----------
+   Лише перевизначає вигляд. Принципи: великий текст, великі цілі для пальця (≥48px), багато повітря між блоками,
+   скляні фіолетові панелі, об'ємні помаранчеві кнопки, м'які «стрибучі» анімації. */
+:root {
+  --glass: rgba(52, 58, 116, 0.82);
+  --glass-deep: rgba(24, 28, 78, 0.94);
+  --glass-line: rgba(190, 205, 255, 0.34);
+  --good: #7ee9a8;
+  --bad: #ff9b9b;
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --btn-3d: 0 4px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55);
+}
+
+/* ---------- Кнопки: усі трохи більші, пружні ---------- */
+.btn { min-height: 56px; padding: 0 26px; border-radius: 20px; font-weight: 800; letter-spacing: 0.01em; }
+.btn--small { min-height: 48px; padding: 0 18px; }
+.btn--primary, .btn--solid, .btn--ghost, .build-toggle { transition: transform 0.18s var(--bounce), filter 0.15s, box-shadow 0.15s, background-color 0.15s; }
+.btn:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+.btn:active:not(:disabled) { transform: translateY(3px) scale(0.98); }
+.btn--solid {
+  background: linear-gradient(#6a63a6, #544d8c);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 0 #353064;
+  border-radius: 20px;
+}
+.btn--solid:hover:not(:disabled) { background: linear-gradient(#7a73b8, #625b9c); }
+.btn:focus-visible, .card:focus-visible, .collapse-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* ---------- Вікна ---------- */
+.overlay { background: radial-gradient(ellipse at 50% 40%, rgba(30, 34, 90, 0.72), rgba(4, 6, 24, 0.88)); backdrop-filter: blur(3px); padding: 20px; }
+.modal, .daysum {
+  background: var(--glass-deep);
+  border: 1.5px solid var(--glass-line);
+  border-radius: 30px;
+  box-shadow: 0 18px 50px rgba(2, 4, 24, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.modal { padding: 36px 34px; line-height: 1.55; }
+.modal h2 { margin-bottom: 18px; font-weight: 900; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); }
+.modal a { color: #ffd18a; font-weight: 700; }
+.modal__choices { gap: 16px; margin-top: 26px; }
+
+/* Окно события */
+.modal--event { gap: 22px; padding: 40px 34px 34px; border-radius: 32px; border: 1.5px solid var(--glass-line); background: var(--glass-deep); }
+.modal--event h2 { font-size: 28px; font-weight: 900; }
+.modal--event > p, .modal--event .modal--event__description { font-size: 18px; line-height: 1.6; color: #eef1ff; max-width: 40ch; }
+.modal__badge {
+  width: 88px; height: 88px; border-radius: 50%; font-size: 40px;
+  background: radial-gradient(circle at 35% 30%, #6a63a6, #3a3578);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 6px 0 #25214f, 0 0 26px rgba(250, 170, 48, 0.35);
+  animation: kid-float 2.6s ease-in-out infinite;
+}
+.modal__badge--flare { background: radial-gradient(circle at 35% 30%, #ffb45a, #d9622a); border-color: #ffd9a0; box-shadow: 0 6px 0 #8a3a12, 0 0 28px rgba(255, 140, 40, 0.55); }
+.modal__badge--breakdown { background: radial-gradient(circle at 35% 30%, #7fd3ff, #3a7fc4); border-color: #cdeeff; box-shadow: 0 6px 0 #1f4c80, 0 0 28px rgba(79, 195, 247, 0.5); }
+.modal--event .modal__portrait svg { border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.4); }
+
+.modal--event .btn--choice, .btn--choice {
+  min-height: 64px; padding: 18px 22px; border-radius: 22px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1.5px solid var(--glass-line);
+  box-shadow: 0 4px 0 rgba(10, 12, 50, 0.55);
+  transition: transform 0.18s var(--bounce), background 0.15s, border-color 0.15s;
+}
+.modal--event .btn--choice:hover, .btn--choice:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(250, 170, 48, 0.8); transform: translateY(-3px); }
+.modal--event .btn--choice:active, .btn--choice:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(10, 12, 50, 0.55); }
+.modal--event .btn--choice-title { font-size: 19px; font-weight: 900; }
+.modal--event .btn--choice-hint { font-size: 15.5px; line-height: 1.5; color: #dfe5ff; }
+.modal--event .btn--choice-main {
+  background: linear-gradient(rgba(250, 170, 48, 0.3), rgba(235, 159, 58, 0.18));
+  border-color: var(--orange-1);
+  box-shadow: 0 4px 0 var(--orange-edge);
+}
+.modal--event .btn--choice-main:hover { background: linear-gradient(rgba(250, 170, 48, 0.4), rgba(235, 159, 58, 0.26)); }
+.modal--event .btn--choice-main .btn--choice-title { color: #ffe2a8; }
+
+/* Вступ, правила, вибір мови */
+.intro { padding: 38px 40px; }
+.intro h2 { margin-bottom: 28px; font-size: 34px; }
+.intro__kicker { padding: 5px 14px; border-radius: 999px; background: rgba(250, 170, 48, 0.2); color: #ffd18a; }
+.intro__text { font-size: 22px; line-height: 1.6; }
+.intro__actions { margin-top: 36px; gap: 16px; }
+.lang-select { gap: 18px; }
+.lang-select__btn { min-height: 68px; font-size: 22px; }
+.rules { gap: 18px; }
+.rules__item { gap: 18px; padding: 16px 18px; border-radius: 22px; background: rgba(255, 255, 255, 0.07); border: 1.5px solid rgba(190, 205, 255, 0.18); }
+.rules__item strong { font-size: 21px; font-weight: 900; margin-bottom: 6px; }
+.rules__item p { font-size: 18px; line-height: 1.5; opacity: 1; color: #e9edff; }
+.rules__num {
+  width: 52px; height: 52px; font-size: 24px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(var(--orange-1), var(--orange-3)); box-shadow: 0 3px 0 var(--orange-edge);
+}
+
+/* ---------- Підсумки дня ---------- */
+.daysum { padding: 40px 34px 34px; gap: 30px; }
+.daysum h2, .daysum h3 { font-size: 15px; font-weight: 800; letter-spacing: 0.04em; color: #c9d2ff; }
+.daysum__verdict { font-size: 32px; font-weight: 900; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); }
+.daysum__res { gap: 14px; }
+.daysum__res li { padding: 18px 6px; border-radius: 22px; background: rgba(255, 255, 255, 0.08); border: 1.5px solid rgba(190, 205, 255, 0.2); }
+.daysum__res .is-ok { background: rgba(250, 170, 48, 0.2); border-color: rgba(250, 170, 48, 0.55); }
+.daysum__res .is-bad { background: rgba(255, 110, 110, 0.22); border-color: rgba(255, 140, 140, 0.6); }
+.daysum__res-name { font-size: 14px; color: #dfe5ff; }
+.daysum__res strong { font-size: 26px; color: #fff; }
+.daysum__res strong.is-up { color: var(--good); }
+.daysum__res strong.is-down { color: var(--bad); }
+.daysum__res-state { font-size: 13px; }
+.daysum__care { padding: 16px 20px; border-radius: 20px; font-size: 17px; border: 1.5px solid rgba(255, 140, 140, 0.5); }
+.daysum__list li { padding: 11px 0; font-size: 18px; }
+.daysum__list i { width: 26px; height: 26px; font-size: 14px; }
+.daysum__go {
+  min-height: 64px; font-size: 21px; border-radius: 22px; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(var(--orange-1), var(--orange-2) 70%, var(--orange-3));
+  box-shadow: var(--btn-3d);
+}
+.daysum__timer { background: rgba(255, 255, 255, 0.3); }
+
+/* ---------- Підсумки місії та фінал ---------- */
+.results { padding: 40px 38px; }
+.results__rating {
+  padding: 8px 20px; font-size: 20px; color: #fff; border: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(var(--orange-1), var(--orange-3)); box-shadow: 0 3px 0 var(--orange-edge);
+  animation: kid-wiggle 2.4s ease-in-out infinite;
+}
+.results__section { margin-top: 28px; }
+.results__section h3 { font-size: 21px; font-weight: 900; margin-bottom: 14px; }
+.results__list { gap: 12px; }
+.results__list li { font-size: 18px; padding: 12px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.07); }
+.results__list li::before { font-size: 20px; }
+.results__cards { gap: 14px; }
+.results__card { padding: 16px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.08); border: 1.5px solid var(--glass-line); font-size: 17px; }
+.results__links { margin-top: 22px; font-size: 17px; }
+
+/* ---------- Панелі збоку та екіпаж: більше повітря ---------- */
+.side { gap: 18px; }
+.alert, .goal, .research-card, .tasks { padding: 18px 20px; }
+.alert { border-radius: 24px; }
+.alert p, .goal p, .task__why { font-size: 16px; line-height: 1.5; }
+.goal__bar { height: 14px; border-radius: 999px; }
+.goal__bar > div { border-radius: 999px; }
+.task { gap: 14px; }
+.tasks ul, .goal .tasks__list { gap: 20px; font-size: 16px; }
+.task strong { font-size: 17px; }
+.crew { padding: 18px; width: 300px; }
+.crew__list { gap: 14px; }
+.crew__item { padding: 12px 14px; border-radius: 20px; border: 1.5px solid rgba(190, 205, 255, 0.16); }
+.crew__info strong { font-size: 19px; font-weight: 900; }
+.crew__role { font-size: 15px; }
+.crew__bar { height: 12px; border-radius: 999px; margin-top: 8px; }
+.crew__bar > div { border-radius: 999px; }
+.hud-title { font-size: 20px; }
+
+/* ---------- Меню будівництва ---------- */
+.build { padding: 14px 16px; border-radius: 26px; max-width: calc(100vw - 390px - 100px); } /* не заходить під кнопки приближення */
+.build__list { gap: 10px; }
+.card {
+  min-height: 104px; padding: 10px 10px; gap: 6px; border-radius: 22px;
+  border: 2px solid rgba(190, 205, 255, 0.22);
+  transition: transform 0.18s var(--bounce), border-color 0.15s, background 0.15s;
+}
+.card:hover:not(:disabled) { transform: translateY(-4px); background: rgba(255, 255, 255, 0.13); }
+.card:active:not(:disabled) { transform: scale(0.96); }
+.card--selected { box-shadow: 0 0 0 3px rgba(250, 170, 48, 0.35), 0 4px 0 var(--orange-edge); }
+.card__name { font-size: 15.5px; font-weight: 800; line-height: 1.2; }
+.cost { font-size: 16px; gap: 10px; }
+.detail { padding: 22px 24px 24px; gap: 16px; border-radius: 26px; width: 350px; }
+.detail__info h2 { font-size: 21px; font-weight: 900; }
+.detail__info p { font-size: 15px; line-height: 1.5; opacity: 1; }
+.detail__preview { border-radius: 20px; width: 96px; height: 88px; }
+.detail__lines { gap: 10px; }
+.detail__line { font-size: 15px; padding: 11px 14px; border-radius: 16px; }
+.detail__line-label { font-size: 14.5px; }
+.detail__status { font-size: 15px; }
+.build-dock__hint { padding: 10px 18px; font-size: 16px; font-weight: 700; }
+.build-toggle { height: 68px; font-size: 21px; border-radius: 22px; }
+
+/* ---------- Підказки-завдання та банери ---------- */
+.task-toasts { gap: 16px; width: min(420px, calc(100vw - 32px)); }
+.task-toast {
+  gap: 16px; padding: 18px 52px 18px 18px; border-radius: 24px;
+  background: var(--glass-deep); border: 1.5px solid var(--glass-line);
+  box-shadow: none; backdrop-filter: none;
+  animation: kid-toast-in 0.5s var(--bounce) both;
+}
+.task-toast > :first-child { width: 52px; height: 52px; border-radius: 50%; }
+.task-toast__who { font-size: 13px; opacity: 0.8; color: #c9d2ff; }
+.task-toast__body { gap: 8px; }
+.task-toast__body strong { font-size: 18px; font-weight: 800; }
+.task-toast__why { font-size: 15px; opacity: 0.9; }
+.task-toast__until { padding: 4px 12px; font-size: 13px; font-weight: 800; background: rgba(250, 170, 48, 0.22); color: #ffd18a; }
+.task-toast__close { top: 12px; right: 12px; width: 34px; height: 34px; font-size: 22px; opacity: 0.7; background: rgba(255, 255, 255, 0.1); }
+.task-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.22); transform: rotate(90deg); }
+
+.day-banner, .wrapup {
+  background: var(--glass-deep); border: 2px solid var(--orange-1); border-radius: 32px;
+  box-shadow: 0 10px 0 rgba(10, 12, 50, 0.5), 0 0 40px rgba(250, 170, 48, 0.35);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); font-weight: 900;
+}
+.day-banner { padding: 18px 44px; }
+.wrapup { padding: 16px 32px; font-size: 24px; line-height: 1.35; }
+
+/* ---------- Анімації ---------- */
+@keyframes kid-float { 50% { transform: translateY(-6px); } }
+@keyframes kid-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
+@keyframes kid-toast-in {
+  from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes kid-pop-in {
+  0% { opacity: 0; transform: scale(0.8) translateY(18px); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes kid-glow { 50% { box-shadow: var(--btn-3d), 0 0 0 6px rgba(250, 170, 48, 0.28); } }
+.overlay > .modal, .overlay > .daysum, .modal--event { animation: kid-pop-in 0.5s var(--bounce) both; }
+.panel-in, .hud-panel, .resources .resource { animation-timing-function: var(--bounce); }
+/* Головна кнопка легенько «дихає», щоб дитина помітила, куди натискати */
+.build-toggle:not(.build-toggle--open):not(.build-toggle--cancel) { animation: kid-glow 2.8s ease-in-out infinite; }
+.collapse-btn { transition: transform 0.18s var(--bounce), background 0.15s; }
+.collapse-btn:hover { transform: scale(1.1); }
+
+/* ---------- Малі екрани: зберігаємо відступи, але трохи стискаємо ---------- */
+@media (max-height: 620px), (max-width: 900px) {
+  .modal, .intro { padding: 22px 22px; }
+  .intro__text { font-size: 17px; }
+  .rules__item { padding: 10px 12px; }
+  .rules__item p { font-size: 15px; }
+  .rules__num { width: 38px; height: 38px; font-size: 18px; }
+  .card { min-height: 0; padding: 8px 4px; }
+  .card__name { font-size: 12px; }
+  .crew { width: 230px; padding: 12px; }
+  .side { gap: 12px; }
+  .alert, .goal, .research-card, .tasks { padding: 12px 14px; }
+  .daysum { padding: 24px 20px; gap: 22px; }
+  .modal--event h2 { font-size: 22px; }
+  .modal--event > p, .modal--event .modal--event__description { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal__badge, .results__rating, .build-toggle, .overlay > .modal, .overlay > .daysum, .modal--event, .task-toast { animation: none; }
+  .btn:hover:not(:disabled), .card:hover:not(:disabled), .collapse-btn:hover, .task-toast__close:hover { transform: none; }
+}
+
+/* ---------- Підсумки дня: компактно, без прокрутки; «зроблено» і «завтра» у дві колонки ---------- */
+.daysum {
+  position: relative;
+  width: min(680px, 96vw);
+  max-height: none;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 2.2vh, 20px) 28px;
+  padding: clamp(18px, 3.5vh, 32px) 32px clamp(18px, 3vh, 28px);
+  align-content: start;
+}
+.daysum > .daysum__head,
+.daysum > section[aria-label],
+.daysum > .daysum__care,
+.daysum > .daysum__go,
+.daysum > .daysum__bar { grid-column: 1 / -1; }
+.daysum__head { gap: 4px; }
+.daysum h2 { font-size: 13px; }
+.daysum h3 { margin-bottom: 4px; font-size: 13px; }
+.daysum__verdict { font-size: clamp(22px, 4.2vh, 30px); }
+.daysum__res { gap: 10px; }
+.daysum__res li { padding: clamp(8px, 1.6vh, 14px) 4px; gap: 4px; border-radius: 18px; }
+.daysum__res strong { font-size: clamp(20px, 3.4vh, 26px); }
+.daysum__care { padding: 10px 16px; font-size: 15px; }
+.daysum__list li { padding: 5px 0; gap: 10px; font-size: clamp(14px, 2.3vh, 17px); line-height: 1.25; }
+.daysum__list i { width: 22px; height: 22px; font-size: 12px; }
+.daysum__heads { margin-top: 6px; font-size: 13px; }
+.daysum__go { min-height: clamp(46px, 7vh, 58px); font-size: 19px; }
+
+/* Смуга часу вгорі вікна: показує, коли воно закриється саме і почнеться наступний день */
+.daysum__bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.daysum__bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange-2, #ffb347), var(--accent));
+  transform-origin: left center;
+  animation: daysum-timer var(--dur) linear forwards;
+}
+.daysum.is-paused .daysum__bar span { animation-play-state: paused; }
+
+@media (max-width: 560px) {
+  .daysum { grid-template-columns: 1fr; padding: 18px 16px; }
+}

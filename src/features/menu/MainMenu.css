@@ -47,6 +47,10 @@
 .mm__title { margin: 0; font-size: 46px; font-weight: 900; color: #fff; text-shadow: 0 2px 14px rgba(90, 110, 255, 0.55), 0 2px 4px rgba(0, 0, 0, 0.5); }
 .mm__tagline { margin: -4px 0 8px; max-width: 32ch; font-size: 19px; line-height: 1.4; color: #e9edff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
 
+/* Экран выбора режима: больше воздуха между элементами */
+.mm__box--modes { gap: 22px; }
+.mm__box--modes .mm__title { margin-bottom: 10px; }
+
 /* Выбор языка и звука */
 .mm__row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
 .mm__pill {
@@ -71,6 +75,32 @@
 .mm__btn--new { background: linear-gradient(#faaa30, #eb9f3a 70%, #d98a2a); box-shadow: 0 4px 0 #a8651a, inset 0 -6px 0 rgba(90, 150, 40, 0.55); }
 .mm__btn--olive { background: linear-gradient(#a99e85, #8c827b 60%, #6a6470); box-shadow: 0 4px 0 #4a4358, inset 0 -6px 0 rgba(90, 140, 50, 0.5); }
 .mm__btn--glass { background: rgba(78, 71, 119, 0.62); backdrop-filter: blur(6px); border-color: rgba(190, 205, 255, 0.3); }
+
+/* Форма входа на сервер в стилі головного екрана */
+.mm__box--panel { padding: 32px 28px; border-radius: 28px; background: rgba(16, 20, 56, 0.86); border: 1.5px solid rgba(190, 205, 255, 0.3); backdrop-filter: blur(10px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); }
+.mm__box--panel .mm__title { font-size: 36px; }
+.mm__box--panel .mm__tagline { color: #e9edff; }
+.mm__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.mm__input {
+  width: 100%; min-height: 58px; padding: 0 18px; border-radius: 18px;
+  border: 1.5px solid rgba(190, 205, 255, 0.35); background: rgba(8, 10, 34, 0.7);
+  color: #fff; font: inherit; font-size: 24px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; text-align: center;
+}
+.mm__input:focus { outline: none; border-color: #faaa30; box-shadow: 0 0 0 3px rgba(250, 170, 48, 0.35); }
+.mm__input::placeholder { letter-spacing: normal; text-transform: none; font-weight: 600; opacity: 0.75; color: #c9d2ff; }
+.mm__box .menu__error { margin: 0; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); }
+
+/* Экран «Данные NASA»: карточки-ссылки в стиле стеклянных кнопок меню */
+.mm--sources { z-index: 50; background: radial-gradient(ellipse at 50% 0%, rgba(40, 48, 110, 0.97), rgba(8, 10, 34, 0.98)); }
+.mm--sources { padding: 32px 16px; }
+.mm__box--sources { width: min(560px, 94vw); gap: 22px; }
+.mm__box--sources .mm__title { font-size: 40px; margin-bottom: 4px; }
+.mm__box--sources .mm__tagline { margin: 0 0 8px; }
+.mm__list { width: 100%; display: flex; flex-direction: column; gap: 18px; margin-bottom: 10px; }
+.mm__card { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; padding: 20px 24px; text-align: left; text-decoration: none; }
+.mm__card strong { font-size: 19px; font-weight: 800; }
+.mm__card span { font-size: 15px; font-weight: 600; line-height: 1.35; color: #e9edff; opacity: 0.9; }
+.mm__card:hover { border-color: #faaa30; }
 
 @media (max-height: 620px), (max-width: 900px) {
   .menu__title { font-size: 30px; margin-top: 6px; }

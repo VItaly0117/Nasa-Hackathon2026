@@ -101,16 +101,12 @@ export function Prologue({ onDone }: Props) {
         </div>
       </div>
 
-      {/* Поверхность Луны: посадка и пустая база */}
+      {/* Поверхность Луны: фон меню, ракета садится на площадку и «превращается» в ту, что стоит на фоне */}
       <div className="scene scene--surface" aria-hidden="true">
-        <div className="pro-ground">
-          <div className="pro-pad" />
-          <div className="pro-habitat">
-            <i />
+        <div className="pro-stage">
+          <div className={`pro-land ${step >= 5 ? "pro-land--down" : ""}`}>
+            <Rocket className="pro-land__rocket" flame={step === 4} />
           </div>
-        </div>
-        <div className={`pro-land ${step >= 5 ? "pro-land--down" : ""}`}>
-          <Rocket className="pro-land__rocket" flame={step === 4} />
           {step === 4 && <span className="pro-dust" />}
         </div>
       </div>
@@ -131,7 +127,7 @@ export function Prologue({ onDone }: Props) {
           {!finished && (
             <>
               <button
-                className="btn btn--ghost btn--small"
+                className="pro-btn pro-btn--glass"
                 onClick={() => {
                   sound.playClick();
                   onDone();
@@ -140,7 +136,7 @@ export function Prologue({ onDone }: Props) {
                 {t("prologue.skip")}
               </button>
               <button
-                className="btn btn--ghost btn--small"
+                className="pro-btn pro-btn--next"
                 onClick={() => {
                   sound.playClick();
                   setStep((s) => s + 1);
@@ -152,7 +148,7 @@ export function Prologue({ onDone }: Props) {
           )}
           {finished && (
             <button
-              className="btn btn--primary"
+              className="pro-btn pro-btn--go"
               onClick={() => {
                 sound.playClick();
                 onDone();

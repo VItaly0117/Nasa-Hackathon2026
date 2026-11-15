@@ -27,3 +27,20 @@ export async function continueFromSavedState(page: Page, updates: Partial<GameSt
   await page.reload();
   await continueButton.click();
 }
+
+// Нажимает на подсвеченную клетку карты, которая не закрыта панелями или карточками (проверяем, что в центре клетки именно карта)
+export async function clickFreeTile(page: Page) {
+  const spot = await page.evaluate(() => {
+    for (const el of document.querySelectorAll(".tile-ok")) {
+      const r = el.getBoundingClientRect();
+      const x = r.x + r.width / 2;
+      const y = r.y + r.height / 2;
+      if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) continue;
+      const hit = document.elementFromPoint(x, y);
+      if (hit && hit.closest(".map-frame")) return { x, y };
+    }
+    return null;
+  });
+  expect(spot, "нет свободной клетки для постройки").not.toBeNull();
+  await page.mouse.click(spot!.x, spot!.y);
+}
