@@ -132,7 +132,7 @@ export function BuildMenu({
                   aria-pressed={selected === d.type}
                 >
                   <span className="card__name">{moduleName(d.type)}</span>
-                  <ModulePreview type={d.type} size={70} />
+                  <ModulePreview type={d.type} size={96} />
                   <Cost cost={d.cost} />
                 </button>
                 {hovered === d.type && (
