@@ -17,7 +17,7 @@
    - `BUILD_MS = 60000` (1 minute / 0.5 day).
    - Time is driven by the engine via `tick` actions, not by arbitrary UI timers.
 5. **Localization:** Translations are in `src/i18n/{uk,en,ru}.ts` (UI texts, hints, NASA facts, debrief texts). There are no translation files in the repository root.
-6. **Multiplayer:** the server only replays actions. Every new action type must be added to `Action` in `src/types.ts` AND to `ACTION_TYPES` in `server/index.mjs`; `npm run check` fails if they differ (`nextDay` is the only exception).
+6. **Multiplayer:** the server only replays actions. Online `ACTION_TYPES`, `ROLES`, and the room-name rule live in `shared/protocol.ts`; Vitest checks the action list against `Action` in `src/types.ts` (`nextDay` is excluded).
 7. **Testing:** Always run `npm run check` (Vitest engine suites plus online room checks) after modifying code or JSON configs.
 
 ## Key Files Reference
@@ -30,4 +30,5 @@
 - `src/engine/events.ts`: Scheduled events (breakdown day 6, solar flare day 9) and DONKI flare data.
 - `src/data/modules.json`: Costs, production, and storage capacities of 10 modules.
 - `src/audio/audio.ts`: Real-time Web Audio API procedural sound synthesizer (retro SFX, alarms, ambient, quindar tones).
-- `server/index.mjs`: Zero-dependency Node HTTP + SSE multiplayer room server.
+- `shared/protocol.ts`: Dependency-free room protocol constants and message types.
+- `server/index.ts`: Zero-dependency Node HTTP + SSE multiplayer room server (Node 22 native TS stripping).

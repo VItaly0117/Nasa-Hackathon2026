@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node server/index.mjs",
-    "check": "npm run test:unit && node scripts/run-online-checks.mjs",
+    "server": "node server/index.ts",
+    "check": "npm run test:unit && npm run test:online",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run tests/engine",
+    "test:online": "vitest run tests/online"
   },
   "dependencies": {
     "react": "^19.3.1",

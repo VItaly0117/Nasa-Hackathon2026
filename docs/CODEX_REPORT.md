@@ -4,11 +4,13 @@
 
 T1 suites were generated through `lcode` after selecting `gpt-5.6-terra` from `codex debug models`. The first lcode attempt found a bad relative import in `content.test.ts`; its retry fixed it. No raw proxy, credentials, or quota-guard bypass were used.
 
-This branch remains based on `origin/main` and is named `codex/infra`. No files in `src/` were changed. T1 is green; T2, T3, and T4 have not started.
+This branch remains based on `origin/main` and is named `codex/infra`. No files in `src/` were changed. T1 and T2 are green; T3 and T4 have not started.
 
 ## Completed work
 
-- T1: 8 Vitest suites, 79 tests total. `npm run test:unit`, legacy `npm run check`, and `npm run build` pass. All 66 legacy checks have exact one-to-one named tests.
+- T1: 8 Vitest suites, 79 tests total. `npm run test:unit`, `npm run check`, and `npm run build` pass. All 66 legacy checks have exact one-to-one named tests.
+- T2: Added shared protocol constants/message types, migrated the room server to TypeScript, and added five integration tests that spawn the Node 22 server. Tests cover roles, host permissions, every allowed action, invalid names, unknown actions, and equality with `src/types.ts` `Action`.
+- `npm run check` now runs all 84 Vitest tests (79 engine + 5 online); `npm run server` starts `server/index.ts` directly.
 
 ## Completed preparation
 
@@ -16,8 +18,9 @@ This branch remains based on `origin/main` and is named `codex/infra`. No files 
 - Added `vitest.config.ts` for `tests/**/*.test.ts`.
 - Added `tests/helpers/engine.ts` as the single import seam for engine modules.
 - Added `tests/helpers/scenarios.ts` for deterministic scripted mission scenarios.
-- `npm run check` now runs Vitest and the existing online checks.
+- `npm run check` now runs the engine and online Vitest suites.
 - Removed `scripts/run-checks.mjs` after verifying one-to-one coverage; left `src/engine/checks.ts` untouched as required.
+- Removed the regex-based `scripts/run-online-checks.mjs`; its checks now run in `tests/online/server.test.ts`.
 - Updated the current developer documentation with the new test commands and suite location.
 - `npm run check` and `npm run build` pass after the T1 integration.
 
@@ -96,20 +99,36 @@ This branch remains based on `origin/main` and is named `codex/infra`. No files 
 
 ## Remaining work
 
-- T2: implement `shared/protocol.ts`, convert the server to TypeScript, replace regex online checks with Vitest server tests, and document the exact `src/net/online.ts` patch for Claude.
 - T3: add Chrome-channel Playwright smoke and 60-second performance specs and scripts; keep e2e outside `npm run check`.
 - T4: add Vitest and optional e2e steps to `.github/workflows/ci.yml` without changing `deploy.yml`.
 
 ## Needs from Claude
 
-- No game-source edits are requested yet. After T2, this section should contain the exact protocol import/list patch for `src/net/online.ts` and any concrete selectors needed by e2e, if role/text-based interaction proves insufficient.
+In `src/net/online.ts`, replace the current imports and local declarations with this exact patch:
+
+```diff
+- import type { Action, Role } from "../types";
++ import type { Action } from "../types";
++ import { ROOM_NAME, type JoinResponse, type Player, type Role } from "../../shared/protocol.ts";
++ export { ROOM_NAME };
+...
+- export const ROOM_NAME = /^[A-Za-z]{1,20}$/;
+...
+- export type Player = { id: string; role: Role };
+...
+- const data = await res.json();
++ const data = (await res.json()) as JoinResponse;
+```
+
+The client currently has no local `ACTION_TYPES` or `ROLES` list to replace. Its `Role`, `Player`, room-name rule, and join response can use the shared contract as above. Add concrete `data-testid` requests for T3 only if role/text-based UI interaction proves insufficient.
 
 ## Local commands
 
 - `npm run check` — Vitest and online checks.
 - `npm run test:unit` — the 79 Vitest engine tests.
+- `npm run test:online` — the 5 Node server integration tests.
 - `npm run build` — TypeScript and production bundle.
 
 ## How to continue
 
-T1 is complete and ready for its dedicated commit after the npm check/build gate. Continue T2–T4 as separate commits, using the CLI catalog-supported model `gpt-5.6-terra` through `lcode` for each task that includes tests. Run `npm run check` and `npm run build` after each commit.
+T1 is committed. T2 is complete and ready for a separate commit after `npm run check` and `npm run build`. Continue T3–T4 as separate commits, using the CLI catalog-supported model `gpt-5.6-terra` through `lcode` for each task that includes tests. Run both gates after every commit.

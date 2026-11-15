@@ -59,8 +59,8 @@
 - **Сборка:** `tsc -b && vite build` (output: `dist/`).
 - **Проверки:**
   - `npm run test:unit` — 79 Vitest-тестов движка, баланса, содержимого и сохранений без браузера.
-  - `node scripts/run-online-checks.mjs` — интеграционные тесты комнаты мультиплеера.
-  - `npm run check` — запускает оба набора тестов.
+  - `npm run test:online` — интеграционные Vitest-тесты сервера совместной игры.
+  - `npm run check` — запускает 79 engine и 5 online Vitest-тестов.
 
 ---
 
@@ -99,7 +99,6 @@
 │
 ├── scripts/
 │   ├── fetch-donki.mjs        # Скрипт скачивания вспышек с NASA DONKI API в flares.json
-│   └── run-online-checks.mjs  # Тестирование мультиплеерного сервера
 ├── tests/                    # Vitest suites для движка, баланса, содержимого и сохранений
 │
 ├── docs/
@@ -440,7 +439,7 @@ export type Action =
 
 ## 8. Сетевой мультиплеер и сервер (`server/`, `src/net/`)
 
-### Сервер (`server/index.mjs`)
+### Сервер (`server/index.ts`)
 - Запуск: `npm run server` (по умолчанию порт 8787).
 - Полностью in-memory: комнаты хранятся в `Map<string, Room>`.
 - Спецификация REST / SSE API:
@@ -456,7 +455,7 @@ export type Action =
      - Прием действия от игрока `{ player, action }`.
      - **Авторизация тиков:** действие `type: "tick"` разрешено присылать **только хосту** (`hostId`). Если пришлет не хост, возвращается HTTP 409 `{ error: "not host" }`.
      - Разрешенные типы действий: `tick`, `build`, `resolveEvent`, `repair`, `research`. При неизвестном типе — HTTP 400.
-     - **Правило:** список на сервере (`ACTION_TYPES`) должен совпадать со списком `Action` из `src/types.ts` без `nextDay` (пропускать день онлайн нельзя). Новое действие добавляется в оба места; `scripts/run-online-checks.mjs` проверяет это сам и упадёт, если они разошлись.
+     - **Правило:** `ACTION_TYPES` и `ROLES` находятся в `shared/protocol.ts`; Vitest проверяет, что список онлайн-действий совпадает с `Action` из `src/types.ts` без `nextDay` (пропускать день онлайн нельзя).
 
 ### Клиент (`src/net/online.ts`)
 - Подключение через `joinRoom(name)` и `openStream(session, from, handlers)`.
@@ -535,7 +534,7 @@ export type Action =
 Движок покрыт 79 Vitest-тестами в `tests/engine/`, сгруппированными по экономике, постройкам и экипажу, заданиям, болезням, разбору миссии, исследованиям, данным и детерминизму. Они сохраняют проверки legacy-чеков и добавляют тесты сохранений, рекордов и нескольких seed.
 
 - `npm run test:unit` запускает Vitest suites.
-- `npm run check` запускает Vitest и интеграционные проверки сетевых комнат.
+- `npm run check` запускает Vitest для движка и интеграционные Vitest-проверки сетевых комнат.
 - `npm run build` проверяет TypeScript и собирает приложение.
 
 ---
