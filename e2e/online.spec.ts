@@ -13,7 +13,7 @@ test("совместная игра: двое в одной комнате ви�
     const page = await ctx.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto("/");
-    await page.getByRole("button", { name: "Сервер" }).click();
+    await page.getByRole("button", { name: "Играть с друзьями" }).click();
     await page.getByLabel("Название сервера").fill(room);
     await page.getByRole("button", { name: "Войти" }).click();
     await expect(page.getByRole("timer")).toBeVisible();
@@ -78,7 +78,7 @@ test("совместная игра: после потери связи дейс
     if (request.url().includes("/events?")) eventUrls.push(request.url());
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Сервер" }).click();
+  await page.getByRole("button", { name: "Играть с друзьями" }).click();
   await page.getByLabel("Название сервера").fill(room);
   await page.getByRole("button", { name: "Войти" }).click();
   await expect(page.getByRole("timer")).toBeVisible();
@@ -95,6 +95,7 @@ test("совместная игра: после потери связи дейс
     };
     const moduleName = buildByRole[role!];
 
+    const moduleCountBeforeBuild = await page.locator(".module-art").count();
     await page.getByRole("button", { name: "Строительство", expanded: false }).click();
     await page.getByRole("button", { name: new RegExp(`^${moduleName}`) }).click();
     const spot = await page.evaluate(() => {
@@ -108,7 +109,7 @@ test("совместная игра: после потери связи дейс
     });
     expect(spot, "нет доступной клетки для постройки").not.toBeNull();
     await page.mouse.click(spot!.x, spot!.y);
-    await expect(page.locator(".module-art")).toHaveCount(3);
+    await expect(page.locator(".module-art")).toHaveCount(moduleCountBeforeBuild + 1);
     await page.getByRole("button", { name: "Правила" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     const actionsBeforeDisconnect = await page.evaluate(
@@ -130,7 +131,7 @@ test("совместная игра: после потери связи дейс
     );
     expect(actionsAfterReconnect.slice(0, actionsBeforeDisconnect.length)).toEqual(actionsBeforeDisconnect);
     expect(new URL(eventUrls.at(-1)!).searchParams.get("from")).toBe(String(actionsBeforeDisconnect.length));
-    expect(await page.locator(".module-art").count()).toBe(3);
+    expect(await page.locator(".module-art").count()).toBe(moduleCountBeforeBuild + 1);
     expect(actionsAfterReconnect.filter((action) => action === "build")).toHaveLength(1);
   } finally {
     await ctx.close();
