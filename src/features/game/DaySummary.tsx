@@ -45,7 +45,12 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
       if (e.key === "Escape") closeRef.current();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Після заповнення смужки (10 с) вікно закривається саме
+    const timer = window.setTimeout(() => closeRef.current(), 10000);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.clearTimeout(timer);
+    };
   }, []);
   return (
     <div className="overlay">
@@ -55,6 +60,7 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
           <p className="daysum__verdict">{tDynamic(`sum.verdict.${verdict}`)}</p>
         </header>
 
+        <div className="daysum__body">
         <section aria-label={t("sum.res.title")}>
           <ul className="daysum__res">
             {VITAL.map((key) => {
@@ -107,9 +113,13 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
           </section>
         )}
 
+        </div>
+
+        <footer className="daysum__foot">
         <button className="btn btn--primary daysum__go" autoFocus style={{ "--p": `${Math.min(100, (summary.day / MISSION_DAYS) * 100)}%`, "--p0": `${Math.min(100, ((summary.day - 1) / MISSION_DAYS) * 100)}%` } as React.CSSProperties} aria-label={t("sum.progress", { day: summary.day, total: MISSION_DAYS })} onClick={() => { sound.playClick(); onClose(); }}>
           <span className="daysum__go-text">{summary.day < MISSION_DAYS ? t("sum.next", { day: summary.day + 1 }) : t("sum.continue")}</span>
         </button>
+        </footer>
       </div>
     </div>
   );

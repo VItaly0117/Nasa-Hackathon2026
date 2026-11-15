@@ -96,7 +96,7 @@ export function Ending({ won, onDone }: Props) {
           ))}
         </div>
 
-        {(["a", "b"] as const).map((r) => (
+        {(["a"] as const).map((r) => (
           <div key={r} className={`end-rk end-rk--${r}`}>
             <Rocket flame={won && step >= 2} />
             {won && step === 2 && <span className={`end-puff ${r === "b" ? "end-puff--late" : ""}`} />}

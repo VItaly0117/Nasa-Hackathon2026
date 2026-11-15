@@ -1,5 +1,5 @@
 /* ---------- Экипаж слева ---------- */
-.crew { position: absolute; left: 18px; top: 176px; width: 280px; padding: 14px; z-index: 1; }
+.crew { position: absolute; left: 18px; top: 176px; width: 280px; padding: 14px; z-index: var(--z-hud); }
 .crew__list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
 .crew__item {
   display: flex;

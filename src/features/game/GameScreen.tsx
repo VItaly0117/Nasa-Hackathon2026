@@ -61,17 +61,23 @@ function Layout(props: Props) {
   return (
     <div className={`game ${isNight ? "game--night" : ""}`}>
       <MapView />
-      <TopBar onMenu={() => { session.save(); props.onMenu(); }} />
-      <CrewContainer />
-      <SideContainer />
+      {/* На ПК обёртка невидима (display: contents) и панели стоят по углам. На телефоне это одна колонка:
+          шапка, ряд кнопок «Экипаж» и «Цель», затем уведомления, чтобы панели не плавали друг над другом */}
+      <div className="hud-top">
+        <TopBar onMenu={() => { session.save(); props.onMenu(); }} />
+        <div className="hud-chips">
+          <CrewContainer />
+          <SideContainer />
+        </div>
+        {/* Задания нового дня показываем только после закрытия итогов старого */}
+        {!summaryOpen && <TaskToasts />}
+      </div>
       <BuildContainer />
       <EventModal />
       {!playing && <Results {...props} />}
       <Summary />
       <DayBanner />
       <WrapUp />
-      {/* Задания нового дня показываем только после закрытия итогов старого */}
-      {!summaryOpen && <TaskToasts />}
       <Rules />
       <ConnectionLost />
       <RotateHint />

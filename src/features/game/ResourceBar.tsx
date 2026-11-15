@@ -71,6 +71,7 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
             key={key}
             className={`resource resource--${level}`}
             tabIndex={0}
+            aria-label={`${label}: ${value}${percent ? t(`res.unit.${key}`) : ` / ${capacity[key]} ${t(`res.unit.${key}`)}`}${level !== "ok" ? `, ${t(`res.level.${level}`)}` : ""}`}
             data-full={!percent && value >= capacity[key] ? "" : undefined}
           >
             <ResourceIcon type={key} />
@@ -92,11 +93,13 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
               </span>
               <span className={`resource__delta ${perDay < 0 ? "minus" : perDay > 0 ? "plus" : ""}`}>
                 <span className="resource__arrow" aria-label={t(`res.trend.${trend}`)}>{arrow}</span>{" "}
-                {left !== null && left <= WARN_DAYS
-                  ? t("res.forDays", { days: formatDays(left) })
-                  : trend === "flat"
-                    ? t("res.stable")
-                    : t("res.perDay", { delta: formatDelta(perDay) })}
+                <span className="resource__delta-text">
+                  {left !== null && left <= WARN_DAYS
+                    ? t("res.forDays", { days: formatDays(left) })
+                    : trend === "flat"
+                      ? t("res.stable")
+                      : t("res.perDay", { delta: formatDelta(perDay) })}
+                </span>
               </span>
             </div>
             <div className="resource__tip" role="tooltip">

@@ -40,8 +40,14 @@
 .daysum__res strong { font-size: 17px; font-weight: 800; line-height: 1.2; text-align: center; color: #8fe3b0; }
 .daysum__res .is-ok strong { color: #ffd479; }
 .daysum__res .is-bad strong { color: #ffb3b3; }
-.daysum .daysum__res strong { font-size: clamp(16px, 2.6vh, 20px); width: 100%; overflow-wrap: anywhere; }
-.daysum .daysum__res li { padding-left: 10px; padding-right: 10px; }
+.daysum .daysum__res strong { font-size: clamp(16px, 2.6vh, 20px); }
+.daysum .daysum__res li { min-width: 0; padding-left: 8px; padding-right: 8px; }
+/* Секції на всю ширину вікна (щоб картки не стискались у вузьку колонку) */
+.daysum > .daysum__head,
+.daysum > section[aria-label],
+.daysum > .daysum__care,
+.daysum > .daysum__go { grid-column: 1 / -1; }
+.daysum .daysum__res { width: 100%; }
 .daysum__res-state { text-align: center; font-size: 12px; font-weight: 700; color: #dfe5ff; }
 
 .daysum .daysum__care {

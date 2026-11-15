@@ -9,7 +9,7 @@
   align-items: flex-start;
   gap: 16px;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-hud);
 }
 .topbar > * { pointer-events: auto; }
 

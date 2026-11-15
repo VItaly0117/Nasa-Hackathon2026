@@ -7,5 +7,12 @@
   --accent: #f5b83d;
   --text: #eef2fb;
   --radius: 16px;
+  /* Шкала слоёв: карта → HUD → шторки → модалки → тосты → системные экраны. Других z-index не заводим */
+  --z-map: 0;
+  --z-hud: 10;
+  --z-sheet: 20;
+  --z-modal: 30;
+  --z-toast: 40;
+  --z-system: 50;
   --font: "Nunito", system-ui, sans-serif;
 }
