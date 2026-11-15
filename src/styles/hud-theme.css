@@ -24,7 +24,7 @@
 /* Ресурси: округлі «таблетки» */
 .resource { border-radius: 26px; }
 .resource__value { font-weight: 900; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
-.resource__tip { border-radius: 20px; background: rgba(28, 32, 82, 0.96); }
+.resource__tip { border-radius: 20px; }
 .resource--warn { border-color: var(--orange-1); }
 .resource--danger { border-color: #ff7a7a; }
 
@@ -67,6 +67,8 @@
   transform: translateY(3px);
   box-shadow: 0 1px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55);
 }
+/* зелена смужка 6px знизу (inset-тінь) вкорочує видиму частину — зсуваємо вміст на 6px вгору від низу */
+button.build-toggle { padding-bottom: 6px; box-sizing: border-box; }
 .build-toggle--open { outline: none; box-shadow: 0 4px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55), 0 0 0 3px rgba(255, 255, 255, 0.5); }
 .build-toggle--cancel { background: linear-gradient(#e0646c, #b84a52); box-shadow: 0 4px 0 #7d2a31, inset 0 -6px 0 rgba(0, 0, 0, 0.2); }
 .btn--on { background: var(--orange-1); color: #fff; border-color: var(--orange-1); }
@@ -87,7 +89,8 @@
 /* ---------- Підказки ресурсів ---------- */
 .resource__tip {
   width: 320px; padding: 20px 22px; gap: 14px; border-radius: 24px;
-  background: #1c2058;
+  background: var(--panel);
+  backdrop-filter: blur(8px);
   border: 1.5px solid rgba(190, 205, 255, 0.55);
   box-shadow: 0 16px 40px rgba(4, 6, 26, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   font-size: 16.5px; line-height: 1.5; font-weight: 600; color: #fff;
@@ -96,7 +99,7 @@
 .resource__tip::before {
   content: ""; position: absolute; top: -8px; left: 50%; width: 14px; height: 14px; margin-left: -7px;
   transform: rotate(45deg); border-radius: 3px 0 0 0;
-  background: #1c2058; border-left: 1.5px solid rgba(190, 205, 255, 0.4); border-top: 1.5px solid rgba(190, 205, 255, 0.4);
+  background: var(--panel); border-left: 1.5px solid rgba(190, 205, 255, 0.55); border-top: 1.5px solid rgba(190, 205, 255, 0.55);
 }
 .resource:first-child .resource__tip::before { left: 40px; }
 .resource:last-child .resource__tip::before { left: auto; right: 40px; }
@@ -106,7 +109,7 @@
   background: linear-gradient(#faaa30, #eb9f3a 70%, #d98a2a); box-shadow: 0 2px 0 #a8651a;
 }
 .resource__tip p:nth-of-type(2) {
-  padding: 12px 14px; border-radius: 14px; background: #2b3074; color: #fff;
+  padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); color: #fff;
 }
 .resource__tipnote { opacity: 1; margin-top: 0; color: #ffd18a; font-size: 15px; font-weight: 800; }
 
