@@ -376,9 +376,9 @@ function Game({ mode, onRestart, onMenu, onSources }: { mode: Mode; onRestart: (
           setSelectedType(type);
           setBuildType(null);
         }}
-        onStartBuild={() => {
+        onStartBuild={(type) => {
           sound.playClick();
-          setBuildType(selectedType);
+          setBuildType(type);
         }}
         onCancel={() => {
           sound.playClick();
