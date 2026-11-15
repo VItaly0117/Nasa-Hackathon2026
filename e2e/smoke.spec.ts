@@ -14,8 +14,7 @@ test("игра запускается, идёт время, модуль стр�
   // таймер дня идёт
   const timer = page.getByRole("timer");
   const before = await timer.textContent();
-  await page.waitForTimeout(2500);
-  expect(await timer.textContent()).not.toBe(before);
+  await expect(timer).not.toHaveText(before ?? "", { timeout: 8000 });
 
   // строим: открыть меню, нажать на модуль, коснуться клетки
   await page.getByRole("button", { name: "Строительство", expanded: false }).click();
