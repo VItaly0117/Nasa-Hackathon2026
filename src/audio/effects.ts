@@ -155,7 +155,7 @@ export function repair(ctx: AudioContext, master: GainNode): void {
 
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(0.6, now + 0.02);
+  gain.gain.linearRampToValueAtTime(0.9, now + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
 
   noise.connect(filter);
