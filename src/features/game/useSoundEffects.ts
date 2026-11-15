@@ -32,8 +32,6 @@ export function useSoundEffects() {
       prevEvent = s.activeEvent;
     };
 
-    sound.setNightMode(prev.isNight);
-    if (prev.status === "playing") sound.startAmbient();
     announceDay(prev);
     announceTasks(prev);
     announceEvent(prev);
@@ -41,13 +39,11 @@ export function useSoundEffects() {
     const unsubscribe = store.subscribe(() => {
       const s = store.getState();
       if (s === prev) return;
-      if (s.isNight !== prev.isNight) sound.setNightMode(s.isNight);
       if (s.day !== prev.day) announceDay(s);
       if (s.tasks !== prev.tasks || s.day !== prev.day) announceTasks(s);
       if (buildingCount(prev) > buildingCount(s)) sound.playBuildComplete();
       announceEvent(s);
       if (prev.status === "playing" && s.status !== "playing") {
-        sound.stopAmbient();
         if (s.status === "won") sound.playVictory();
         else if (s.status === "lost") sound.playDefeat();
       }
@@ -56,7 +52,6 @@ export function useSoundEffects() {
 
     return () => {
       unsubscribe();
-      sound.stopAmbient();
     };
   }, [store]);
 }

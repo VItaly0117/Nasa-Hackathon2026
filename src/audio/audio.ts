@@ -2,7 +2,7 @@
 // Синтезирует все звуки в реальном времени, без внешних файлов.
 // Полностью автономен, устойчив к политикам автовоспроизведения браузеров и безопасен для SSR/тестов.
 
-import { Ambient } from "./ambient";
+import { createOutputChain, MASTER_VOLUME } from "./chain";
 import * as effects from "./effects";
 
 type MuteListener = (muted: boolean) => void;
@@ -10,16 +10,9 @@ type MuteListener = (muted: boolean) => void;
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
-  private compressor: DynamicsCompressorNode | null = null;
   private muted = false;
   private listeners = new Set<MuteListener>();
-  private ambient = new Ambient({
-    getContext: () => this.getContext(),
-    currentContext: () => this.ctx,
-    master: () => this.masterGain,
-    isMuted: () => this.muted,
-  });
-  private masterVolume = 0.5; // Спокойная громкость: раньше 0.85, звуки были резкими
+  private masterVolume = MASTER_VOLUME;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -48,22 +41,8 @@ class SoundEngine {
       if (!AudioCtx) return null;
       try {
         this.ctx = new AudioCtx();
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.setValueAtTime(this.muted ? 0 : this.masterVolume, this.ctx.currentTime);
-        this.compressor = this.ctx.createDynamicsCompressor();
-        this.compressor.threshold.setValueAtTime(-18, this.ctx.currentTime);
-        this.compressor.knee.setValueAtTime(12, this.ctx.currentTime);
-        this.compressor.ratio.setValueAtTime(4, this.ctx.currentTime);
-        this.compressor.attack.setValueAtTime(0.004, this.ctx.currentTime);
-        this.compressor.release.setValueAtTime(0.18, this.ctx.currentTime);
-        // Мягкий срез верха: убирает свист и «пластмассовую» резкость у всех звуков сразу
-        const soften = this.ctx.createBiquadFilter();
-        soften.type = "lowpass";
-        soften.frequency.setValueAtTime(2800, this.ctx.currentTime);
-        soften.Q.setValueAtTime(0.5, this.ctx.currentTime);
-        this.masterGain.connect(soften);
-        soften.connect(this.compressor);
-        this.compressor.connect(this.ctx.destination);
+        const chain = createOutputChain(this.ctx, this.muted ? 0 : this.masterVolume);
+        this.masterGain = chain.master;
       } catch {
         return null;
       }
@@ -76,9 +55,7 @@ class SoundEngine {
     const ctx = this.getContext();
     if (!ctx) return;
     if (ctx.state === "suspended") {
-      ctx.resume().then(() => this.ambient.resumePending()).catch(() => {});
-    } else {
-      this.ambient.resumePending();
+      ctx.resume().catch(() => {});
     }
   }
 
@@ -113,11 +90,6 @@ class SoundEngine {
     }
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setTargetAtTime(mute ? 0 : this.masterVolume, this.ctx.currentTime, 0.045);
-    }
-    if (mute) {
-      this.ambient.stopAmbient();
-    } else {
-      this.ambient.startAmbient();
     }
     this.notify();
   }
@@ -157,10 +129,6 @@ class SoundEngine {
   public playVictory() { this.runWithContext(effects.victory); }
   public playDefeat() { this.runWithContext(effects.defeat); }
 
-  // --- Фон станции (ambient.ts) ---
-  public setNightMode(night: boolean) { this.ambient.setNightMode(night); }
-  public startAmbient() { this.ambient.startAmbient(); }
-  public stopAmbient() { this.ambient.stopAmbient(); }
 }
 
 export const sound = new SoundEngine();

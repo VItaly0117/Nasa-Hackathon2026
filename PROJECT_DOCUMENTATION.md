@@ -26,7 +26,7 @@
 9. [Процедурный звуковой движок (`src/audio/audio.ts`)](#9-процедурный-звуковой-движок-srcaudioaudiots)
 10. [Интерфейс и карта (`src/features/`, `src/ui/`)](#10-интерфейс-и-карта-srcfeatures-srcui)
 11. [Локализация i18n (`src/i18n/`)](#11-локализация-i18n-srci18n)
-12. [Тестирование и проверка баланса (`checks.ts`, скрипты)](#12-тестирование-и-проверка-баланса-checksts-скрипты)
+12. [Тестирование и проверка баланса](#12-тестирование-и-проверка-баланса)
 13. [Инструкции по модификации (Playbook для ИИ)](#13-инструкции-по-модификации-playbook-для-ии)
 14. [Известные особенности, подводные камни и история решений](#14-известные-особенности-подводные-камни-и-история-решений)
 
@@ -58,7 +58,7 @@
 - **Backend / Мультиплеер:** Node.js HTTP + Server-Sent Events (SSE). Полностью на стандартной библиотеке Node.js (`node:http`, `node:crypto`), ноль внешних зависимостей. Запуск: `npm run server`.
 - **Сборка:** `tsc -b && vite build` (output: `dist/`).
 - **Проверки:**
-  - `node scripts/run-checks.mjs` — 72 автономных проверки баланса и механики движка через Vite SSR без браузера.
+  - `npm run test:unit` — Vitest-тесты движка и данных (87 тестов, без браузера).
   - `npm run test:online` — Vitest-тесты комнаты мультиплеера (`tests/online/`, протокол в `shared/protocol.ts`).
   - `npm run check` — запускает оба набора тестов.
 
@@ -102,7 +102,6 @@
 │
 ├── scripts/
 │   ├── fetch-donki.mjs        # Вспышки NASA DONKI → src/content/nasa/flares.json
-│   ├── run-checks.mjs         # Запуск проверок движка (engine/checks.ts)
 │   ├── (тесты сервера теперь в tests/online/, протокол в shared/protocol.ts)
 │   ├── check-architecture.mjs # Границы слоёв
 │   └── golden-replay.mjs      # «Золотой прогон»: 60 игр, хеш состояния без журнала
@@ -121,7 +120,6 @@
     │   ├── reduce.ts, state.ts, random.ts, selectors.ts, constants.ts, msg.ts, placement.ts, debrief.ts
     │   ├── actions/           # build, tick, repair, research
     │   ├── systems/           # day, crew, tasks, events, illness
-    │   └── checks.ts          # Проверки баланса и механик (72)
     ├── session/               # store, types, solo, online, storage (сохранения, рекорды, язык), context, hooks (useGame, useMeta, useSend), react (SessionProvider)
     ├── features/
     │   ├── game/              # GameScreen, TopBar, Panels, MapView, EventModal, DayBanner, TaskToasts, GameUiProvider, ui-state, useSoundEffects,
@@ -132,7 +130,7 @@
     ├── ui/                    # Общее: icons, crewData, Collapse, useCollapsed, RotateHint, ErrorBoundary
     ├── i18n/                  # index (t, tDynamic, days), messages (formatMsg, describeFlare), ru/uk/en
     ├── net/online.ts          # Клиент комнат (SSE)
-    └── audio/                 # Процедурный звук: audio.ts (sound, мьютинг), effects.ts (одиночные звуки), ambient.ts (фон), noise.ts
+    └── audio/                 # Процедурный звук: audio.ts (sound, мьютинг), effects.ts (одиночные звуки), chain.ts (общий выход), noise.ts
 ```
 
 ---
@@ -429,7 +427,7 @@ export type Action =
 
 ---
 
-## 9. Процедурный звуковой движок (`src/audio/`: `audio.ts`, `effects.ts`, `ambient.ts`, `noise.ts`)
+## 9. Процедурный звуковой движок (`src/audio/`: `audio.ts`, `effects.ts`, `chain.ts`, `noise.ts`)
 
 В игре реализован встроенный ретро-футуристичный аудиодвижок на чистом **Web Audio API** без внешних тяжелых звуковых файлов (ноль килобайт внешних ассетов):
 - **Синтез в реальном времени:** Осцилляторы (`sine`, `square`, `sawtooth`, `triangle`), биквадратные фильтры (`lowpass`, `bandpass`) и процедурный генератор белого шума.
@@ -443,7 +441,7 @@ export type Action =
   7. `playDayChange()` — мягкий восходящий перезвон нового дня.
   8. `playNightfall()` — глубокий низкочастотный рокот наступления лунной ночи (с 14 дня).
   9. `playVictory()` / `playDefeat()` — победное ретро-арпеджио или меланхоличный спадающий минорный аккорд при окончании миссии.
-  10. `startAmbient()` / `stopAmbient()` — фоновый низкочастотный гул жилого отсека (55 Гц) с мягким шумом вентиляции станции.
+  10. Фонового гула нет: его убрали по просьбе команды (низкий тон 55 Гц с шумом и «музыкой» раздражал). Тихо между событиями — так и задумано.
 - **Управление звуком:**
   - Кнопка включения/выключения звука (`SoundOnIcon` / `SoundOffIcon`) в шапке HUD (`DayClock`) и главном меню (`MainMenu`).
   - Состояние сохраняется в `localStorage` (`moonbase:muted`).
@@ -498,7 +496,7 @@ export type Action =
 
 Что запускать и что каждая команда проверяет, описано в [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (раздел «Проверки»). Коротко:
 
-- `npm run check`: Vitest движка (`tests/engine/`, 79 тестов), Vitest сервера (`tests/online/`, 5 тестов), проверки баланса и механик `src/engine/checks.ts` (прохождения миссий «игроком-роботом», язык и склонения, миграция сохранений, данные NASA) и границы слоёв.
+- `npm run check`: Vitest движка (`tests/engine/`, 87 тестов: баланс и механики, язык и склонения, миграция сохранений, данные NASA), Vitest сервера (`tests/online/`, 5 тестов) и границы слоёв.
 - `npm run golden`: «золотой прогон», 60 игр, состояние без журнала совпадает со снимком `docs/baseline/golden.json`. Если снимок нужно перезаписать сознательно (поменялись правила или карта), `node scripts/golden-replay.mjs --write`.
 - `npm run e2e` и `npm run perf`: Playwright (дымовой проход и замер кадров, пороги в `docs/NIGHT_PLAN.md`).
 - Отчёт по балансу: `node scripts/balance-report.mjs` (результат в `docs/BALANCE_REPORT.md`).
@@ -556,7 +554,7 @@ export type Action =
 3. Добавьте переводы в `src/i18n/{uk,en,ru}.ts`:
    - `task.myTask`: краткое название задания.
    - `task.myTask.why`: почему экипаж об этом просит.
-4. Запустите `node scripts/run-checks.mjs`.
+4. Запустите `npm run check`.
 
 ### Рецепт 3: Добавление нового случайного или сюжетного события
 1. Опишите структуру события в `src/content/events.json`:

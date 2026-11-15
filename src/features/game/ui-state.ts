@@ -10,7 +10,7 @@ export type GameUi = {
   rulesOpen: boolean;
   summary: DaySummary | null; // итоги закончившегося дня: пока открыты, время стоит, а событие ждёт
   selectType(type: ModuleType): void;
-  startPlacing(): void;
+  startPlacing(type?: ModuleType): void; // type: выбрать этот модуль и сразу искать для него место на карте
   stopPlacing(): void;
   setSurveyingIce(on: boolean): void;
   setRulesOpen(open: boolean): void;

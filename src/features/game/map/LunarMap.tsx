@@ -267,7 +267,7 @@ export default function LunarMap({
     moved: false,
     startX: 0,
     startY: 0,
-    startView: viewRef.current,
+    startView: { x: 0, y: 0, k: START_ZOOM },
     startDist: 1,
     startMidX: 0,
     startMidY: 0,
