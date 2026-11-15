@@ -160,7 +160,7 @@
   position: absolute;
   left: 18px;
   bottom: 18px;
-  z-index: 2;
+  z-index: var(--z-hud);
   display: flex;
   flex-direction: column;
   gap: 10px;

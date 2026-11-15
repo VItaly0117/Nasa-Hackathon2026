@@ -133,7 +133,7 @@
 @media (max-width: 900px) {
   .game .hud-panel.crew { bottom: auto; }
   .game .task-toasts > .task-toast:nth-child(n + 2) { display: none; }
-  .game .build { left: 66px; right: 10px; bottom: 82px; max-width: none; z-index: 6; }
+  .game .build { left: 66px; right: 10px; bottom: 82px; max-width: none; z-index: var(--z-sheet); }
   .game .build__list {
     display: flex;
     gap: 6px;
@@ -150,7 +150,7 @@
 /* Низкий экран (телефон горизонтально): меню строительства одним рядом с прокруткой, карточки нормальной ширины */
 @media (max-height: 620px) {
   .game .hud-panel.crew { bottom: auto; }
-  .game .build { left: 66px; right: 200px; bottom: 10px; z-index: 6; }
+  .game .build { left: 66px; right: 200px; bottom: 10px; z-index: var(--z-sheet); }
   .game .build__list {
     display: flex;
     gap: 6px;
@@ -161,7 +161,7 @@
   .game .build__list::-webkit-scrollbar { display: none; }
   .game .build__list > li { flex: 0 0 92px; scroll-snap-align: start; }
   .game .card { min-height: 100px; padding: 6px 4px; }
-  .game .card__name { font-size: 11px; }
+  .game .card__name { font-size: 12px; }
   .game .detail { display: none; }
 }
 
@@ -257,7 +257,7 @@
   left: auto;
   right: 16px;
   top: 12px;
-  z-index: 20;
+  z-index: var(--z-toast);
   transform: none;
   width: min(390px, calc(100vw - 32px));
   max-height: none;

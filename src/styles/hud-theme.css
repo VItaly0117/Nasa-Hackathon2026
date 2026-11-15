@@ -113,8 +113,11 @@ button.build-toggle { padding-bottom: 6px; box-sizing: border-box; }
 }
 .resource__tipnote { opacity: 1; margin-top: 0; color: #ffd18a; font-size: 15px; font-weight: 800; }
 
-/* Підказки ресурсів мають бути над тостами завдань (z-index 4), але під модальними вікнами (10) */
-.topbar { z-index: 6; }
+/* Шапка (з підказками ресурсів) — шар HUD */
+.topbar { z-index: var(--z-hud); }
+/* Підказка ресурсу відкривається поверх тостів і картки цілі */
+.topbar:has(.resource:hover),
+.topbar:has(.resource:focus-visible) { z-index: calc(var(--z-toast) + 1); }
 
 /* Без тіні й розмиття позаду карток цілі та підказок */
 .hud-panel.goal, .hud-panel.task-toast { box-shadow: none; backdrop-filter: none; }

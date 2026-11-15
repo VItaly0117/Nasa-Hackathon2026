@@ -1,7 +1,7 @@
 /* Карточки заданий от экипажа: всплывают сверху по центру и сами уходят */
 .task-toasts {
   position: absolute;
-  z-index: 4;
+  z-index: var(--z-toast);
   left: 50%;
   top: 150px;
   transform: translateX(-50%);

@@ -3,6 +3,8 @@ import type { Page, TestInfo } from "@playwright/test";
 import type { GameState } from "../src/types";
 
 const viewports = [
+  { name: "phone-320x640", width: 320, height: 640 },
+  { name: "phone-360x740", width: 360, height: 740 },
   { name: "phone-390x844", width: 390, height: 844 },
   { name: "phone-430x932", width: 430, height: 932 },
   { name: "phone-landscape-844x390", width: 844, height: 390 },
@@ -130,7 +132,17 @@ async function hidePortraitHintForLayoutInspection(page: Page) {
   await page.addStyleTag({ content: ".rotate-hint { display: none !important; }" });
 }
 
+// Ждём конца конечных анимаций появления: иначе карточки меряются в момент масштабирования и сдвига
+async function settleAnimations(page: Page) {
+  await page.evaluate(() => Promise.all(
+    document.getAnimations()
+      .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+      .map((animation) => animation.finished.catch(() => undefined)),
+  ));
+}
+
 async function snapshot(page: Page, testInfo: TestInfo, viewportName: string, stage: string): Promise<string[]> {
+  await settleAnimations(page);
   const issues = await checkLayout(page, stage);
   const screenshotPath = testInfo.outputPath(`${viewportName}-${stage}.png`);
   await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
@@ -297,9 +309,64 @@ test.describe("responsive viewport journeys", () => {
   }
 });
 
-test("portrait phone keeps the rotate-device hint", async ({ page }) => {
+test.describe("portrait phone HUD", () => {
+  test.use({ isMobile: true, hasTouch: true });
+
+  for (const viewport of viewports.filter((v) => v.width <= 430 && v.height > v.width)) {
+    test(`expanded panels and rules stay bounded at ${viewport.name}`, async ({ page }, testInfo) => {
+      test.setTimeout(60_000);
+      await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto("/");
+      await hidePortraitHintForLayoutInspection(page);
+      await resumeWithState(page, { day: 2 });
+
+      const issues: string[] = [];
+      const maxPanel = viewport.height * 0.30 + 1;
+      const build = page.locator(".build-toggle");
+
+      // Экипаж: число видно в свёрнутом виде, раскрытая панель ограничена и не закрывает кнопку строительства
+      await expect(page.locator(".crew .hud-title")).toContainText("4");
+      await page.locator(".crew .collapse-btn").tap();
+      expect((await page.locator(".crew").boundingBox())!.height).toBeLessThanOrEqual(maxPanel);
+      await expect(build).toBeVisible();
+      issues.push(...await snapshot(page, testInfo, viewport.name, "crew-open"));
+      await page.locator(".crew .collapse-btn").tap();
+
+      // Цель и задачи
+      await page.locator(".goal .collapse-btn").tap();
+      expect((await page.locator(".side").boundingBox())!.height).toBeLessThanOrEqual(maxPanel);
+      issues.push(...await snapshot(page, testInfo, viewport.name, "goal-open"));
+      await page.locator(".goal .collapse-btn").tap();
+
+      // Счётчик построек внутри самой кнопки
+      const buttonBox = (await build.boundingBox())!;
+      const badgeBox = await page.locator(".build-toggle__badge").boundingBox();
+      if (badgeBox) {
+        expect(badgeBox.x).toBeGreaterThanOrEqual(buttonBox.x);
+        expect(badgeBox.x + badgeBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width);
+        expect(badgeBox.y).toBeGreaterThanOrEqual(buttonBox.y);
+      }
+
+      // Правила: закрывается крестиком и не двигает игру
+      const timerBefore = await page.getByRole("timer").getAttribute("aria-label");
+      await page.locator(".btn--help").tap();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      issues.push(...await snapshot(page, testInfo, viewport.name, "rules-open"));
+      await page.locator(".intro__x").tap();
+      await expect(page.getByRole("dialog")).toBeHidden();
+      expect(await page.getByRole("timer").getAttribute("aria-label")).toBe(timerBefore);
+
+      expect(issues, `${viewport.name} panels`).toEqual([]);
+    });
+  }
+});
+
+// Портрет на телефоне разрешён: подсказка «поверни телефон» отключена в CSS, играть можно сразу
+test("portrait phone is playable without the rotate-device hint", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => localStorage.setItem("moonbase:lang", JSON.stringify("uk")));
   await page.goto("/");
-  await expect(page.getByRole("alert").getByText("Поверни пристрій горизонтально")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Нова гра" })).toBeVisible();
+  await expect(page.locator(".rotate-hint")).toBeHidden();
 });

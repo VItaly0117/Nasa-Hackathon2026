@@ -124,7 +124,7 @@ export function BuildMenu({
       const k = keyRef.current;
       if (k.closed || k.placing) return;
       const target = e.target as HTMLElement | null;
-      if (target?.closest(".card, .build-toggle")) return;
+      if (target?.closest(".card, .build-toggle, .build__close")) return;
       k.toggle();
     };
     document.addEventListener("pointerdown", onDown);
@@ -164,6 +164,15 @@ export function BuildMenu({
       </div>
       {!collapsed && (
       <section className="hud-panel build" aria-label={t("build.aria")}>
+        {/* Шапка шторки видна только на телефоне: заголовок и явная кнопка закрыть */}
+        <div className="build__head">
+          <h2 className="hud-title">{t("build.tab")}</h2>
+          <button type="button" className="build__close" onClick={() => { sound.playClick(); toggle(); }} aria-label={t("build.close")}>
+            <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
+              <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
         {(
           <ul className="build__list">
             {defs.map((d) => {
@@ -195,6 +204,7 @@ export function BuildMenu({
                   <span className="card__name">{moduleName(d.type)}</span>
                   <ModulePreview type={d.type} size={96} />
                   <Cost cost={d.cost} />
+                  {status && <span className="card__status">{status}</span>}
                 </button>
                 {hovered === d.type && (
                   <div className="detail" role="tooltip">

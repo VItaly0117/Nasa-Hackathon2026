@@ -14,8 +14,23 @@ type Props = {
 export function Intro({ onStart, rulesOnly = false }: Props) {
   return (
     <div className="overlay">
-      <div className="modal intro" role="dialog" aria-labelledby="intro-title">
-        <h2 id="intro-title">{t("rules.title")}</h2>
+      <div className="modal intro intro--rules" role="dialog" aria-labelledby="intro-title">
+        <div className="intro__bar">
+          <h2 id="intro-title">{t("rules.title")}</h2>
+          {rulesOnly && (
+            <button
+              type="button"
+              className="intro__x"
+              onClick={() => { sound.playClick(); onStart(); }}
+              aria-label={t("build.close")}
+              title={t("build.close")}
+            >
+              <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
+                <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
         <ol className="rules">
           {RULES.map((n) => (
             <li key={n} className="rules__item">
