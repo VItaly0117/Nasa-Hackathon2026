@@ -76,6 +76,16 @@ export function Walkers({ targets, active }: Props) {
     });
     const st = CREW.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, ready: false, wait: 0, dir: 1, phase: Math.random() * 6 }));
 
+    // На старте каждый астронавт встаёт у своего объекта, а не все кучей у одного: подписи не накладываются
+    const spawn = (i: number) => {
+      const list = targetsRef.current;
+      if (list.length === 0) return null;
+      // тех, кому не хватило отдельного объекта, ставим рядом с чужим, но с заметным отступом
+      const lap = Math.floor(i / list.length);
+      const target = list[i % list.length];
+      return { x: target.x + (lap % 2 ? 1 : -1) * lap * SPREAD * 1.8, y: target.y };
+    };
+
     const choose = (i: number) => {
       const list = targetsRef.current;
       if (list.length === 0) return null;
@@ -96,7 +106,7 @@ export function Walkers({ targets, active }: Props) {
         if (!p.root) return;
 
         if (!s.ready) {
-          const first = choose(i);
+          const first = spawn(i);
           if (!first) return;
           s.x = s.tx = first.x;
           s.y = s.ty = first.y;

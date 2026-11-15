@@ -506,9 +506,13 @@ export default function LunarMap({
                     style={{ cursor: "pointer" }}
                     pointerEvents={buildType ? "none" : "auto"}
                   >
-                    <g opacity={module.building ? 0.45 : 1}>
-                      <ModuleArt type={module.type} broken={module.broken} />
+                    <g className="module-art" opacity={module.building ? 0.45 : 1}>
+                      {/* при смене «строится → готово» ключ пересоздаёт группу и играет появление */}
+                      <g key={module.building ? "building" : "ready"} className={module.building ? undefined : "module-pop"}>
+                        <ModuleArt type={module.type} broken={module.broken} />
+                      </g>
                     </g>
+                    {!module.building && <ellipse className="build-pulse" cx="0" cy="0" rx="34" ry="17" fill="none" stroke="#ffd166" strokeWidth="3" />}
                     {module.building && renderBuild?.progress(module)}
                   </g>
                 );

@@ -51,7 +51,7 @@ export function ResourceBar({ resources, delta, capacity }: Props) {
             <ResourceIcon type={key} />
             <div className="resource__body">
               <span className="resource__value">
-                {value}
+                <span key={value} className="resource__num">{value}</span>
                 {PERCENT.includes(key) ? (
                   t(`res.unit.${key}`)
                 ) : (
