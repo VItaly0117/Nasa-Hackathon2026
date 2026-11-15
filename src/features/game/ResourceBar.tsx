@@ -103,7 +103,6 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
               <strong>{label}</strong>
               <p>{t(`res.tip.${key}.what`)}</p>
               <p>{t(`res.tip.${key}.use`)}</p>
-              {!PERCENT.includes(key) && value >= capacity[key] && <p className="resource__tipnote">{t("res.tip.cap")}</p>}
               <p className="resource__tipnote">
                 {t(`res.trend.${trend}`)}
                 {nightDiffers && (
@@ -112,6 +111,7 @@ export function ResourceBar({ resources, delta, capacity, otherDelta, isNight }:
                   </>
                 )}
               </p>
+              {!PERCENT.includes(key) && value >= capacity[key] && <p className="resource__tipnote">{t("res.tip.cap")}</p>}
               {left !== null && (
                 <p className="resource__tipnote">{t("res.tip.left", { days: formatDays(left) })}</p>
               )}

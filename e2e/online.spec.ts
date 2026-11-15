@@ -96,10 +96,11 @@ test("совместная игра: после потери связи дейс
     };
     const moduleName = buildByRole[role!];
 
+    const moduleCountBeforeBuild = await page.locator(".module-art").count();
     await page.getByRole("button", { name: "Строительство", expanded: false }).click();
     await page.getByRole("button", { name: new RegExp(`^${moduleName}`) }).click();
     await clickFreeTile(page);
-    await expect(page.locator(".module-art")).toHaveCount(3);
+    await expect(page.locator(".module-art")).toHaveCount(moduleCountBeforeBuild + 1);
     await page.getByRole("button", { name: "Правила" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     const actionsBeforeDisconnect = await page.evaluate(
@@ -121,7 +122,7 @@ test("совместная игра: после потери связи дейс
     );
     expect(actionsAfterReconnect.slice(0, actionsBeforeDisconnect.length)).toEqual(actionsBeforeDisconnect);
     expect(new URL(eventUrls.at(-1)!).searchParams.get("from")).toBe(String(actionsBeforeDisconnect.length));
-    expect(await page.locator(".module-art").count()).toBe(3);
+    expect(await page.locator(".module-art").count()).toBe(moduleCountBeforeBuild + 1);
     expect(actionsAfterReconnect.filter((action) => action === "build")).toHaveLength(1);
   } finally {
     await ctx.close();
