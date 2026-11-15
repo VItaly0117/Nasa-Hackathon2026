@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "server": "node server/index.ts",
-    "check": "npm run test:unit && npm run test:online && node scripts/run-checks.mjs && node scripts/check-architecture.mjs",
+    "check": "npm run test:unit && npm run test:online && node scripts/check-architecture.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -15,7 +15,7 @@
     "architecture": "node scripts/check-architecture.mjs",
     "test:unit": "vitest run tests/engine",
     "test:online": "vitest run tests/online",
-    "e2e": "playwright test e2e/smoke.spec.ts e2e/online.spec.ts",
+    "e2e": "playwright test e2e/smoke.spec.ts e2e/online.spec.ts e2e/sound.spec.ts",
     "perf": "playwright test e2e/perf.spec.ts"
   },
   "dependencies": {

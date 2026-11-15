@@ -40,7 +40,7 @@ export function t(key: MessageKey, params?: Record<string, string | number>): st
 }
 
 // Ключ, который собирается из id в данных (`task.${id}`, `ev.${id}.title`): компилятор такие ключи проверить не может.
-// Наличие переводов для id из данных (события, источники, подсказки, факты, разбор) проверяет engine/checks.ts. Для обычных ключей используйте t()
+// Наличие переводов для id из данных (события, источники, подсказки, факты, разбор) проверяют тесты (tests/engine/content.test.ts и extras.test.ts). Для обычных ключей используйте t()
 export function tDynamic(key: string, params?: Record<string, string | number>): string {
   return t(key as MessageKey, params);
 }

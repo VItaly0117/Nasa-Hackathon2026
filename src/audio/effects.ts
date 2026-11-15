@@ -13,7 +13,7 @@ export function click(ctx: AudioContext, master: GainNode): void {
   osc.frequency.exponentialRampToValueAtTime(260, now + 0.06);
 
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(0.16, now + 0.008);
+  gain.gain.linearRampToValueAtTime(0.3, now + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
 
   osc.connect(gain);
@@ -34,7 +34,7 @@ export function radioChirp(ctx: AudioContext, master: GainNode): void {
   osc.frequency.exponentialRampToValueAtTime(1100, now + 0.05);
 
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.09, now + 0.012);
+  gain.gain.linearRampToValueAtTime(0.25, now + 0.012);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
   osc.connect(gain);
@@ -107,7 +107,7 @@ export function buildStart(ctx: AudioContext, master: GainNode): void {
   filter.Q.setValueAtTime(1.2, now);
 
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(0.26, now + 0.01);
+  gain.gain.linearRampToValueAtTime(0.9, now + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
   osc.connect(filter);
@@ -155,7 +155,7 @@ export function repair(ctx: AudioContext, master: GainNode): void {
 
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+  gain.gain.linearRampToValueAtTime(0.6, now + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
 
   noise.connect(filter);

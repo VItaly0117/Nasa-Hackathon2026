@@ -12,7 +12,7 @@ export {
   reduce,
 } from "../../src/engine";
 export { missionFact } from "../../src/engine";
-export { validateDebriefData } from "../../src/engine/checks";
+export { validateDebriefData } from "./validate-debrief";
 export { buildReport } from "../../src/features/results/report";
 export { choiceCost, dayOfEvent } from "../../src/engine";
 export { canPlace, MAP_COLS, MAP_ROWS, slotOf } from "../../src/engine";

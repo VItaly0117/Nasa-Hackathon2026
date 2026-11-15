@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Границы слоёв (см. docs/ARCHITECTURE_REFACTOR.md). Читает импорты и падает, если кто-то нарушил правило.
-// Тесты (checks.ts) в проверку не входят: они по определению видят все слои.
+// Тесты лежат в tests/ и в проверку не входят: они по определению видят все слои.
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -25,7 +25,7 @@ const FORBIDDEN = {
   // сессия (хранилище, сеть) знает про ядро и данные, но не про интерфейс и звук
   session: ["ui", "audio", "features", "app"],
 };
-const EXEMPT = new Set(["engine/checks.ts"]);
+const EXEMPT = new Set([]);
 
 const IMPORT = /(?:import|export)\s[^;]*?from\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
 const problems = [];
