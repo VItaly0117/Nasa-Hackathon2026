@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ModuleDef, ModuleType, Resources, ResourceKey, Role } from "@/types";
 import { moduleDesc, moduleName, t, tDynamic } from "@/i18n";
 import { ModulePreview } from "@/features/game/map/art";
@@ -8,7 +8,7 @@ import "./BuildMenu.css";
 
 type Props = {
   defs: ModuleDef[];
-  selected: ModuleType | null;   // последний выбранный модуль (подсветка карточки)
+  selected: ModuleType | null;   // какой модуль открыт в карточке справа
   placing: boolean;              // игрок сейчас выбирает место на карте
   disabled: boolean;
   crewBusy: boolean;             // все члены экипажа заняты стройкой: ставить нельзя
@@ -16,7 +16,7 @@ type Props = {
   // Совместная игра: роль другого игрока, который строит этот модуль, или null, если строить можно самому
   lockedBy?: (def: ModuleDef) => Role | null;
   onSelect: (type: ModuleType) => void;
-  onStartBuild: () => void;
+  onStartBuild: (type: ModuleType) => void;
   onCancel: () => void;
 };
 
@@ -64,14 +64,7 @@ export function BuildMenu({
   onStartBuild,
   onCancel,
 }: Props) {
-  // Карточка с подробностями плавно появляется над модулем (чистый CSS-hover); здесь только считаем сдвиг от краёв экрана
-  const fitPopover = (el: HTMLElement) => {
-    const r = el.getBoundingClientRect();
-    const half = 190 + 8;
-    const center = r.left + r.width / 2;
-    const shift = Math.max(half - center, 0) || Math.min(window.innerWidth - 8 - half - center, 0);
-    el.style.setProperty("--shift", `${shift}px`);
-  };
+  const [hovered, setHovered] = useState<ModuleType | null>(null);
   const [closed, toggle] = useCollapsed(startsCollapsed());
   // Пока игрок выбирает место на карте, список и карточка прячутся, чтобы не закрывать карту
   const collapsed = closed || placing;
@@ -86,13 +79,17 @@ export function BuildMenu({
     <>
       <div className="build-dock">
         <button
-          className={`build-toggle ${!collapsed ? "build-toggle--open" : ""} ${placing ? "build-toggle--cancel" : ""}`}
+          className={`build-toggle ${placing ? "build-toggle--placing" : !collapsed ? "build-toggle--open" : ""}`}
           onClick={placing ? onCancel : toggle}
           aria-expanded={!collapsed}
           aria-label={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
           title={placing ? t("build.cancel") : collapsed ? t("build.tab") : t("build.close")}
         >
-          {collapsed && !placing ? (
+          {placing ? (
+            <svg viewBox="0 0 20 20" width="24" height="24" aria-hidden="true">
+              <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          ) : collapsed ? (
             <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
@@ -105,71 +102,68 @@ export function BuildMenu({
         </button>
       </div>
       {!collapsed && (
-        <section className="hud-panel build" aria-label={t("build.aria")}>
+      <section className="hud-panel build" aria-label={t("build.aria")}>
+        {(
           <ul className="build__list">
             {defs.map((d) => {
-              const lk = lockedBy ? lockedBy(d) : null;
-              const ok = isAffordable(d);
-              const blocked = disabled || !ok || crewBusy || lk !== null;
+              const lines = perDayLines(d.perDay);
+              const locked = lockedBy ? lockedBy(d) : null;
+              const affordable = isAffordable(d);
+              const blocked = disabled || !affordable || crewBusy || locked !== null;
+              const status = locked
+                ? t("online.lockedBy", { role: t(`role.${locked}`) })
+                : crewBusy ? t("build.crewBusy") : !affordable ? t("build.cantAfford") : null;
               return (
-                <li
-                  key={d.type}
-                  className="card-wrap"
-                  onMouseEnter={(e) => fitPopover(e.currentTarget)}
-                  onFocus={(e) => fitPopover(e.currentTarget)}
+              <li
+                key={d.type}
+                className="card-wrap"
+                onMouseEnter={() => setHovered(d.type)}
+                onMouseLeave={() => setHovered((h) => (h === d.type ? null : h))}
+              >
+                <button
+                  className={`card ${selected === d.type ? "card--selected" : ""} ${!affordable ? "card--poor" : ""}`}
+                  onClick={() => {
+                    onSelect(d.type);
+                    if (!blocked) onStartBuild(d.type);
+                  }}
+                  onFocus={() => setHovered(d.type)}
+                  onBlur={() => setHovered((h) => (h === d.type ? null : h))}
+                  disabled={disabled}
+                  aria-pressed={selected === d.type}
                 >
-                  <button
-                    className={`card ${selected === d.type ? "card--selected" : ""} ${!ok ? "card--poor" : ""}`}
-                    onClick={() => {
-                      if (blocked) return;
-                      onSelect(d.type);
-                      onStartBuild();
-                    }}
-                    disabled={disabled}
-                    aria-describedby={`detail-${d.type}`}
-                  >
-                    <span className="card__name">{moduleName(d.type)}</span>
-                    <ModulePreview type={d.type} size={70} />
-                    <Cost cost={d.cost} />
-                  </button>
-                  {(
-                    <div id={`detail-${d.type}`} role="tooltip" className="detail">
-                      <div className="detail__top">
-                        <div className="detail__preview"><ModulePreview type={d.type} size={110} /></div>
-                        <div className="detail__info">
-                          <h2 className="hud-title">{moduleName(d.type)}</h2>
-                          <p>{moduleDesc(d.type)}</p>
-                        </div>
-                      </div>
-                      <ul className="detail__lines">
-                        {perDayLines(d.perDay).map((l) => (
-                          <li key={l.key} className={`detail__line ${l.plus ? "plus" : "minus"}`}>
-                            <ResourceIcon type={l.key} size={20} />
-                            <span className="detail__line-value">{l.sign}{l.amount}</span>
-                            <span className="detail__line-label">{l.unit} / {t("unit.dShort")}</span>
-                          </li>
-                        ))}
-                        {d.nightPerDay && <li className="detail__night">{t("build.night")}</li>}
-                      </ul>
-                      <div className="detail__cost">
-                        <span>{t("build.cost")}</span>
-                        <Cost cost={d.cost} />
-                      </div>
-                      {(lk || crewBusy || !ok) && (
-                        <div className="detail__status">
-                          {lk
-                            ? t("online.lockedBy", { role: t(`role.${lk}`) })
-                            : crewBusy ? t("build.crewBusy") : t("build.cantAfford")}
-                        </div>
-                      )}
+                  <span className="card__name">{moduleName(d.type)}</span>
+                  <ModulePreview type={d.type} size={70} />
+                  <Cost cost={d.cost} />
+                </button>
+                {hovered === d.type && (
+                  <div className="detail" role="tooltip">
+                    <h2 className="hud-title">{moduleName(d.type)}</h2>
+                    <p>{moduleDesc(d.type)}</p>
+                    <ul className="detail__lines">
+                      {lines.map((l) => (
+                        <li key={l.key} className={`detail__line ${l.plus ? "plus" : "minus"}`}>
+                          <ResourceIcon type={l.key} size={20} />
+                          <span className="detail__line-value">{l.sign}{l.amount}</span>
+                          <span className="detail__line-label">{l.unit} / {t("unit.dShort")}</span>
+                        </li>
+                      ))}
+                      {d.nightPerDay && <li className="detail__night">{t("build.night")}</li>}
+                    </ul>
+                    <div className="detail__cost">
+                      <span>{t("build.cost")}</span>
+                      <Cost cost={d.cost} />
                     </div>
-                  )}
-                </li>
+                    {status && <div className="detail__status">{status}</div>}
+                  </div>
+                )}
+              </li>
               );
             })}
           </ul>
-        </section>
+        )}
+      </section>
       )}
+
     </>
   );
 }
