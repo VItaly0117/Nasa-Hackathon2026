@@ -53,9 +53,11 @@ export function moduleOutput(module: PlacedModule, isNight: boolean): Partial<Re
 }
 
 // Сколько каждого ресурса прибавится или убавится за следующий день
-export function dailyDelta(state: GameState): Partial<Resources> {
+export function dailyDeltaFor(state: GameState, isNight: boolean): Partial<Resources> {
   const total: Resources = { oxygen: 0, water: 0, food: 0, energy: 0, health: 0, materials: 0 };
   addTo(total, crewNeeds(state));
-  for (const module of state.modules) addTo(total, moduleOutput(module, state.isNight));
+  for (const module of state.modules) addTo(total, moduleOutput(module, isNight));
   return total;
 }
+
+export const dailyDelta = (state: GameState): Partial<Resources> => dailyDeltaFor(state, state.isNight);

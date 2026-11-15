@@ -95,11 +95,20 @@
 .plus { color: #7EE0AE; }
 .minus { color: #FFB3B3; }
 
-.resource--warn { border-color: var(--accent); }
-.resource--warn .resource__delta { color: var(--accent); }
+.resource--ok { border-color: rgba(126, 224, 174, 0.45); }
 
-.resource--danger { border-color: #FF7A7A; animation: pulse 1.2s ease-in-out infinite; }
-.resource--danger .resource__delta { color: #FF9B9B; font-weight: 700; }
+.resource__delta--up { color: #7EE0AE; }
+.resource__delta--down { color: #FFB3B3; }
+.resource__status { font-size: 13px; font-weight: 700; margin-top: 2px; }
+
+.resource--warn { border-color: #F5B83D; }
+.resource--warn .resource__status { color: #F5B83D; }
+
+.resource--danger { border-color: #FF7A7A; }
+.resource--danger .resource__status { color: #FF9B9B; }
+@media (prefers-reduced-motion: no-preference) {
+  .resource--danger { animation: pulse 1.2s ease-in-out infinite; }
+}
 
 @keyframes pulse {
   50% { box-shadow: 0 0 0 4px rgba(255, 122, 122, 0.3); }

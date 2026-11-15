@@ -1,6 +1,6 @@
 import modulesData from "@/content/modules.json";
 import { canAffordCost } from "./afford";
-import { capacityOf, dailyDelta, hasFreeCrew } from "@/engine";
+import { capacityOf, dailyDelta, dailyDeltaFor, hasFreeCrew } from "@/engine";
 import type { ModuleDef, Role } from "@/types";
 import { sound } from "@/audio/audio";
 import { useGame, useMeta, useSend, useSession } from "@/session/hooks";
@@ -18,8 +18,20 @@ const MODULES = modulesData as ModuleDef[];
 export function ResourcesContainer() {
   const resources = useGame((s) => s.resources);
   const delta = useGame(dailyDelta, shallowEqual);
+  const dayDelta = useGame((s) => dailyDeltaFor(s, false), shallowEqual);
+  const nightDelta = useGame((s) => dailyDeltaFor(s, true), shallowEqual);
+  const isNight = useGame((s) => s.isNight);
   const capacity = useGame((s) => capacityOf(s.modules), shallowEqual);
-  return <ResourceBar resources={resources} delta={delta} capacity={capacity} />;
+  return (
+    <ResourceBar
+      resources={resources}
+      delta={delta}
+      dayDelta={dayDelta}
+      nightDelta={nightDelta}
+      isNight={isNight}
+      capacity={capacity}
+    />
+  );
 }
 
 export function CrewContainer() {
