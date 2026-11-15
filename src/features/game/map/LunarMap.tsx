@@ -126,7 +126,9 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 // на ней же нарисовано небо, и за её краем ничего нет. У верхнего края оставляем небольшой запас,
 // иначе горы и кратеры при фокусе на базе обрезаются.
 function clampView(v: View, size: Size): View {
-  const k = clamp(v.k, Math.max(MIN_ZOOM, size.w / MAP_W, size.h / MAP_H), MAX_ZOOM);
+  // Мінімум, що закриває весь екран, має пріоритет над MAX_ZOOM (на дуже великих екранах / малому масштабі браузера)
+  const cover = Math.max(size.w / MAP_W, size.h / MAP_H);
+  const k = clamp(v.k, Math.max(MIN_ZOOM, cover), Math.max(MAX_ZOOM, cover));
   const mw = MAP_W * k;
   const mh = MAP_H * k;
   const x = mw <= size.w ? (size.w - mw) / 2 : clamp(v.x, size.w - mw, 0);

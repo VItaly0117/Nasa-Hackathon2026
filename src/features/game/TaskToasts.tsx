@@ -11,12 +11,14 @@ export function TaskToasts() {
 
   const fresh = useMemo(() => tasks.filter((x) => x.issuedDay === day && x.status === "open"), [tasks, day]);
 
+  // Ключ по id, а не по массиву: иначе таймер сбрасывается при любом обновлении состояния игры
+  const idsKey = fresh.map((x) => x.id).join("|");
   useEffect(() => {
-    if (fresh.length === 0) return;
-    const ids = fresh.map((x) => x.id);
-    const timer = window.setTimeout(() => setClosed((prev) => [...prev, ...ids]), 9000);
+    if (!idsKey) return;
+    const ids = idsKey.split("|");
+    const timer = window.setTimeout(() => setClosed((prev) => [...prev, ...ids]), 8000);
     return () => window.clearTimeout(timer);
-  }, [fresh]);
+  }, [idsKey]);
 
   return <TaskToast tasks={fresh.filter((x) => !closed.includes(x.id))} onClose={() => setClosed((prev) => [...prev, ...fresh.map((x) => x.id)])} />;
 }

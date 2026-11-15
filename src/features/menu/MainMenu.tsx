@@ -159,7 +159,6 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
           >
             {muted ? <SoundOffIcon size={20} /> : <SoundOnIcon size={20} />}
             <span>{muted ? t("menu.soundIsOff") : t("menu.soundIsOn")}</span>
-            <ChevronIcon />
           </button>
         </div>
 
@@ -177,7 +176,7 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
           {t("menu.server")}
         </button>
         <button className="mm__btn mm__btn--glass" onClick={() => { sound.playClick(); onSources(); }}>
-          <ExitIcon />
+          <DatabaseIcon />
           <span>{t("menu.sources")}</span>
         </button>
       </div>
@@ -204,11 +203,12 @@ function ChevronIcon() {
   );
 }
 
-function ExitIcon() {
+function DatabaseIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10 4 H5 a1 1 0 0 0 -1 1 v14 a1 1 0 0 0 1 1 h5" />
-      <path d="M15 8 L19 12 L15 16 M19 12 H9" />
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+      <path d="M3 12A9 3 0 0 0 21 12" />
     </svg>
   );
 }
