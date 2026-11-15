@@ -12,5 +12,9 @@ export default defineConfig({
     // тексты проверяем на русском: язык сохраняется в localStorage до загрузки страницы
     storageState: { cookies: [], origins: [{ origin: "http://localhost:5173", localStorage: [{ name: "moonbase:lang", value: JSON.stringify("ru") }] }] },
   },
-  webServer: { command: "npm run dev -- --port 5173 --strictPort", url: "http://localhost:5173", reuseExistingServer: true, timeout: 60_000 },
+  webServer: [
+    { command: "npm run dev -- --port 5173 --strictPort", url: "http://localhost:5173", reuseExistingServer: true, timeout: 60_000 },
+    // сервер совместной игры (Vite проксирует на него /api)
+    { command: "npm run server", port: 8787, reuseExistingServer: true, timeout: 30_000 },
+  ],
 });
