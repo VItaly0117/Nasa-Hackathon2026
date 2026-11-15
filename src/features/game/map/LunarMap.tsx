@@ -408,7 +408,10 @@ export default function LunarMap({
     if (gesture.current.moved) return;
     // повторный клик по той же клетке прячет облачко
     const same = selected?.row === tile.row && selected?.col === tile.col;
-    setSelected(same && !buildType ? null : tile);
+    // облачко с описанием показываем только у построенных модулей: пустой грунт не комментируем,
+    // клик по нему нужен лишь когда строишь (его принимает onSelectTile)
+    const hasModule = !!moduleAt(tile.row, tile.col);
+    setSelected(buildType || (hasModule && !same) ? tile : null);
     onSelectTile?.(tile);
   };
 

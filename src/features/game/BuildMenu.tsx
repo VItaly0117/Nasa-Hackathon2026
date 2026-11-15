@@ -75,6 +75,25 @@ export function BuildMenu({
     wasPlacing.current = placing;
   }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // B открывает и закрывает меню, Esc закрывает его, если поверх нет окна (правила, событие)
+  const keyRef = useRef({ closed, placing, toggle, disabled });
+  useEffect(() => {
+    keyRef.current = { closed, placing, toggle, disabled };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const k = keyRef.current;
+      if (k.placing || document.querySelector('[role="dialog"]')) return;
+      if (e.code === "KeyB" && !k.disabled) k.toggle();
+      else if (e.code === "Escape" && !k.closed) k.toggle();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <>
       <div className="build-dock">
