@@ -14,6 +14,7 @@ const STARTUP_TIMEOUT_MS = 5_000;
 const ROOM_PREFIX = "Room";
 const INVALID_ROOM_NAME = "not-a-valid-room-name";
 const MAX_ROOM_NAME_LENGTH = 20;
+const NON_ONLINE_ACTION_TYPES = new Set(["nextDay", "cancelBuild"]);
 let roomSequence = 0;
 
 type JoinedPlayer = {
@@ -161,7 +162,7 @@ function engineActionTypes(): string[] {
 
   const actionTypes = [...actionDeclaration.matchAll(/type:\s*"([^"]+)"/g)]
     .map((match) => match[1])
-    .filter((type) => type !== "nextDay");
+    .filter((type) => !NON_ONLINE_ACTION_TYPES.has(type));
 
   return [...new Set(actionTypes)].sort();
 }

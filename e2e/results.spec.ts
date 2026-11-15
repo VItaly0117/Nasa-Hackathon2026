@@ -33,7 +33,7 @@ test("итоги миссии: ускоренный прогон, ролик и 
   await page.clock.fastForward(30_000);
   await page.getByRole("button", { name: "Пропустить" }).click();
 
-  // Итогового экрана нет: после ролика возвращаемся в меню
+  // итогового экрана нет: после ролика кнопка возвращает в меню
   await expect(page.getByRole("heading", { level: 1, name: "Лунная база" })).toBeVisible();
 });
 
@@ -86,6 +86,7 @@ test("меню и данные NASA переведены на русский, у
     await expect(page.getByRole("heading", { name: language.sources })).toBeVisible();
     const radlab = page.locator(".mm__card").filter({ hasText: "RadLab" });
     await expect(radlab).toContainText(language.radlab);
+    await expect(radlab).toContainText(language.inGame);
     await expect(page.locator(".mm__card").filter({ hasText: "ECLSS" })).toContainText(language.eclss);
     expect(await page.locator("body").innerText()).not.toMatch(/\bapp\.[\w.]+/);
     await page.getByRole("button", { name: language.close, exact: true }).click();

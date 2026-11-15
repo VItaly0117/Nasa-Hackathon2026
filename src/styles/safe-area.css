@@ -1,0 +1,5 @@
+/* iPhone в ландшафте: карта и фон тянутся под вырез и жест-полосу, а панели отступают от них.
+   Для абсолютно позиционированных блоков margin сдвигает их от краёв безопасной зоны */
+.game .topbar, .game .crew, .game .zoom, .game .build, .game .task-toasts { margin-left: env(safe-area-inset-left, 0px); }
+.game .topbar, .game .side, .game .build, .game .build-dock { margin-right: env(safe-area-inset-right, 0px); }
+.game .build-dock, .game .zoom { margin-bottom: env(safe-area-inset-bottom, 0px); }

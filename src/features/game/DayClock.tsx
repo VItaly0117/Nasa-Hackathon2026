@@ -24,7 +24,7 @@ function format(ms: number) {
 
 // Обратный отсчёт дня: день ровно 2 минуты, паузы и ускорения нет. Само время считает движок (action tick):
 // от тех же часов идут день и стройка, поэтому они всегда согласованы
-export function DayClock({ running, progress, isNight: _isNight = false, onTick, children }: Props) {
+export function DayClock({ running, progress, onTick, children }: Props) {
   const tickRef = useRef(onTick);
   useEffect(() => {
     tickRef.current = onTick;

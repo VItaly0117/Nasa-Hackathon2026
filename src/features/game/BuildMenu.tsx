@@ -78,26 +78,24 @@ export function BuildMenu({
     wasPlacing.current = placing;
   }, [placing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Бейдж: сколько модулей можно построить прямо сейчас
-  const buildable = disabled || crewBusy ? 0 : defs.filter((d) => isAffordable(d) && !(lockedBy && lockedBy(d))).length;
-  // Пульсация кнопки, если игрок долго ничего не делает, а построить уже можно
-  const [idle, setIdle] = useState(false);
+  // B открывает и закрывает меню, Esc закрывает его, если поверх нет окна (правила, событие)
+  const keyRef = useRef({ closed, placing, toggle, disabled });
   useEffect(() => {
-    let timer = window.setTimeout(() => setIdle(true), IDLE_MS);
-    const reset = () => {
-      setIdle(false);
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => setIdle(true), IDLE_MS);
+    keyRef.current = { closed, placing, toggle, disabled };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const k = keyRef.current;
+      if (k.placing || document.querySelector('[role="dialog"]')) return;
+      if (e.code === "KeyB" && !k.disabled) k.toggle();
+      else if (e.code === "Escape" && !k.closed) k.toggle();
     };
-    window.addEventListener("pointerdown", reset);
-    window.addEventListener("keydown", reset);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("pointerdown", reset);
-      window.removeEventListener("keydown", reset);
-    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const nudge = collapsed && !placing && buildable > 0 && idle;
 
   return (
     <>

@@ -8,7 +8,7 @@ import "./Ending.css";
 
 // Сколько держится каждый кадр, мс (к этому добавляется время на чтение субтитра)
 const WIN_MS = [7000, 4500, 6000, 7000];
-const LOSE_MS = [6000, 6500];
+const LOSE_MS = [5500, 6000, 6500, 6500];
 
 type Props = { won: boolean; onDone: () => void };
 
@@ -105,6 +105,14 @@ export function Ending({ won, onDone }: Props) {
         ))}
 
         <div className="end-dark" />
+        {!won && <div className="end-alarm" />}
+        {!won && (
+          <div className="end-signal">
+            <span className="end-signal__bars"><i /><i /><i /><i /></span>
+            <span className="end-signal__text">{t("end.lose.nosignal")}</span>
+          </div>
+        )}
+        {!won && <span className="end-beacon" />}
       </div>
 
       <div className="prologue__bar end-bar">

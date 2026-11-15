@@ -67,12 +67,10 @@ test("flare event accessibility", async ({ page }, testInfo) => {
   await checkAccessibility(page, testInfo, "flare-event");
 });
 
-test("mission results accessibility", async ({ page }, testInfo) => {
+test("mission ending accessibility", async ({ page }, testInfo) => {
   await continueFromSavedState(page, { day: 20, clockMs: 89_000 });
   await expect(page.locator(".ending-scene")).toBeVisible();
-  await page.getByRole("button", { name: "Пропустить" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Лунная база" })).toBeVisible();
-  await checkAccessibility(page, testInfo, "mission-results");
+  await checkAccessibility(page, testInfo, "mission-ending");
 });
 
 test("NASA data screen accessibility", async ({ page }, testInfo) => {

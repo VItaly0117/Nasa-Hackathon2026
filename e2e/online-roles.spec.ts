@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
+import { clickFreeTile, uniqueRoom } from "./helpers";
 
 const appUrl = `http://localhost:${process.env.E2E_PORT ?? 5199}`;
 const storageState = {
@@ -18,7 +19,7 @@ async function openRoom(browser: Browser, room: string) {
   const context = await browser.newContext({ baseURL: appUrl, storageState, viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
   await page.goto("/");
-  await page.getByRole("button", { name: "Сервер" }).click();
+  await page.getByRole("button", { name: /Играть с друзьями/ }).click();
   await page.getByLabel("Название сервера").fill(room);
   return { context, page };
 }
@@ -31,17 +32,7 @@ async function joinRoom(browser: Browser, room: string) {
 }
 
 async function chooseBuildTile(page: Page) {
-  const spot = await page.evaluate(() => {
-    for (const el of document.querySelectorAll(".tile-ok")) {
-      const bounds = el.getBoundingClientRect();
-      const x = bounds.x + bounds.width / 2;
-      const y = bounds.y + bounds.height / 2;
-      if (x > 330 && x < 880 && y > 430 && y < 620) return { x, y };
-    }
-    return null;
-  });
-  expect(spot, "нет доступной клетки для постройки").not.toBeNull();
-  await page.mouse.click(spot!.x, spot!.y);
+  await clickFreeTile(page);
 }
 
 function roleFromBadge(text: string): string {
@@ -52,7 +43,7 @@ function roleFromBadge(text: string): string {
 
 test("совместная игра: роли разные, модуль чужой роли закрыт, свой строится у всех", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "ROLEBUILDQA";
+  const room = uniqueRoom("ROLEBUILDQA");
   const a = await joinRoom(browser, room);
   const b = await joinRoom(browser, room);
 
@@ -82,7 +73,7 @@ test("совместная игра: роли разные, модуль чуж�
 
 test("совместная игра: четвёртый игрок получает последнюю свободную роль", async ({ browser }) => {
   test.setTimeout(90_000);
-  const room = "FOURROLESQA";
+  const room = uniqueRoom("FOURROLESQA");
   const players: { context: BrowserContext; page: Page }[] = [];
 
   try {
@@ -101,7 +92,7 @@ test("совместная игра: четвёртый игрок получа�
 // Известная production-проблема: сервер повторно раздаёт занятые роли после четвёртого игрока.
 // Оставляем ожидаемый сценарий как fixme, пока ограничение комнаты нельзя исправить в tests/-only задаче.
 test.fixme("совместная игра: пятый игрок получает понятный отказ", async ({ browser }) => {
-  const room = "FIFTHPLAYERQA";
+  const room = uniqueRoom("FIFTHPLAYERQA");
   const players: { context: BrowserContext; page: Page }[] = [];
 
   try {
