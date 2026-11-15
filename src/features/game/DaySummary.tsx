@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { MISSION_DAYS, type DaySummary as Summary, type VitalKey } from "@/engine";
 import { days, moduleName, t, tDynamic } from "@/i18n";
 import { sound } from "@/audio/audio";
@@ -7,8 +7,6 @@ import { ResourceIcon } from "@/ui/icons";
 const VITAL: VitalKey[] = ["oxygen", "water", "food", "energy"];
 const MAX_LEFT = 3;
 const MAX_DONE = 4;
-const AUTO_MIN = 8;
-const AUTO_MAX = 18;
 
 type Mood = "good" | "ok" | "bad";
 
@@ -21,7 +19,7 @@ function moodOf(left: number | null): Mood {
 
 // Окно «Итоги дня» для детей 7–12: ракета и звёзды, что сделал, запасы со смайлами, план на завтра
 export function DaySummary({ summary, onClose }: { summary: Summary; onClose: () => void }) {
-  const { verdict, tomorrow } = summary;
+  const { verdict } = summary;
 
   const done = [
     ...summary.built.map((m) => ({ text: t("sum.built", { name: moduleName(m) }) })),
@@ -36,25 +34,8 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
     ...summary.tasksMissed.map((id) => `${t("sum.missed.title")}: ${tDynamic(`task.${id}`)}`),
   ];
 
-  // Что ждёт завтра: ночь и события, только если они совсем близко
-  const heads: string[] = [];
-  if (tomorrow.night) heads.push(t("sum.out.night"));
-  else if (tomorrow.nightIn !== null && tomorrow.nightIn > 0 && tomorrow.nightIn <= 2) {
-    heads.push(t("sum.out.nightSoon", { days: days(tomorrow.nightIn) }));
-  }
-  if (tomorrow.event && tomorrow.event.inDays <= 2) {
-    heads.push(t("sum.out.event", { days: days(tomorrow.event.inDays), title: tDynamic(`ev.${tomorrow.event.id}.title`) }));
-  }
-
   const left = summary.left.slice(0, MAX_LEFT);
 
-  // Окно закрывается само: время читать зависит от количества текста (~2,5 слова в секунду для 7–12 лет)
-  const wordCount = [...shownDone.map((d) => d.text), ...care, ...heads, ...left.map(({ task }) => tDynamic(`task.${task.id}`))]
-    .join(" ")
-    .split(/\s+/).length + 14;
-  const seconds = Math.min(AUTO_MAX, Math.max(AUTO_MIN, Math.round(4 + wordCount * 0.4)));
-  // Один источник времени: дедлайн по часам. Без паузы по наведению (из-за неё таймер «зависал»),
-  // без второй CSS-анимации, которая расходилась с JS-таймером.
   const closeRef = useRef(onClose);
   useEffect(() => {
     closeRef.current = onClose;
@@ -66,37 +47,11 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const [secLeft, setSecLeft] = useState(seconds);
-  useEffect(() => {
-    const end = Date.now() + seconds * 1000;
-    let done = false;
-    const tick = () => {
-      const rest = end - Date.now();
-      if (rest <= 0) {
-        if (!done) {
-          done = true;
-          closeRef.current();
-        }
-        return;
-      }
-      setSecLeft(Math.ceil(rest / 1000));
-    };
-    const id = window.setInterval(tick, 200);
-    return () => window.clearInterval(id);
-  }, [seconds]);
-
   return (
     <div className="overlay">
-      <div className={`modal daysum daysum--${verdict}`} role="dialog" aria-labelledby="daysum-title"
-        style={{ "--dur": `${seconds}s` } as React.CSSProperties}>
-        <div className="daysum__mission">
-          <div className="daysum__mission-bar" role="progressbar" aria-valuemin={0} aria-valuemax={MISSION_DAYS} aria-valuenow={summary.day}>
-            <span style={{ width: `${Math.min(100, (summary.day / MISSION_DAYS) * 100)}%` }} />
-          </div>
-          <p>{t("sum.progress", { day: summary.day, total: MISSION_DAYS })}</p>
-        </div>
+      <div className={`modal daysum daysum--${verdict} daysum--kids`} role="dialog" aria-labelledby="daysum-title">
         <header className="daysum__head">
-          <h2 id="daysum-title">{t("sum.title", { day: summary.day })}</h2>
+          <h2 id="daysum-title" className="daysum__title">{t("sum.title", { day: summary.day })}</h2>
           <p className="daysum__verdict">{tDynamic(`sum.verdict.${verdict}`)}</p>
         </header>
 
@@ -105,14 +60,11 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
             {VITAL.map((key) => {
               const left = summary.runway[key];
               const mood = moodOf(left);
-              const n = summary.deltas[key];
               return (
                 <li key={key} className={`is-${mood}`}>
-                  <ResourceIcon type={key} size={32} />
+                  <ResourceIcon type={key} size={36} />
                   <span className="daysum__res-name">{tDynamic(`res.${key}`)}</span>
-                  <strong className={n > 0 ? "is-up" : n < 0 ? "is-down" : ""}>
-                    {n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0"}
-                  </strong>
+                  <strong>{t(`sum.res.${mood}`)}</strong>
                   {left !== null && mood !== "good" && (
                     <span className="daysum__res-state">{t("sum.res.left", { days: days(left) })}</span>
                   )}
@@ -141,7 +93,7 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
           </section>
         )}
 
-        {(left.length > 0 || heads.length > 0) && (
+        {left.length > 0 && (
           <section className="daysum__list daysum__next">
             <h3>{t("sum.left.title")}</h3>
             <ul>
@@ -152,13 +104,11 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                 </li>
               ))}
             </ul>
-            {heads.length > 0 && <p className="daysum__heads">{heads.join(" · ")}</p>}
           </section>
         )}
 
-        <button className="btn btn--primary daysum__go" autoFocus onClick={() => { sound.playClick(); onClose(); }}>
+        <button className="btn btn--primary daysum__go" autoFocus style={{ "--p": `${Math.min(100, (summary.day / MISSION_DAYS) * 100)}%`, "--p0": `${Math.min(100, ((summary.day - 1) / MISSION_DAYS) * 100)}%` } as React.CSSProperties} aria-label={t("sum.progress", { day: summary.day, total: MISSION_DAYS })} onClick={() => { sound.playClick(); onClose(); }}>
           <span className="daysum__go-text">{summary.day < MISSION_DAYS ? t("sum.next", { day: summary.day + 1 }) : t("sum.continue")}</span>
-          <span className="daysum__count" aria-hidden="true">{secLeft}</span>
         </button>
       </div>
     </div>

@@ -56,6 +56,7 @@ function Layout(props: Props) {
   const session = useSession();
   const isNight = useGame((s) => s.isNight);
   const playing = useGame((s) => s.status === "playing");
+  const summaryOpen = !!useGameUi().summary;
   useSoundEffects();
   return (
     <div className={`game ${isNight ? "game--night" : ""}`}>
@@ -69,7 +70,8 @@ function Layout(props: Props) {
       <Summary />
       <DayBanner />
       <WrapUp />
-      <TaskToasts />
+      {/* Задания нового дня показываем только после закрытия итогов старого */}
+      {!summaryOpen && <TaskToasts />}
       <Rules />
       <ConnectionLost />
       <RotateHint />

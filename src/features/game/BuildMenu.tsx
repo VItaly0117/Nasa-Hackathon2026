@@ -118,6 +118,19 @@ export function BuildMenu({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Клик в любое место вне карточек и кнопки закрывает меню
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      const k = keyRef.current;
+      if (k.closed || k.placing) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(".card, .build-toggle")) return;
+      k.toggle();
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, []);
+
   return (
     <>
       <div className="build-dock">
