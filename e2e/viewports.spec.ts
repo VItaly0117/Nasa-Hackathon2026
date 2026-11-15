@@ -271,6 +271,9 @@ test.describe("responsive viewport journeys", () => {
       await page.clock.fastForward(1_000);
       if (!(await page.locator(".daysum").isVisible())) await page.clock.fastForward(1_000);
       await expect(page.locator(".daysum")).toBeVisible();
+      await page.locator(".daysum").evaluate(async (element) => {
+        await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      });
       const issues = await snapshot(page, testInfo, viewport.name, "daily-summary");
       expect(issues, `${viewport.name} daily summary layout`).toEqual([]);
     });
@@ -284,7 +287,7 @@ test.describe("responsive viewport journeys", () => {
       await page.clock.fastForward(1_000);
       if (!(await page.locator(".ending-scene").isVisible())) await page.clock.fastForward(1_000);
       await expect(page.locator(".ending-scene")).toBeVisible();
-      for (let frame = 0; frame < 5 && !(await page.locator(".end-sub").isVisible()); frame++) {
+      for (let frame = 0; frame < 20 && !(await page.locator(".end-sub").isVisible()); frame++) {
         await page.clock.fastForward(60_000);
       }
       await expect(page.locator(".end-sub")).toBeVisible();

@@ -63,6 +63,18 @@
   .resource__body { min-width: 0; }
   .resource__value { font-size: 17px; }
   .resource__delta, .resource__cap, .resource__warn, .resource__arrow { font-size: 12px; }
+  .resources { gap: 2px; }
+  .resource {
+    flex-direction: column;
+    gap: 1px;
+    padding: 2px;
+    text-align: center;
+  }
+  .resource > svg { width: 18px; height: 18px; flex: 0 0 18px; }
+  .resource__body { align-items: center; white-space: normal; }
+  .resource__value { font-size: 12px; line-height: 1.05; white-space: normal; }
+  .resource__cap { font-size: 12px; }
+  .resource__delta { font-size: 12px; line-height: 1.05; white-space: normal; }
   .crew__free, .crew__menu-item { min-height: 44px; }
   .hud-panel .collapse-btn { width: 44px; height: 44px; }
   .game .hud-panel.crew { width: 180px; }
@@ -78,7 +90,7 @@
   .task-toast > :first-child { width: 36px; height: 36px; }
   .task-toast__body { gap: 3px; }
   .task-toast__why { display: none; }
-  .task-toast__close { width: 44px; height: 44px; top: 2px; right: 2px; }
+  .game .task-toast__close { width: 44px; height: 44px; min-width: 44px; min-height: 44px; top: 2px; right: 2px; }
   .game .build {
     left: 200px;
     right: 250px;
@@ -121,7 +133,7 @@
 @media (max-width: 900px) {
   .game .hud-panel.crew { bottom: auto; }
   .game .task-toasts > .task-toast:nth-child(n + 2) { display: none; }
-  .game .build { left: 10px; right: 10px; bottom: 82px; max-width: none; z-index: 6; }
+  .game .build { left: 66px; right: 10px; bottom: 82px; max-width: none; z-index: 6; }
   .game .build__list {
     display: flex;
     gap: 6px;
@@ -189,22 +201,24 @@
     max-height: none;
     width: 38vw;
   }
-  .game .hud-panel.crew { top: 310px; bottom: 196px; width: 38vw; }
+  .game .hud-panel.crew { top: 440px; bottom: 230px; width: 38vw; }
   .game .side {
-    top: 310px;
+    top: 440px;
     right: 10px;
-    bottom: 196px;
+    bottom: 230px;
     width: calc(100vw - 38vw - 30px);
   }
   .game .task-toasts {
     left: 10px;
     right: 10px;
-    top: 236px;
+    top: 300px;
     width: auto;
     max-height: 66px;
     overflow-y: auto;
   }
-  .game .build { left: 66px; right: 10px; bottom: 68px; width: auto; max-width: none; height: 112px; max-height: 112px; }
+  .game .build { left: 66px; right: 10px; bottom: 86px; width: auto; max-width: none; height: 112px; max-height: 112px; }
+  .game .card { padding: 4px; }
+  .game .card svg { max-width: 40px; max-height: 40px; }
 }
 
 @media (max-height: 420px) {
@@ -217,13 +231,19 @@
   .game .card-wrap:hover .detail, .game .card-wrap:focus-within .detail { display: none; }
   .btn--icon { min-width: 44px; min-height: 44px; }
   .hud-panel .collapse-btn { width: 44px; height: 44px; }
+  .daysum__go { min-height: 44px; }
   .resource__arrow, .resource__cap, .resource__warn { font-size: 12px; }
 }
 
 @media (max-width: 700px) and (max-height: 620px) {
   .base-badge { flex: 0 1 270px; width: min(270px, 100%); }
   .resources { flex: 1 1 360px; }
-  .game .hud-panel.crew.crew--collapsed { top: 161px; }
+  .game .hud-panel.crew.crew--collapsed { top: 161px; bottom: auto; }
+  .game .build { left: 230px; }
+  .game .build { padding-top: 4px; padding-bottom: 4px; }
+  .game .card { min-height: 84px; padding: 4px; }
+  .game .card__name { min-height: 26px; font-size: 12px; }
+  .game .card svg { max-width: 36px; max-height: 36px; }
   body .zoom { gap: 6px; }
   body .zoom__btn { width: 44px; height: 44px; }
 }
