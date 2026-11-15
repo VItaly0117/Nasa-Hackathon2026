@@ -1,5 +1,5 @@
 import type { GameState, ModuleType, PlacedModule } from "../types";
-import { IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
+import { FORCE_BLOCK, FORCE_BUILD, IMAGE_SCALE, MAP_LAYOUT, MAP_ROWS, MAP_COLS, tileCenter } from "../data/map";
 import type { Terrain } from "../data/map";
 
 export type { Terrain };
