@@ -1,0 +1,176 @@
+/* ---------- Тема HUD у стилі головного меню: скляні фіолетові панелі, пілюлі, об'ємна помаранчева кнопка ----------
+   Підключається останнім у index.css, тому лише перевизначає вигляд — розмітка й логіка не змінюються. */
+:root {
+  --panel: rgba(52, 58, 116, 0.74);
+  --panel-border: rgba(190, 205, 255, 0.32);
+  --panel-shadow: 0 6px 22px rgba(6, 8, 30, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --radius: 22px;
+  --orange-1: #faaa30;
+  --orange-2: #eb9f3a;
+  --orange-3: #d98a2a;
+  --orange-edge: #a8651a;
+}
+
+/* Панелі */
+.hud-panel, .resource {
+  background: var(--panel);
+  border: 1.5px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(8px);
+}
+.hud-panel { border-radius: var(--radius); }
+.hud-title { font-weight: 900; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
+
+/* Ресурси: округлі «таблетки» */
+.resource { border-radius: 26px; }
+.resource__value { font-weight: 900; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
+.resource__tip { border-radius: 20px; background: rgba(28, 32, 82, 0.96); }
+.resource--warn { border-color: var(--orange-1); }
+.resource--danger { border-color: #ff7a7a; }
+
+/* Верхня плашка бази */
+.base-badge { border-radius: 26px; }
+.base-badge__text strong { font-weight: 900; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
+.dayclock__time { border-radius: 22px; background: rgba(20, 22, 62, 0.6); }
+.dayclock__bar { background: rgba(20, 22, 62, 0.6); }
+.dayclock__bar > div { background: linear-gradient(90deg, #8fb4ff, var(--orange-1)); }
+
+/* Кнопки-пілюлі (звук, Правила, Меню) і кнопки згортання */
+.btn--ghost, .btn--solid, .collapse-btn {
+  border-radius: 26px;
+  border: 1.5px solid rgba(190, 205, 255, 0.35);
+  background: rgba(78, 71, 119, 0.62);
+  color: var(--text);
+  box-shadow: none;
+}
+.btn--ghost:hover:not(:disabled), .btn--solid:hover:not(:disabled), .collapse-btn:hover {
+  background: rgba(98, 92, 150, 0.85);
+  border-color: rgba(220, 228, 255, 0.55);
+}
+.collapse-btn { width: 38px; height: 38px; border-radius: 50%; }
+
+/* Головна дія: об'ємна помаранчева кнопка як «Нова гра» */
+.build-toggle, .btn--primary {
+  background: linear-gradient(var(--orange-1), var(--orange-2) 70%, var(--orange-3));
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55);
+}
+.build-toggle:hover:not(:disabled), .btn--primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55);
+}
+.build-toggle:active, .btn--primary:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55);
+}
+.build-toggle--open { outline: none; box-shadow: 0 4px 0 var(--orange-edge), inset 0 -6px 0 rgba(90, 150, 40, 0.55), 0 0 0 3px rgba(255, 255, 255, 0.5); }
+.build-toggle--cancel { background: linear-gradient(#e0646c, #b84a52); box-shadow: 0 4px 0 #7d2a31, inset 0 -6px 0 rgba(0, 0, 0, 0.2); }
+.btn--on { background: var(--orange-1); color: #fff; border-color: var(--orange-1); }
+
+/* Картки модулів, екіпаж, цілі */
+.card, .crew__item, .btn--choice { border-radius: 18px; background: rgba(255, 255, 255, 0.07); }
+.card:hover:not(:disabled) { border-color: rgba(250, 170, 48, 0.7); }
+.card--selected { border-color: var(--orange-1); background: rgba(250, 170, 48, 0.16); }
+.detail { border-radius: 22px; background: rgba(28, 32, 82, 0.97); border-color: var(--panel-border); }
+.goal__bar, .crew__bar { background: rgba(20, 22, 62, 0.6); }
+.goal__bar > div { background: linear-gradient(90deg, #ffc65a, var(--orange-1)); }
+.goal__row, .task__mark { color: var(--orange-1); }
+.build-dock__hint { border-radius: 20px; background: var(--panel); border: 1.5px solid var(--panel-border); }
+
+/* Кнопки приближення на карті */
+.zoom__btn { border-radius: 16px; background: var(--panel); border: 1.5px solid var(--panel-border); }
+
+/* ---------- Підказки ресурсів ---------- */
+.resource__tip {
+  width: 320px; padding: 20px 22px; gap: 14px; border-radius: 24px;
+  background: #1c2058;
+  border: 1.5px solid rgba(190, 205, 255, 0.55);
+  box-shadow: 0 16px 40px rgba(4, 6, 26, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  font-size: 16.5px; line-height: 1.5; font-weight: 600; color: #fff;
+}
+/* Стрілочка до картки */
+.resource__tip::before {
+  content: ""; position: absolute; top: -8px; left: 50%; width: 14px; height: 14px; margin-left: -7px;
+  transform: rotate(45deg); border-radius: 3px 0 0 0;
+  background: #1c2058; border-left: 1.5px solid rgba(190, 205, 255, 0.4); border-top: 1.5px solid rgba(190, 205, 255, 0.4);
+}
+.resource:first-child .resource__tip::before { left: 40px; }
+.resource:last-child .resource__tip::before { left: auto; right: 40px; }
+.resource__tip strong {
+  align-self: flex-start; margin: 0 0 2px; padding: 4px 14px; border-radius: 16px;
+  font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(#faaa30, #eb9f3a 70%, #d98a2a); box-shadow: 0 2px 0 #a8651a;
+}
+.resource__tip p:nth-of-type(2) {
+  padding: 12px 14px; border-radius: 14px; background: #2b3074; color: #fff;
+}
+.resource__tipnote { opacity: 1; margin-top: 0; color: #ffd18a; font-size: 15px; font-weight: 800; }
+
+/* Підказки ресурсів мають бути над тостами завдань (z-index 4), але під модальними вікнами (10) */
+.topbar { z-index: 6; }
+
+/* Без тіні й розмиття позаду карток цілі та підказок */
+.hud-panel.goal, .hud-panel.task-toast { box-shadow: none; backdrop-filter: none; }
+
+/* Бічна колонка: картки не стискаються, а колонка прокручується вниз, якщо не вміщається */
+.side > * { flex-shrink: 0; }
+.side { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+
+/* Панель екіпажу не наповзає на кнопки масштабу: обмежуємо висоту й прокручуємо */
+.crew { bottom: 290px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.crew::-webkit-scrollbar { display: none; }
+@media (max-height: 620px), (max-width: 900px) {
+  .crew { bottom: 190px; }
+}
+
+/* Підказка «є ще вниз»: затемнення + стрілка внизу, поки не докрутили до кінця */
+.scroll-more::after {
+  content: "⌄"; position: sticky; bottom: 0; flex: none; display: block; height: 34px; margin-top: -34px;
+  text-align: center; font-size: 30px; line-height: 40px; font-weight: 900; color: #fff; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(30, 32, 80, 0.85));
+  border-radius: 0 0 var(--radius) var(--radius);
+  opacity: 0; transition: opacity 0.2s; animation: scroll-nudge 1.4s ease-in-out infinite;
+}
+.scroll-more[data-more="true"]::after { opacity: 1; }
+@keyframes scroll-nudge { 50% { transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .scroll-more::after { animation: none; } }
+
+/* ---------- Підсумки дня: редизайн у стилі HUD ---------- */
+.daysum {
+  width: min(700px, 96vw); border-radius: 30px; gap: clamp(12px, 2.4vh, 22px) 24px;
+  background: linear-gradient(180deg, rgba(62, 66, 132, 0.96), rgba(34, 36, 88, 0.97));
+  border: 1.5px solid var(--panel-border);
+  box-shadow: 0 24px 60px rgba(4, 6, 26, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.daysum__head { align-items: center; text-align: center; gap: 6px; }
+.daysum h2 { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #aebaf5; }
+.daysum__verdict { font-size: clamp(26px, 5vh, 36px); font-weight: 900; }
+.daysum--good .daysum__verdict { color: #ffd479; }
+.daysum--bad .daysum__verdict { color: #ffb3b3; }
+.daysum h3 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #aebaf5; }
+.daysum__res li { background: rgba(255, 255, 255, 0.07); border: 1.5px solid rgba(190, 205, 255, 0.22); border-radius: 22px; }
+.daysum__did, .daysum__next {
+  padding: 14px 16px; border-radius: 22px; background: rgba(20, 22, 62, 0.4); border: 1.5px solid rgba(190, 205, 255, 0.16);
+}
+.daysum__go { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.daysum__count {
+  display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 6px; border-radius: 15px;
+  font-size: 16px; font-weight: 900; background: rgba(0, 0, 0, 0.22); color: #fff;
+}
+/* Смуга часу — по всій ширині вікна, без обрізання по краях */
+.daysum > .daysum__bar { position: absolute; top: 0; left: 0; right: 0; width: auto; height: 7px; margin: 0; background: rgba(255, 255, 255, 0.12); }
+.daysum__bar span { background: linear-gradient(90deg, #8fb4ff, var(--orange-1)); }
+
+/* Екіпаж: компактніше, щоб усі 4 вміщались; розміри залежать від висоти екрана */
+.hud-panel.crew { width: 290px; padding: 14px; }
+.crew .crew__list { margin-top: clamp(6px, 1.2vh, 12px); gap: clamp(6px, 1.2vh, 10px); }
+.crew .crew__item { padding: clamp(6px, 1vh, 10px) 12px; gap: 12px; border-radius: 18px; }
+.crew .crew__item > svg:first-child { width: clamp(40px, 6.5vh, 54px); height: clamp(40px, 6.5vh, 54px); }
+.crew .crew__item > svg:last-child { width: 30px; height: 30px; }
+.crew .crew__info strong { font-size: 18px; }
+.crew .crew__role { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crew .crew__bar { height: 9px; margin-top: 5px; }

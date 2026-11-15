@@ -60,15 +60,13 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
 
   if (view === "server" && !SERVER_AVAILABLE) {
     return (
-      <div className="overlay">
-        <div className="modal intro menu" role="dialog" aria-labelledby="server-title">
-          <h2 id="server-title">{t("server.title")}</h2>
-          <p className="menu__hint">{t("server.staticOnly")}</p>
-          <div className="intro__actions">
-            <button type="button" className="btn btn--primary" onClick={() => setView("main")}>
-              {t("server.back")}
-            </button>
-          </div>
+      <div className="mm">
+        <div className="mm__box mm__box--modes mm__box--panel" role="dialog" aria-labelledby="server-title">
+          <h1 id="server-title" className="mm__title">{t("server.title")}</h1>
+          <p className="mm__tagline">{t("server.staticOnly")}</p>
+          <button className="mm__btn mm__btn--glass" onClick={() => { sound.playClick(); setView("main"); }}>
+            {t("server.back")}
+          </button>
         </div>
       </div>
     );
@@ -76,14 +74,13 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
 
   if (view === "server") {
     return (
-      <div className="overlay">
-        <form className="modal intro menu" aria-labelledby="server-title" onSubmit={join}>
-          <h2 id="server-title">{t("server.title")}</h2>
-          <p className="menu__hint">{t("server.hint")}</p>
-          <label className="menu__label" htmlFor="server-name">{t("server.label")}</label>
+      <div className="mm">
+        <form className="mm__box mm__box--modes mm__box--panel" aria-labelledby="server-title" onSubmit={join}>
+          <h1 id="server-title" className="mm__title">{t("server.title")}</h1>
+          <label className="mm__label" htmlFor="server-name">{t("server.label")}</label>
           <input
             id="server-name"
-            className="menu__input"
+            className="mm__input"
             value={room}
             onChange={(e) => {
               setRoom(e.target.value.trim());
@@ -99,14 +96,12 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
             aria-describedby={error ? "server-error" : undefined}
           />
           {error && <p id="server-error" className="menu__error" role="alert">{error}</p>}
-          <div className="intro__actions">
-            <button type="button" className="btn btn--ghost" onClick={() => setView("main")}>
-              {t("server.back")}
-            </button>
-            <button type="submit" className="btn btn--primary" disabled={joining || room === ""}>
-              {joining ? t("server.joining") : t("server.join")}
-            </button>
-          </div>
+          <button type="submit" className="mm__btn mm__btn--new" disabled={joining || room === ""}>
+            {joining ? t("server.joining") : t("server.join")}
+          </button>
+          <button type="button" className="mm__btn mm__btn--glass" onClick={() => { sound.playClick(); setView("main"); }}>
+            {t("server.back")}
+          </button>
         </form>
       </div>
     );
@@ -114,25 +109,21 @@ export function MainMenu({ savedDay, onLang, onNewGame, onContinue, onJoined, on
 
   if (view === "modes") {
     return (
-      <div className="overlay">
-        <div className="modal intro menu" role="dialog" aria-labelledby="modes-title">
-          <h2 id="modes-title">{t("menu.modeTitle")}</h2>
-          <div className="menu__buttons">
-            {MODE_IDS.map((id) => (
-              <button
-                key={id}
-                className="btn btn--primary menu__btn"
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}
-                onClick={() => { sound.playClick(); onNewGame(id); }}
-              >
-                <strong>{t(`mode.${id}.name`)}</strong>
-                <span style={{ fontSize: "0.8em", fontWeight: 600, opacity: 0.8 }}>{t(`mode.${id}.desc`)}</span>
-              </button>
-            ))}
-            <button className="btn btn--ghost menu__btn" onClick={() => setView("main")}>
-              {t("menu.back")}
+      <div className="mm">
+        <div className="mm__box mm__box--modes" role="dialog" aria-labelledby="modes-title">
+          <h1 id="modes-title" className="mm__title">{t("menu.modeTitle")}</h1>
+          {MODE_IDS.map((id) => (
+            <button
+              key={id}
+              className="mm__btn mm__btn--new"
+              onClick={() => { sound.playClick(); onNewGame(id); }}
+            >
+              {t(`mode.${id}.name`)}
             </button>
-          </div>
+          ))}
+          <button className="mm__btn mm__btn--glass" onClick={() => { sound.playClick(); setView("main"); }}>
+            {t("menu.back")}
+          </button>
         </div>
       </div>
     );

@@ -100,10 +100,6 @@ export function Ending({ won, onDone }: Props) {
           <Rocket flame={won && step >= 2} />
           {won && step === 2 && <span className="end-puff" />}
         </div>
-        <div className="end-rk end-rk--b">
-          <Rocket flame={won && step >= 2} />
-          {won && step === 2 && <span className="end-puff end-puff--late" />}
-        </div>
 
         <div className="end-dark" />
       </div>

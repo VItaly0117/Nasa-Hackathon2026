@@ -52,25 +52,36 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
     .join(" ")
     .split(/\s+/).length + 14;
   const seconds = Math.min(AUTO_MAX, Math.max(AUTO_MIN, Math.round(4 + wordCount * 0.4)));
-  const [paused, setPaused] = useState(false);
+  // Один источник времени: дедлайн по часам. Без паузы по наведению (из-за неё таймер «зависал»),
+  // без второй CSS-анимации, которая расходилась с JS-таймером.
   const closeRef = useRef(onClose);
   useEffect(() => {
     closeRef.current = onClose;
   });
-  const elapsed = useRef(0);
+  const [secLeft, setSecLeft] = useState(seconds);
   useEffect(() => {
-    if (paused) return;
-    const id = window.setInterval(() => {
-      elapsed.current += 0.1;
-      if (elapsed.current >= seconds) closeRef.current();
-    }, 100);
+    const end = Date.now() + seconds * 1000;
+    let done = false;
+    const tick = () => {
+      const rest = end - Date.now();
+      if (rest <= 0) {
+        if (!done) {
+          done = true;
+          closeRef.current();
+        }
+        return;
+      }
+      setSecLeft(Math.ceil(rest / 1000));
+    };
+    const id = window.setInterval(tick, 200);
     return () => window.clearInterval(id);
-  }, [paused, seconds]);
+  }, [seconds]);
 
   return (
     <div className="overlay">
       <div className={`modal daysum daysum--${verdict}`} role="dialog" aria-labelledby="daysum-title"
-        onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)}>
+        style={{ "--dur": `${seconds}s` } as React.CSSProperties}>
+        <div className="daysum__bar" aria-hidden="true"><span /></div>
         <header className="daysum__head">
           <h2 id="daysum-title">{t("sum.title", { day: summary.day })}</h2>
           <p className="daysum__verdict">{tDynamic(`sum.verdict.${verdict}`)}</p>
@@ -87,7 +98,7 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
                   <ResourceIcon type={key} size={32} />
                   <span className="daysum__res-name">{tDynamic(`res.${key}`)}</span>
                   <strong className={n > 0 ? "is-up" : n < 0 ? "is-down" : ""}>
-                    {n > 0 ? `▲ +${n}` : n < 0 ? `▼ −${Math.abs(n)}` : "•"}
+                    {n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0"}
                   </strong>
                   {left !== null && mood !== "good" && (
                     <span className="daysum__res-state">{t("sum.res.left", { days: days(left) })}</span>
@@ -133,7 +144,8 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
         )}
 
         <button className="btn btn--primary daysum__go" autoFocus onClick={onClose}>
-          {t("sum.continue")}
+          <span className="daysum__go-text">{t("sum.continue")}</span>
+          <span className="daysum__count" aria-hidden="true">{secLeft}</span>
         </button>
       </div>
     </div>
