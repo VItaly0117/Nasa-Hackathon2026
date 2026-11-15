@@ -99,7 +99,7 @@ export function Ending({ won, onDone }: Props) {
         {(["a"] as const).map((r) => (
           <div key={r} className={`end-rk end-rk--${r}`}>
             <Rocket flame={won && step >= 2} />
-            {won && step === 2 && <span className={`end-puff ${r === "b" ? "end-puff--late" : ""}`} />}
+            {won && step === 2 && <span className="end-puff" />}
             {won && step === 2 && <span className="end-trail" />}
           </div>
         ))}
