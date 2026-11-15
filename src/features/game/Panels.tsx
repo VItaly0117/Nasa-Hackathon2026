@@ -19,7 +19,10 @@ export function ResourcesContainer() {
   const resources = useGame((s) => s.resources);
   const delta = useGame(dailyDelta, shallowEqual);
   const capacity = useGame((s) => capacityOf(s.modules), shallowEqual);
-  return <ResourceBar resources={resources} delta={delta} capacity={capacity} />;
+  const isNight = useGame((s) => s.isNight);
+  // Скорость в другую фазу суток, чтобы «+6/день» днём не вводило в заблуждение ночью
+  const otherDelta = useGame((s) => dailyDelta({ ...s, isNight: !s.isNight }), shallowEqual);
+  return <ResourceBar resources={resources} delta={delta} capacity={capacity} otherDelta={otherDelta} isNight={isNight} />;
 }
 
 export function CrewContainer() {
@@ -30,7 +33,7 @@ export function CrewContainer() {
 
 export function SideContainer() {
   const view = useGame(
-    (s) => ({ day: s.day, isNight: s.isNight, pending: s.pending, tasks: s.tasks, research: s.research, log: s.log }),
+    (s) => ({ day: s.day, isNight: s.isNight, pending: s.pending, tasks: s.tasks, research: s.research, log: s.log, hasBattery: s.modules.some((m) => m.type === "battery") }),
     shallowEqual,
   );
   const send = useSend();

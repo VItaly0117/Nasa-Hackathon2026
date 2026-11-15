@@ -104,3 +104,11 @@
 @keyframes pulse {
   50% { box-shadow: 0 0 0 4px rgba(255, 122, 122, 0.3); }
 }
+
+/* Предупреждения: цвет + значок ⚠ + пульсация (цвет не единственный сигнал) */
+.resource__warn { margin-left: 6px; font-size: 0.6em; vertical-align: middle; }
+.resource--warn .resource__warn { color: var(--accent); }
+.resource--danger .resource__warn { color: #FF9B9B; }
+.resource--danger { background: rgba(255, 122, 122, 0.12); }
+.resource__arrow { font-size: 0.8em; }
+@media (prefers-reduced-motion: reduce) { .resource--danger { animation: none; } }

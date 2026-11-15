@@ -3,10 +3,11 @@ import { MISSION_DAYS, nextScheduledEvent, NIGHT_START } from "@/engine";
 import { days, t, tDynamic } from "@/i18n";
 import { formatMsg } from "@/i18n/messages";
 import { CollapseButton } from "@/ui/Collapse";
+import { useScrollMore } from "@/ui/useScrollMore";
 import { startsCollapsed, useCollapsed } from "@/ui/useCollapsed";
 
 // Что панели нужно от игры (не всё состояние, чтобы она не перерисовывалась на каждый tick)
-export type SideState = Pick<GameState, "day" | "isNight" | "pending" | "tasks" | "research" | "log">;
+export type SideState = Pick<GameState, "day" | "isNight" | "pending" | "tasks" | "research" | "log"> & { hasBattery: boolean };
 
 type Alert = { title: string; text: string; kind: "flare" | "night" | "warn" };
 
@@ -82,14 +83,15 @@ export function SidePanel({ state }: {
 }) {
   const alert = pickAlert(state);
   const progress = Math.round((state.day / MISSION_DAYS) * 100);
+  const scrollRef = useScrollMore<HTMLElement>();
   const [goalClosed, toggleGoal] = useCollapsed(startsCollapsed());
-  const [tasksClosed, toggleTasks] = useCollapsed(startsCollapsed());
   // Открытые задания экипажа: самые срочные сверху
   const openTasks = state.tasks.filter((task) => task.status === "open").sort((a, b) => a.deadline - b.deadline);
+  const nextTasks = openTasks.slice(0, 2);
   const doneCount = state.tasks.filter((task) => task.status === "done").length;
 
   return (
-    <aside className="side">
+    <aside ref={scrollRef} className="side scroll-more">
       {alert && (
         <section className={`hud-panel alert alert--${alert.kind}`} role="status">
           <div className="alert__text">
@@ -100,6 +102,7 @@ export function SidePanel({ state }: {
         </section>
       )}
 
+      {/* Одна карточка: цель + 1–2 ближайших шага */}
       <section className="hud-panel goal">
         <div className="panel-head">
           <h2 className="hud-title">
@@ -117,33 +120,29 @@ export function SidePanel({ state }: {
               <div className="goal__bar"><div style={{ width: `${progress}%` }} /></div>
               <span>{state.day} / {MISSION_DAYS}</span>
             </div>
+            <h3 className="hud-title">
+              {t("goal.next")} · {doneCount} / {state.tasks.length}
+            </h3>
+            <ul className="tasks__list">
+              {nextTasks.map((task) => (
+                <li key={task.id} className={`task ${state.day >= task.deadline ? "task--late" : ""}`}>
+                  <span className="task__mark" aria-hidden="true">{state.day >= task.deadline ? "!" : "○"}</span>
+                  <span>
+                    <strong>
+                      {tDynamic(`task.${task.id}`)} {t("tasks.until", { n: task.deadline })}
+                    </strong>
+                    <span className="task__why">{tDynamic(`crew.n${task.giver}`)}: {tDynamic(`task.${task.id}.why`)}</span>
+                  </span>
+                </li>
+              ))}
+              {nextTasks.length === 0 && (
+                <li className="task">
+                  <span className="task__mark" aria-hidden="true">💡</span>
+                  <span>{state.hasBattery ? t("goal.hint.none") : t("goal.hint.energy")}</span>
+                </li>
+              )}
+            </ul>
           </>
-        )}
-      </section>
-
-      {/* Список завдань */}
-      <section className="hud-panel tasks">
-        <div className="panel-head">
-          <h2 className="hud-title">
-            {t("tasks.title", { done: doneCount, total: state.tasks.length })}
-          </h2>
-          <CollapseButton collapsed={tasksClosed} onClick={toggleTasks} />
-        </div>
-        {!tasksClosed && (
-          <ul className="tasks__list">
-            {openTasks.map((task) => (
-              <li key={task.id} className={`task ${state.day >= task.deadline ? "task--late" : ""}`}>
-                <span className="task__mark" aria-hidden="true">{state.day >= task.deadline ? "!" : "○"}</span>
-                <span>
-                  <strong>
-                    {tDynamic(`task.${task.id}`)} {t("tasks.until", { n: task.deadline })}
-                  </strong>
-                  <span className="task__why">{tDynamic(`crew.n${task.giver}`)}: {tDynamic(`task.${task.id}.why`)}</span>
-                </span>
-              </li>
-            ))}
-            {openTasks.length === 0 && <li className="task">{t("tasks.allDone")}</li>}
-          </ul>
         )}
       </section>
     </aside>

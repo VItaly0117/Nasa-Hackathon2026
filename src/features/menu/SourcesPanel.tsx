@@ -1,37 +1,37 @@
 import sourcesData from "@/content/sources.json";
 import { t, tDynamic } from "@/i18n";
-import "@/features/results/ResultsScreen.css";
+import { sound } from "@/audio/audio";
+import "./MainMenu.css";
 
 type Source = { id: string; url: string; provider: string; inGame: boolean };
 
 const SOURCES = sourcesData as Source[];
 
-// «Данные NASA»: откуда взяты цифры и факты в игре и что с ними сделано. Нужен жюри и любопытным
+// «Данные NASA»: откуда взяты цифры и факты в игре. Оформление как у главного экрана; каждая карточка — ссылка на источник
 export function SourcesPanel({ onClose }: { onClose: () => void }) {
   return (
-    <div className="overlay">
-      <div className="modal results" role="dialog" aria-labelledby="sources-title">
-        <h2 id="sources-title">{t("sources.title")}</h2>
-        <p className="muted">{t("sources.intro")}</p>
-        <div className="results__cards">
+    <div className="mm mm--sources">
+      <div className="mm__box mm__box--sources" role="dialog" aria-labelledby="sources-title">
+        <h1 id="sources-title" className="mm__title">{t("sources.title")}</h1>
+        <p className="mm__tagline">{t("sources.intro")}</p>
+        <div className="mm__list">
           {SOURCES.map((s) => (
-            <div key={s.id} className="results__card">
+            <a
+              key={s.id}
+              className="mm__btn mm__btn--glass mm__card"
+              href={s.url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => sound.playClick()}
+            >
               <strong>{tDynamic(`source.${s.id}.name`)}</strong>
-              <p>{tDynamic(`source.${s.id}.usedFor`)}</p>
-              <small>
-                {s.provider} · {s.inGame ? t("sources.inGame") : t("sources.notYet")} ·{" "}
-                <a href={s.url} target="_blank" rel="noreferrer">
-                  {t("sources.open")}
-                </a>
-              </small>
-            </div>
+              <span>{tDynamic(`source.${s.id}.usedFor`)}</span>
+            </a>
           ))}
         </div>
-        <div className="modal__choices">
-          <button className="btn btn--primary" onClick={onClose}>
-            {t("sources.close")}
-          </button>
-        </div>
+        <button className="mm__btn mm__btn--new" onClick={() => { sound.playClick(); onClose(); }}>
+          {t("sources.close")}
+        </button>
       </div>
     </div>
   );

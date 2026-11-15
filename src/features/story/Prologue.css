@@ -90,79 +90,28 @@
 }
 @keyframes pro-puff { from { transform: scale(0.4); opacity: 0.9; } to { transform: scale(1.8) translateY(2vmin); opacity: 0; } }
 
-/* ---------- Поверхность ---------- */
-.pro-ground {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30vmin;
-  background: linear-gradient(#a7a7a2, #75756f 70%, #5b5b57);
-  border-top: 0.6vmin solid #c9c9c3;
+/* ---------- Поверхность: фон меню (moon_bg), сцена подогнана под cover ---------- */
+.scene--surface { background: #0a0d24 url("../../assets/moon_bg.svg") center top / cover no-repeat; }
+.pro-stage {
+  --sh: max(100vh, calc(100vw * 0.5196));
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  height: var(--sh); aspect-ratio: 1372 / 713;
 }
-.pro-ground::before {
-  content: "";
-  position: absolute;
-  left: 8%;
-  top: 14vmin;
-  width: 9vmin;
-  height: 3vmin;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.18);
-  box-shadow: 52vmin 4vmin 0 0.5vmin rgba(0, 0, 0, 0.14), 70vmin -2vmin 0 -0.5vmin rgba(0, 0, 0, 0.16);
-}
-.pro-pad {
-  position: absolute;
-  left: 50%;
-  top: 6vmin;
-  width: 26vmin;
-  height: 5vmin;
-  margin-left: -13vmin;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, #4a4a52 0%, #34343c 70%);
-  border: 0.5vmin solid #d9c25a;
-}
-.pro-habitat {
-  position: absolute;
-  left: calc(50% + 24vmin);
-  top: -4.4vmin;
-  width: 15vmin;
-  height: 8vmin;
-  border-radius: 15vmin 15vmin 0.6vmin 0.6vmin;
-  background: linear-gradient(#e7ecf8, #aeb9d6);
-  border: 0.4vmin solid #8591b6;
-  opacity: 0;
-  transform: scale(0.6);
-  transform-origin: bottom center;
-  transition: opacity 1s ease 1.5s, transform 1s ease 1.5s;
-}
-.pro-habitat i { position: absolute; left: 50%; top: 40%; width: 3vmin; height: 3vmin; margin-left: -1.5vmin; border-radius: 50%; background: #6ec5ff; border: 0.3vmin solid #5b6bd6; }
-.prologue--s5 .pro-habitat, .prologue--s6 .pro-habitat { opacity: 1; transform: none; }
-
-/* Садящаяся ракета */
+/* Площадка на фоне: ~35.5% по ширине, основание ракеты на ~45% высоты */
 .pro-land {
-  position: absolute;
-  left: 50%;
-  width: 11vmin;
-  margin-left: -5.5vmin;
-  bottom: 16.4vmin;
-  transform: translateY(-110vh);
+  position: absolute; left: 35.5%; bottom: calc(100% - 45.5%);
+  width: calc(var(--sh) * 0.07); margin-left: calc(var(--sh) * -0.035);
+  transform: translateY(calc(var(--sh) * -1)); opacity: 1;
 }
 .prologue--s4 .pro-land, .prologue--s5 .pro-land, .prologue--s6 .pro-land {
-  transform: translateY(0);
-  transition: transform 5.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+  transform: translateY(0); opacity: 0;
+  transition: transform 5.5s cubic-bezier(0.2, 0.6, 0.3, 1), opacity 0.6s ease 5.3s;
 }
 .pro-dust {
-  position: absolute;
-  left: 50%;
-  bottom: 3vmin;
-  width: 30vmin;
-  height: 6vmin;
-  margin-left: -15vmin;
-  border-radius: 50%;
-  background: radial-gradient(rgba(220, 220, 214, 0.8), transparent 70%);
-  opacity: 0;
-  animation: pro-dust 3s ease-out 5s forwards;
+  position: absolute; left: 35.5%; top: 43%; width: calc(var(--sh) * 0.3); height: calc(var(--sh) * 0.06);
+  margin-left: calc(var(--sh) * -0.15); border-radius: 50%;
+  background: radial-gradient(rgba(235, 225, 245, 0.85), transparent 70%);
+  opacity: 0; animation: pro-dust 3s ease-out 5s forwards;
 }
 @keyframes pro-dust { 0% { opacity: 0.9; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.6); } }
 
@@ -187,8 +136,8 @@
   max-width: 980px;
   text-align: center;
   font-size: clamp(18px, 2.6vw, 30px);
-  line-height: 1.5;
-  flex: 1;
+  line-height: 1.4;
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   font-weight: 700;
@@ -205,6 +154,7 @@
 .prologue__dots li.is-on { background: var(--accent, #ffd166); transform: scale(1.3); }
 .prologue__actions { display: flex; gap: 16px; min-height: 52px; }
 
+
 /* ---------- Конец игры: ракета летит домой ---------- */
 .ending { text-align: center; }
 .ending__rocket { width: 54px; margin: 0 auto 14px; animation: pro-lift 1.4s ease-in-out infinite alternate; }
@@ -216,3 +166,38 @@
   .prologue__stars i, .rocket-svg__flame, .pro-smoke, .pro-dust, .ending__rocket { animation: none; }
   .prologue__timer > div { animation-duration: 0.01s !important; }
 }
+
+/* ================= Стиль главного меню ================= */
+.prologue { background: radial-gradient(ellipse at 50% 20%, #1b2260 0%, #0a0d24 65%, #05061a 100%); }
+.pro-earth { background: radial-gradient(circle at 35% 30%, #6fc0ff, #2f73d6 55%, #14418f 100%); box-shadow: 0 0 0 1.2vmin rgba(120, 170, 255, 0.18), 0 0 7vmin rgba(110, 180, 255, 0.5); }
+.pro-earth__land { background: #6e9a5a; box-shadow: inset -1vmin -0.8vmin 0 rgba(60, 90, 50, 0.45); }
+.pro-moon { background: radial-gradient(circle at 35% 30%, #efeaf3, #b9b1c4 60%, #8a8296 100%); box-shadow: 0 0 6vmin rgba(200, 190, 255, 0.35); }
+.pro-moon__crater { background: rgba(80, 70, 110, 0.22); box-shadow: inset 0.5vmin 0.5vmin 0 rgba(255, 255, 255, 0.25); }
+
+.prologue__bar {
+  left: 50%; right: auto; width: min(760px, 92vw); transform: translateX(-50%);
+  bottom: 14px; height: auto; min-height: calc(var(--bar-h) - 14px); max-height: calc(100vh - 28px);
+  padding-top: 26px; padding-bottom: 28px; gap: 24px; justify-content: center;
+  border: 1.5px solid rgba(190, 205, 255, 0.32); border-radius: 28px;
+  background: rgba(40, 46, 104, 0.68); backdrop-filter: blur(10px);
+  box-shadow: 0 10px 34px rgba(4, 6, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.prologue__text { font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+.prologue__dots li { width: 11px; height: 11px; background: rgba(190, 205, 255, 0.3); }
+.prologue__dots li.is-done { background: rgba(255, 255, 255, 0.65); }
+.prologue__dots li.is-on { background: #faaa30; box-shadow: 0 0 10px rgba(250, 170, 48, 0.7); }
+.prologue__timer { height: 8px; border-radius: 4px; background: rgba(20, 22, 62, 0.6); }
+.prologue__timer > div { background: linear-gradient(90deg, #ffc65a, #faaa30); border-radius: 4px; }
+
+.pro-btn {
+  min-height: 52px; padding: 0 28px; border-radius: 26px; border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: #fff; font: inherit; font-size: 18px; font-weight: 800; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  cursor: pointer; transition: transform 0.08s, filter 0.15s;
+}
+.pro-btn:hover { filter: brightness(1.1); }
+.pro-btn:active { transform: translateY(3px); }
+.pro-btn:focus-visible { outline: 3px solid #faaa30; outline-offset: 3px; }
+.pro-btn--glass { background: rgba(78, 71, 119, 0.7); border-color: rgba(190, 205, 255, 0.35); }
+.pro-btn--next, .pro-btn--go { background: linear-gradient(#faaa30, #eb9f3a 70%, #d98a2a); box-shadow: 0 4px 0 #a8651a, inset 0 -6px 0 rgba(90, 150, 40, 0.55); }
+.pro-btn--next:active, .pro-btn--go:active { box-shadow: 0 1px 0 #a8651a, inset 0 -6px 0 rgba(90, 150, 40, 0.55); }
+.scene { inset: 0; }
