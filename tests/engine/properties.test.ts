@@ -202,6 +202,14 @@ describe("engine properties under seeded action sequences", () => {
     }
   }, 60_000);
 
-  it.todo("build is a no-op after mission end (known bug: seed=44 step=421 appended a solar module after the game ended)");
+  it("build is a no-op after mission end", () => {
+    // Раньше build после конца миссии добавлял модуль (seed 44, шаг 421). Теперь, как repair и research, он ничего не меняет
+    const ended = { ...initialState(44), status: "lost" as const };
+    for (const module of ["solar", "greenhouse", "habitat"] as const) {
+      expect(reduce(ended, { type: "build", slot: 163, module })).toBe(ended);
+    }
+    const won = { ...initialState(44), status: "won" as const };
+    expect(reduce(won, { type: "build", slot: 163, module: "solar" })).toBe(won);
+  });
   it.todo("round-trips completed missions (loadGame intentionally returns null unless status is playing)");
 });

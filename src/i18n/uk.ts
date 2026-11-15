@@ -192,7 +192,7 @@ export const uk: Record<keyof typeof ru, string> = {
   "res.tip.health.what": "Як почуваються астронавти.",
   "res.tip.health.use": "Якщо впаде до 0, місія провалена.",
   "res.tip.left": "Вистачить на {days}.",
-  "res.tip.cap": "",
+  "res.tip.cap": "Склад повний: усе зайве пропадає. Склад або батарея додадуть місця.",
 
   "crew.title": "Екіпаж ({n})",
   "crew.aria": "Екіпаж",
