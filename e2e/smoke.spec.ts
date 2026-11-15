@@ -9,7 +9,7 @@ test("игра запускается, идёт время, модуль стр�
 
   // экипаж просит о задании, и список заданий виден
   await expect(page.getByText("Поставь солнечные панели")).toBeVisible();
-  await expect(page.getByText(/Задачи · 0 \/ \d+/)).toBeVisible();
+  await expect(page.getByText(/до дня \d+/).first()).toBeVisible();
 
   // таймер дня идёт
   const timer = page.getByRole("timer");
