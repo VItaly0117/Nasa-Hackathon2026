@@ -1,20 +1,28 @@
 import eventsData from "@/content/events.json";
 import type { EventDef } from "@/types";
-import { t, tDynamic } from "@/i18n";
-import { describeFlare, describeRadiation } from "@/i18n/messages";
+import { tDynamic } from "@/i18n";
 import { sound } from "@/audio/audio";
 import { useGame, useSend } from "@/session/hooks";
 import { shallowEqual } from "@/session/store";
 import { useGameUi } from "./ui-state";
 import { Avatar } from "./CrewPanel";
 import { CREW } from "@/ui/crewData";
+import { FlareBadgeIcon, BreakdownBadgeIcon, AlertBadgeIcon } from "@/ui/icons";
 
 const EVENTS = eventsData as EventDef[];
+
+const CHOICE_ICONS: Record<string, string> = {
+  hide: "🛡️",
+  work: "⚡",
+  repair: "🔧",
+  ignore: "⏳",
+  treat: "💊",
+};
 
 // Тексты событий лежат в словарях i18n: ev.<id>.title / .text / .<choice>.label / .<choice>.hint
 // Цены выборов лежат в events.json (тип EventDef в types.ts)
 export function EventModal() {
-  const { activeEvent, illness, flare } = useGame((s) => ({ activeEvent: s.activeEvent, illness: s.illness, flare: s.flare }), shallowEqual);
+  const { activeEvent, illness } = useGame((s) => ({ activeEvent: s.activeEvent, illness: s.illness }), shallowEqual);
   const send = useSend();
   const ui = useGameUi();
   // Пока открыты итоги дня, событие ждёт: сначала итоги, потом новое решение
@@ -24,26 +32,43 @@ export function EventModal() {
   // Кто заболел: портрет и имя, как при просьбе о задании
   const person = event.id === "illness" && illness ? CREW.find((c) => c.id === illness.crewId) : undefined;
 
+  const renderBadge = () => {
+    if (event.id === "illness" && person) {
+      return (
+        <div className="modal__portrait">
+          <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
+        </div>
+      );
+    }
+    if (event.id === "flare") {
+      return (
+        <div className="modal__badge modal__badge--flare" aria-hidden="true">
+          <FlareBadgeIcon size={44} />
+        </div>
+      );
+    }
+    if (event.id === "breakdown") {
+      return (
+        <div className="modal__badge modal__badge--breakdown" aria-hidden="true">
+          <BreakdownBadgeIcon size={44} />
+        </div>
+      );
+    }
+    return (
+      <div className="modal__badge" aria-hidden="true">
+        <AlertBadgeIcon size={44} />
+      </div>
+    );
+  };
+
   return (
     <div className="overlay">
       <div className="modal modal--event" role="dialog" aria-labelledby="event-title">
-        {event.id !== "illness" && <div className="modal__badge" aria-hidden="true">⚠️</div>}
-        {person && (
-          <div className="modal__portrait">
-            <Avatar skin={person.skin} hair={person.hair} long={person.long} mood={-1} />
-          </div>
-        )}
+        {renderBadge()}
         <h2 id="event-title">{tDynamic(`ev.${event.id}.title`)}</h2>
-        <p>{tDynamic(`ev.${event.id}.text`, { name: illness ? tDynamic(`crew.n${illness.crewId}`) : "" })}</p>
-        {event.id === "flare" && flare && (
-          <p className="muted source">
-            {t("ev.flare.source", { flare: describeFlare(flare) })}{" "}
-            <a href={flare.link} target="_blank" rel="noreferrer">
-              {flare.source}
-            </a>
-          </p>
-        )}
-        {event.id === "flare" && flare && <p className="muted source">{describeRadiation(flare)}</p>}
+        <p className="modal--event__description">
+          {tDynamic(`ev.${event.id}.text`, { name: illness ? tDynamic(`crew.n${illness.crewId}`) : "" })}
+        </p>
         <div className="modal__choices">
           {event.choices.map((choice, i) => (
             <button
@@ -54,8 +79,13 @@ export function EventModal() {
                 send({ type: "resolveEvent", choice: choice.id });
               }}
             >
-              <strong>{tDynamic(`ev.${event.id}.${choice.id}.label`)}</strong>
-              <span className="muted">{tDynamic(`ev.${event.id}.${choice.id}.hint`)}</span>
+              <div className="btn--choice-header">
+                <span className="btn--choice-icon" aria-hidden="true">
+                  {CHOICE_ICONS[choice.id] ?? "👉"}
+                </span>
+                <strong className="btn--choice-title">{tDynamic(`ev.${event.id}.${choice.id}.label`)}</strong>
+              </div>
+              <span className="btn--choice-hint">{tDynamic(`ev.${event.id}.${choice.id}.hint`)}</span>
             </button>
           ))}
         </div>

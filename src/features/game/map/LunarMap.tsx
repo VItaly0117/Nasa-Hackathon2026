@@ -7,7 +7,7 @@ import { IMAGE_SIZE, MAP_W, MAP_H, TILE_W, TILE_H, tileCenter } from "@/content/
 import { moduleName, t, tDynamic } from "@/i18n";
 import { ArtDefs, Ice, ModuleArt } from "./art";
 import { ART_HEIGHT } from "./art-size";
-import moonBg from "@/assets/moon_bg.svg";
+import { MapBackground } from "./MapBackground";
 import { Walkers } from "./Walkers";
 import type { WalkTarget } from "./Walkers";
 import "./LunarMap.css";
@@ -162,6 +162,7 @@ export default function LunarMap({
   const stageRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<View>({ x: 0, y: 0, k: START_ZOOM });
   const rafRef = useRef(0);
+  const idleTimer = useRef<number | undefined>(undefined);
   const [smooth, setSmooth] = useState(false);
   const smoothTimer = useRef<number | undefined>(undefined);
 
@@ -174,6 +175,11 @@ export default function LunarMap({
     const v = viewRef.current;
     stage.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.k})`;
     stage.style.setProperty("--inv-k", String(1 / v.k));
+    // Пока камера движется, сцена — готовая GPU-текстура (дорогой SVG-фон не перерисовывается каждый кадр).
+    // После паузы слой снимается, и карта перерисовывается чётко в новом масштабе
+    stage.classList.add("map-stage--moving");
+    window.clearTimeout(idleTimer.current);
+    idleTimer.current = window.setTimeout(() => stage.classList.remove("map-stage--moving"), 180);
   }, []);
 
   const apply = useCallback(
@@ -188,6 +194,7 @@ export default function LunarMap({
     () => () => {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
+      window.clearTimeout(idleTimer.current);
     },
     []
   );
@@ -314,7 +321,11 @@ export default function LunarMap({
       const dx = pts[0].x - g.startX;
       const dy = pts[0].y - g.startY;
       if (!g.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      if (!g.moved) e.currentTarget.setPointerCapture(e.pointerId);
+      if (!g.moved) {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        // пока тащим карту, браузеру не нужно искать, над какой клеткой курсор
+        e.currentTarget.classList.add("map-frame--dragging");
+      }
       g.moved = true;
       apply({ ...g.startView, x: g.startView.x + dx, y: g.startView.y + dy });
     } else if (pts.length >= 2) {
@@ -331,6 +342,7 @@ export default function LunarMap({
   const onPointerEnd = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
     if (pointers.current.size > 0) beginGesture();
+    else e.currentTarget.classList.remove("map-frame--dragging");
   };
 
   const moduleAt = (row: number, col: number) =>
@@ -413,7 +425,7 @@ export default function LunarMap({
             stroke={buildType ? "#ffffff" : "none"}
             strokeOpacity="0.14"
             onClick={() => handleSelect(tile)}
-            onMouseEnter={() => setHovered(tile)}
+            onMouseEnter={buildType ? () => setHovered(tile) : undefined}
             style={{ cursor: buildType ? "crosshair" : "pointer" }}
           />
         );
@@ -494,6 +506,8 @@ export default function LunarMap({
           className={`map-stage ${smooth ? "map-stage--smooth" : ""}`}
           style={{ width: MAP_W, height: MAP_H }}
         >
+          {/* Слой 1: фоновая картинка — небо, Земля, горы, кратеры, лёд, площадка с ракетой */}
+          <MapBackground imageWidth={IMAGE_SIZE.width} imageHeight={IMAGE_SIZE.height} width={MAP_W} height={MAP_H} />
           <svg
             viewBox={`0 0 ${MAP_W} ${MAP_H}`}
             width={MAP_W}
@@ -504,13 +518,7 @@ export default function LunarMap({
           >
             <ArtDefs />
 
-            {/* Слой 1: фоновая картинка — небо, Земля, горы, кратеры, лёд, площадка с ракетой */}
-            <image
-              href={moonBg}
-              width={IMAGE_SIZE.width}
-              height={IMAGE_SIZE.height}
-              preserveAspectRatio="none"
-            />
+            {/* Слой 1 (фон) вынесен под SVG: см. MapBackground */}
 
             {/* Слой 2: невидимые клетки, по которым кликают. В режиме стройки видна сетка */}
             {tileLayer}

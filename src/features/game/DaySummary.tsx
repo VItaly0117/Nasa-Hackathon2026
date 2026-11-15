@@ -77,7 +77,6 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
         </header>
 
         <section aria-label={t("sum.res.title")}>
-          <h3>{t("sum.res.title")}</h3>
           <ul className="daysum__res">
             {VITAL.map((key) => {
               const left = summary.runway[key];
@@ -85,7 +84,7 @@ export function DaySummary({ summary, onClose }: { summary: Summary; onClose: ()
               const n = summary.deltas[key];
               return (
                 <li key={key} className={`is-${mood}`}>
-                  <ResourceIcon type={key} size={38} />
+                  <ResourceIcon type={key} size={32} />
                   <span className="daysum__res-name">{tDynamic(`res.${key}`)}</span>
                   <strong className={n > 0 ? "is-up" : n < 0 ? "is-down" : ""}>
                     {n > 0 ? `▲ +${n}` : n < 0 ? `▼ −${Math.abs(n)}` : "•"}

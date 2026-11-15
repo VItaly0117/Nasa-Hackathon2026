@@ -13,9 +13,17 @@
 .map-frame:active { cursor: grabbing; }
 
 .map-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.map-stage--moving { will-change: transform; }
 .map-stage--smooth { transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.3, 1); }
 
-.map-svg { display: block; }
+.map-svg { display: block; position: absolute; left: 0; top: 0; }
+.map-bg { display: block; position: absolute; left: 0; top: 0; pointer-events: none; transition: opacity 0.3s; }
+.map-frame--dragging .map-svg { pointer-events: none; }
+
+/* Пока камера движется, бесконечные анимации на карте стоят: меньше перерисовок */
+.map-stage--moving .tile-ok,
+.map-stage--moving .tile-ice-survey,
+.map-stage--moving .build-pulse { animation-play-state: paused; }
 
 .tile-ok { animation: tile-pulse 1.4s ease-in-out infinite; }
 .tile-ice-survey { fill: #56d8ff; fill-opacity: 0.42; stroke: #b8f2ff; stroke-width: 4px; animation: tile-pulse 1.1s ease-in-out infinite; }

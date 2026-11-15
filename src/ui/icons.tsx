@@ -84,3 +84,55 @@ export function SoundOffIcon({ size = 18 }: { size?: number }) {
     </svg>
   );
 }
+
+// Иконки событий (минималистичные и понятные детям)
+export function FlareBadgeIcon({ size = 40 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} fill="none" aria-hidden="true">
+      <circle cx="20" cy="20" r="11" fill="#ffa726" />
+      <circle cx="20" cy="20" r="8" fill="#ff7043" />
+      <circle cx="17.5" cy="17.5" r="2.5" fill="#ffe082" opacity="0.9" />
+      <g stroke="#ffa726" strokeWidth="2.8" strokeLinecap="round">
+        <line x1="20" y1="3" x2="20" y2="6" />
+        <line x1="20" y1="34" x2="20" y2="37" />
+        <line x1="3" y1="20" x2="6" y2="20" />
+        <line x1="34" y1="20" x2="37" y2="20" />
+        <line x1="8" y1="8" x2="10.5" y2="10.5" />
+        <line x1="29.5" y1="29.5" x2="32" y2="32" />
+        <line x1="8" y1="32" x2="10.5" y2="29.5" />
+        <line x1="29.5" y1="10.5" x2="32" y2="8" />
+      </g>
+    </svg>
+  );
+}
+
+export function BreakdownBadgeIcon({ size = 40 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} fill="none" aria-hidden="true">
+      <path
+        d="M27 9 a 6.5 6.5 0 0 1 -4.2 8.5 l -9.5 9.5 a 2.5 2.5 0 0 1 -3.5 -3.5 l 9.5 -9.5 a 6.5 6.5 0 0 1 7.7 -5 z"
+        fill="#4fc3f7"
+        stroke="#81d4fa"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="12.5" cy="27.5" r="1.8" fill="#1d2a5c" />
+    </svg>
+  );
+}
+
+export function AlertBadgeIcon({ size = 40 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} fill="none" aria-hidden="true">
+      <path
+        d="M20 5 L36 33 C37 35 35.5 37 33.5 37 L6.5 37 C4.5 37 3 35 4 33 L20 5 Z"
+        fill="#f5b83d"
+        stroke="#ffe082"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <rect x="18.5" y="16" width="3" height="9" rx="1.5" fill="#3b2405" />
+      <circle cx="20" cy="30" r="1.7" fill="#3b2405" />
+    </svg>
+  );
+}
