@@ -118,6 +118,37 @@ async function postAction(
   });
 }
 
+async function readStreamEvents(response: Response): Promise<unknown[]> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("The event stream has no readable body.");
+  }
+
+  const decoder = new TextDecoder();
+  const events: unknown[] = [];
+  let pending = "";
+
+  try {
+    while (!events.some((event) => (event as { type?: string }).type === "players")) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      pending += decoder.decode(value, { stream: true });
+      const frames = pending.split("\n\n");
+      pending = frames.pop() ?? "";
+
+      for (const frame of frames) {
+        const data = frame.split("\n").find((line) => line.startsWith("data: "));
+        if (data) events.push(JSON.parse(data.slice("data: ".length)) as unknown);
+      }
+    }
+  } finally {
+    await reader.cancel();
+  }
+
+  return events;
+}
+
 function engineActionTypes(): string[] {
   const source = readFileSync(TYPES_PATH, "utf8");
   const lines = source.split("\n");
@@ -182,6 +213,27 @@ describe("HTTP room server", () => {
     expect(hostTickResponse.status).toBe(200);
   });
 
+  it("SSE reconnect with from=N replays only actions after that index", async () => {
+    const roomName = uniqueRoomName();
+    const host = await joinRoom(roomName);
+    const firstAction = await postAction(roomName, host.playerId, { type: "tick", ms: 100 });
+    const secondAction = await postAction(roomName, host.playerId, { type: "tick", ms: 200 });
+
+    expect(firstAction.status).toBe(200);
+    expect(secondAction.status).toBe(200);
+
+    const response = await fetch(
+      `${baseUrl}/api/rooms/${roomName}/events?player=${host.playerId}&from=1`,
+    );
+    expect(response.status).toBe(200);
+
+    const events = await readStreamEvents(response);
+
+    expect(events).toContainEqual({ type: "action", action: { type: "tick", ms: 200 } });
+    expect(events).not.toContainEqual({ type: "action", action: { type: "tick", ms: 100 } });
+    expect(events.at(-1)).toMatchObject({ type: "players" });
+  });
+
   it("Сервер пропускает все действия движка: tick, build, repair, research, resolveEvent", async () => {
     const roomName = uniqueRoomName();
     const host = await joinRoom(roomName);
@@ -217,4 +269,7 @@ describe("HTTP room server", () => {
   it("keeps online action types synchronized with the engine action union", () => {
     expect([...ACTION_TYPES].sort()).toEqual(engineActionTypes());
   });
+
+  it.todo("the fifth player is rejected once all four room roles are occupied");
+  it.todo("a retried duplicate action is rejected and is not broadcast twice");
 });

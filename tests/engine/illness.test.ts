@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import type { GameState, ModuleType, PlacedModule } from "../../src/types";
+import { describe, expect, it, vi } from "vitest";
+import type { Action, GameState, ModuleType, PlacedModule } from "../../src/types";
 import {
   BUILD_MS,
   DAY_MS,
@@ -31,15 +31,21 @@ const IGNORE_HEALTH_COST = 5;
 const WAITING_BUILD_MS = 5_000;
 const RESUME_BUILD_MS = 100;
 
-function tryBuild(state: GameState, type: ModuleType): GameState {
+function firstBuildAction(state: GameState, type: ModuleType): Action | undefined {
   for (let row = 0; row < MAP_ROWS; row++) {
     for (let col = 0; col < MAP_COLS; col++) {
       if (canPlace(state, type, row, col)) {
-        return reduce(state, { type: "build", slot: slotOf(row, col), module: type });
+        return { type: "build", slot: slotOf(row, col), module: type };
       }
     }
   }
 
+  return undefined;
+}
+
+function tryBuild(state: GameState, type: ModuleType): GameState {
+  const action = firstBuildAction(state, type);
+  if (action) return reduce(state, action);
   return state;
 }
 
@@ -47,6 +53,18 @@ function illnessDuringConstruction(seed: number): GameState {
   const secondDay = reduce(initialState(seed), { type: "tick", ms: DAY_MS });
   const building = tryBuild(secondDay, "solar");
   return reduce(building, { type: "tick", ms: BUILD_MS });
+}
+
+function illnessJournal(seed: number): Action[] {
+  const dayAction: Action = { type: "tick", ms: DAY_MS };
+  const secondDay = reduce(initialState(seed), dayAction);
+  const buildAction = firstBuildAction(secondDay, "solar");
+
+  if (!buildAction) {
+    throw new Error("No valid solar build action was found.");
+  }
+
+  return [dayAction, buildAction, { type: "tick", ms: BUILD_MS }];
 }
 
 function findIllnessSeed(): number {
@@ -100,6 +118,26 @@ describe("illness", () => {
     expect(sick.clockMs).toBeLessThan(DAY_MS);
   });
 
+  it("Повтор по seed и журналу действий даёт то же состояние и журнал болезни", () => {
+    const seed = findIllnessSeed();
+    const actions = illnessJournal(seed);
+    const replayed = actions.reduce((state, action) => reduce(state, action), initialState(seed));
+
+    expect(replayed).toEqual(illnessState());
+    expect(replayed.log.at(-1)).toMatchObject({ key: "log.illness" });
+  });
+
+  it("Сценарий болезни не использует незасеянный Math.random", () => {
+    const random = vi.spyOn(Math, "random");
+    try {
+      illnessState();
+    } finally {
+      random.mockRestore();
+    }
+
+    expect(random).not.toHaveBeenCalled();
+  });
+
   it("Вылечить: −10 воды и −8 еды, стройка продолжается тем же человеком", () => {
     const sick = illnessState();
     const patientId = sick.illness?.crewId;
@@ -141,15 +179,47 @@ describe("illness", () => {
     expect(patientStatus).toEqual({ kind: "sick", leftMs: MEDBAY_ILLNESS_MS });
   });
 
-  it("Через 2 дня больной выздоравливает и снова свободен", () => {
+  it("Больной остаётся недееспособен до конца срока, затем выздоравливает", () => {
     const sick = illnessState();
     const patientId = sick.illness?.crewId;
     const ignored = reduce(sick, { type: "resolveEvent", choice: "ignore" });
-    const recovered = reduce(ignored, { type: "tick", ms: UNTREATED_ILLNESS_MS });
+    const stillSick = reduce(ignored, { type: "tick", ms: UNTREATED_ILLNESS_MS - 1 });
+    const recovered = reduce(stillSick, { type: "tick", ms: 1 });
+    const statusBeforeRecovery = stillSick.crew.find((crewMember) => crewMember.id === patientId)?.status;
+    expect(statusBeforeRecovery).toEqual({ kind: "sick", leftMs: 1 });
+
     const patientStatus = recovered.crew.find((crewMember) => crewMember.id === patientId)?.status;
 
     expect(patientStatus?.kind).toBe("free");
   });
+
+  it("Больной не может начать новую стройку, даже когда остальные заняты", () => {
+    const sick = illnessState();
+    const patientId = sick.illness?.crewId;
+    const ignored = reduce(sick, { type: "resolveEvent", choice: "ignore" });
+    const noHealthyBuilders: GameState = {
+      ...ignored,
+      resources: { ...ignored.resources, materials: 100 },
+      crew: ignored.crew.map((crewMember) =>
+        crewMember.id === patientId
+          ? crewMember
+          : {
+              ...crewMember,
+              status: { kind: "building", slot: 1_000 + crewMember.id, module: "solar" },
+            },
+      ),
+    };
+    const action = firstBuildAction(noHealthyBuilders, "solar");
+
+    if (!action) {
+      throw new Error("No valid solar build action was found.");
+    }
+
+    expect(reduce(noHealthyBuilders, action)).toBe(noHealthyBuilders);
+    expect(noHealthyBuilders.crew.find((crewMember) => crewMember.id === patientId)?.status.kind).toBe("sick");
+  });
+
+  it.todo("Больной не выполняет ремонт и задачи до выздоровления (действия пока не связаны с конкретным членом экипажа)");
 
   it("Если некому подхватить, стройка стоит и время её не идёт", () => {
     const sick = illnessState();
