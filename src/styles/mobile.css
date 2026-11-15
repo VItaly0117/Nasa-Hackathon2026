@@ -632,3 +632,27 @@
 @media (prefers-reduced-motion: reduce) {
   .overlay, .overlay > .modal, .overlay > .daysum, .crew .crew__list, .goal .panel-head ~ *, .mm, .mm .btn, .mm h1 { animation: none !important; }
 }
+
+/* ===== 8. Главное меню на телефоне ===== */
+/* портрет: «Язык» и «Звук» делят строку поровну и не вылезают за экран */
+@media (max-width: 600px) {
+  .mm .mm__row { width: 100%; display: flex; gap: 8px; }
+  .mm .mm__row .mm__pill { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; gap: 6px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mm .mm__row .mm__pill svg { flex: none; }
+}
+/* низкий ландшафт: без логотипа и подзаголовка, кнопки в две колонки, всё помещается без прокрутки */
+@media (max-height: 420px) and (orientation: landscape) {
+  .mm { padding: calc(6px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(12px + env(safe-area-inset-left, 0px)); }
+  .mm .mm__box:not(.mm__box--sources):not(.mm__box--panel) {
+    width: min(640px, 100%);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    align-items: center;
+  }
+  .mm .mm__box > svg, .mm .mm__box > .mm__tagline { display: none; }
+  .mm .mm__box > .mm__title, .mm .mm__box > .mm__row, .mm .mm__box > form, .mm .mm__box > p { grid-column: 1 / -1; }
+  .mm .mm__box > .mm__title { font-size: 24px; margin: 0; }
+  .mm .mm__box--modes .mm__title { margin-bottom: 0; }
+  .mm .mm__btn { min-height: 46px; font-size: 16px; }
+}
