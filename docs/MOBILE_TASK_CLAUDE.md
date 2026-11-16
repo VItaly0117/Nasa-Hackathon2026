@@ -1,6 +1,6 @@
 # Задача: довести мобильную версию до идеала (для Claude Code друга)
 
-Репозиторий: `sohodolly/Qcold-team-Nasa-Hackathon2026-`. Перед началом прочитай `README.md`, `docs/ARCHITECTURE.md`, `docs/COPILOT_TASK_4.md` и `src/styles/responsive.css`. Игра: React 19 + Vite, вся раскладка на CSS, карта на SVG.
+Репозиторий: `VItaly0117/Nasa-Hackathon2026`. Перед началом прочитай `README.md`, `docs/ARCHITECTURE.md`, `docs/COPILOT_TASK_4.md` и `src/styles/responsive.css`. Игра: React 19 + Vite, вся раскладка на CSS, карта на SVG.
 
 ## Порядок работы
 

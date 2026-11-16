@@ -28,7 +28,7 @@ jobs:
           cache: npm
       - run: npm ci
       # Сайт живёт не в корне, а в папке с именем репозитория
-      - run: npm run build -- --base=/Qcold-team-Nasa-Hackathon2026-/
+      - run: npm run build -- --base=/Nasa-Hackathon2026/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

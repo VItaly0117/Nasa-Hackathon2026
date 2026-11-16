@@ -4,15 +4,15 @@
 
 ### Build a base on the Moon. Keep four astronauts alive for 20 days. Learn real NASA science on the way.
 
-**NASA Space Apps Hackathon 2026 · Team Qcold**
+**NASA Space Apps Hackathon 2026**
 
-[![CI](https://github.com/sohodolly/Qcold-team-Nasa-Hackathon2026-/actions/workflows/ci.yml/badge.svg)](https://github.com/sohodolly/Qcold-team-Nasa-Hackathon2026-/actions/workflows/ci.yml)
+[![CI](https://github.com/VItaly0117/Nasa-Hackathon2026/actions/workflows/ci.yml/badge.svg)](https://github.com/VItaly0117/Nasa-Hackathon2026/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-brightgreen)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-GPL-blue.svg)](LICENSE)
 
-### [▶ Play the live demo](https://sohodolly.github.io/Qcold-team-Nasa-Hackathon2026-/) · [📊 Presentation](Moonbase.pptx)
+### [▶ Play the live demo](https://vitaly0117.github.io/Nasa-Hackathon2026/) · [📊 Presentation](Moonbase.pptx)
 
 <img src="docs/screenshots/game.png" alt="Moonbase: the lunar base with the build menu, crew panel and current goal" width="820" />
 
@@ -87,8 +87,8 @@ The whole game runs in the browser. The only server is an optional ~300-line Nod
 ### Install
 
 ```bash
-git clone https://github.com/sohodolly/Qcold-team-Nasa-Hackathon2026-.git
-cd Qcold-team-Nasa-Hackathon2026-
+git clone https://github.com/VItaly0117/Nasa-Hackathon2026.git
+cd Nasa-Hackathon2026
 npm install
 ```
 
@@ -368,7 +368,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request:
 
 ## 11. Deployment
 
-Every push to `main` triggers `.github/workflows/deploy.yml`: `npm ci`, `npm run build -- --base=/Qcold-team-Nasa-Hackathon2026-/`, then publish `dist/` to GitHub Pages. The static site is solo-only. For cooperative play, run `npm run server` on any machine with Node 22 and serve the built `dist/` behind a reverse proxy that forwards `/api` to port 8787.
+Every push to `main` triggers `.github/workflows/deploy.yml`: `npm ci`, `npm run build -- --base=/Nasa-Hackathon2026/`, then publish `dist/` to GitHub Pages. The static site is solo-only. For cooperative play, run `npm run server` on any machine with Node 22 and serve the built `dist/` behind a reverse proxy that forwards `/api` to port 8787.
 
 ---
 
@@ -386,7 +386,7 @@ Every push to `main` triggers `.github/workflows/deploy.yml`: `npm ci`, `npm run
 
 ## 13. Team and license
 
-Made by **Team Qcold** for the **NASA Space Apps Hackathon 2026**.
+Made for the **NASA Space Apps Hackathon 2026**.
 Released under the GNU General Public License, see [`LICENSE`](LICENSE).
 
 NASA data is used under NASA's open data policy; this project is not affiliated with or endorsed by NASA.

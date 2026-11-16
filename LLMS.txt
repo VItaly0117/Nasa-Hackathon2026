@@ -1,6 +1,6 @@
 # Moonbase — LLM & AI Agent Context Guide
 
-> This repository is Moonbase, a 20-day Moon base survival simulation developed for NASA Space Apps Hackathon 2026 by team Qcold.
+> This repository is Moonbase, a 20-day Moon base survival simulation developed for NASA Space Apps Hackathon 2026.
 
 ## Critical Instructions for LLMs & AI Coding Agents
 1. **DO NOT scan or read all project files.** Complete, unambiguous technical documentation is provided in:
